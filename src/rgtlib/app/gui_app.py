@@ -15,11 +15,11 @@ class PySideApp(QObject):
 
     def _initialize_models(self):
         """Initialize the models and providers used by the QML engine."""
-        self._ui_engine.addImageProvider("imageProvider", self._image_provider)
+        # self._ui_engine.addImageProvider("imageProvider", self._image_provider)
 
     def _initialize_controllers(self):
         """Initialize the controllers used by the QML engine."""
-        self._ui_engine.rootContext().setContextProperty("mainController", self._ctrl)
+        # self._ui_engine.rootContext().setContextProperty("mainController", self._ctrl)
 
     def __init__(self):
         super().__init__()
