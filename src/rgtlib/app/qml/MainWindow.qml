@@ -7,7 +7,7 @@ import "layouts"
 ApplicationWindow {
     id: mainWindow
     width: 1024
-    height: 824
+    height: 768
     visible: true
     title: "ResponseGT"//projectController.get_app_title();
     font.family: "Arial"  // or Qt.application.font.family
@@ -30,7 +30,7 @@ ApplicationWindow {
             Layout.column: 0
             Layout.leftMargin: 10
             Layout.rightMargin: 5
-            Layout.preferredHeight: parent.height - 40
+            Layout.preferredHeight: parent.height - 10
             Layout.preferredWidth: 300
             color: "#f0f0f0"
             LeftLayout {}
@@ -42,7 +42,7 @@ ApplicationWindow {
             Layout.row: 0
             Layout.column: 1
             Layout.rightMargin: 10
-            Layout.preferredHeight: parent.height - 40
+            Layout.preferredHeight: parent.height - 10
             Layout.preferredWidth: parent.width - 300
             Layout.fillWidth: true
             color: "#f0f0f0"

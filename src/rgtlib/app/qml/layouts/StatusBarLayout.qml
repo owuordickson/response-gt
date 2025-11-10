@@ -10,9 +10,9 @@ import QtQuick.Controls.Imagine as Imagine
 Rectangle {
     id: statusBar
     width: parent.width
-    height: 72
-    color: "#f0f0f0"
-    border.color: "#d0d0d0"
+    height: 40
+    color: "#e0e0e0"
+    //border.color: "#d0d0d0"
 
     ColumnLayout {
         anchors.fill: parent
