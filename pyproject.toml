@@ -1,1 +1,48 @@
+[build-system]
+requires = ["setuptools >= 80.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
+[project]
+name = "rgtlib"
+dynamic = ["version"]
+dependencies = [
+  "numpy==2.2.6",
+  "pandas==2.3.1",
+  "PySide6==6.9.1",
+]
+requires-python = ">=3.12"
+authors = [
+  {name = "	William Stephenson", email = "willste@umich.edu"},
+  {name = "Xiaoming Mao", email = "maox@umich.edu"},
+  {name = "Dickson Owuor", email = "owuordickson@gmail.com"},
+  {name = "Nicholas Kotov", email = "kotov@umich.edu"}
+]
+
+description = "A software tool for response analysis of graph networks."
+readme =  "README.md"
+license = {file = "LICENSE"}
+keywords = ["nano-particles", "nano-structures", "graph-theory"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+
+[project.scripts]
+StructuralGT = "rgtlib.entrypoints:main_gui"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
+include = ["*"]  # package names should match these glob patterns (["*"] by default)
+exclude = ["tests*"]  # exclude packages matching these glob patterns (empty by default)
+namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
+
+[tool.setuptools.dynamic]
+version = {attr = "rgtlib.__version__"}
