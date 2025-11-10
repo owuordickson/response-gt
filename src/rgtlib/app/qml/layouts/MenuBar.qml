@@ -5,7 +5,7 @@ import QtQuick.Controls
 MenuBar {
 
     Menu {
-        title: projectController.get_sgt_title()
+        title: "ResponseGT"//projectController.get_app_title();
         MenuItem { text: "&About"; }//onTriggered: dialogAbout.open(); }
         MenuItem { id:mnuHelp; text: "ResponseGT Help"; enabled: true; }//onTriggered: dialogAbout.open() }
         MenuSeparator{}
@@ -15,9 +15,17 @@ MenuBar {
         title: "File"
         Menu {
             id: mnuImportGraphFrom
-            title: "Import graph from..."
-            MenuItem {id: mnuImportCSV; text:"CSV (adj. matrix, edge list, xyz)"; enabled: true; }//onTriggered: graphFileDialog.open()}
-            MenuItem {id: mnuImportGSD; text:"GSD/HOOMD"; enabled: true; }//onTriggered: graphFileDialog.open()}
+            title: "Import network from..."
+            MenuItem {id: mnuImportNodes; text:"Vertex Positions (CSV)"; enabled: true; }//onTriggered: graphFileDialog.open()}
+            MenuItem {id: mnuImportEdges; text:"Edge List (CSV)"; enabled: true; }//onTriggered: graphFileDialog.open()}
+        }
+        MenuSeparator{}
+
+        Menu {
+            id: mnuExportResponseAs
+            title: "Export as..."
+            MenuItem {id:mnuExportEdges; text: "Response U"; enabled: false; onTriggered: console.log("Export U") }
+            MenuItem {id:mnuExportNodes; text: "Response V"; enabled: false; onTriggered: console.log("Export I") }
         }
     }
 
