@@ -7,15 +7,11 @@ import numpy as np
 from scipy.sparse import csc_array
 from scipy.sparse.linalg import spsolve
 from scipy.sparse import diags
-#Used for reading certain networks
-# import gsd.hoomd
-import freud
 #Just used for plotting/testing
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.collections import LineCollection
 # from matplotlib.colors import Normalize
-from StructuralGT.networks import Network
 import time
 import pandas as pd
 #==========================================================================

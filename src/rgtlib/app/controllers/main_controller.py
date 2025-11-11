@@ -14,6 +14,7 @@ from ... import __version__, __title__
 
 
 class MainController(QObject):
+
     _waitChanged = Signal()
     _waitTextChanged = Signal()
     errorSignal = Signal(str)
