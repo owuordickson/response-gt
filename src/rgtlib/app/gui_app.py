@@ -10,6 +10,7 @@ from PySide6.QtCore import QObject
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
+from .controllers.main_controller import MainController
 
 class PySideApp(QObject):
 
@@ -19,14 +20,15 @@ class PySideApp(QObject):
 
     def _initialize_controllers(self):
         """Initialize the controllers used by the QML engine."""
-        # self._ui_engine.rootContext().setContextProperty("mainController", self._ctrl)
+        self._ui_engine.rootContext().setContextProperty("mainController", self._ctrl)
+        self._ui_engine.rootContext().setContextProperty("networkController", self._ctrl.network_ctrl)
 
     def __init__(self):
         super().__init__()
         self.app = QApplication(sys.argv)
         self._ui_engine = QQmlApplicationEngine()
         ## Register Controller for Dynamic Updates
-        # self._ctrl = MainController(qml_app=self.app)
+        self._ctrl = MainController(qml_app=self.app)
         ## Register Image Provider
         #self._image_provider = ImageProvider(self._ctrl)
         self._qml_file = 'qml/MainWindow.qml'

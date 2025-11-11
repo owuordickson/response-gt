@@ -5,7 +5,7 @@ import QtQuick.Controls
 MenuBar {
 
     Menu {
-        title: "ResponseGT"//projectController.get_app_title();
+        title: mainController.get_app_title();
         MenuItem { text: "&About"; }//onTriggered: dialogAbout.open(); }
         MenuItem { id:mnuHelp; text: "ResponseGT Help"; enabled: true; }//onTriggered: dialogAbout.open() }
         MenuSeparator{}

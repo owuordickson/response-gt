@@ -9,7 +9,7 @@ ApplicationWindow {
     width: 1024
     height: 768
     visible: true
-    title: "ResponseGT"//projectController.get_app_title();
+    title: mainController.get_app_title();
     font.family: "Arial"  // or Qt.application.font.family
     color: "#f0f0f0"
 

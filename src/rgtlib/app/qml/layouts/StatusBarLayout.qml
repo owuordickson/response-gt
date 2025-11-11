@@ -68,7 +68,7 @@ Rectangle {
             Label {
                 id: lblVersion
                 Layout.alignment: Qt.AlignLeft
-                text: projectController.get_sgt_version()
+                text: mainController.get_app_version()
                 visible: !mainController.is_task_running()
                 Layout.fillWidth: true
                 color: "#2266ff"
