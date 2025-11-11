@@ -41,7 +41,6 @@ Rectangle {
                 Layout.preferredWidth: 135
                 //Layout.preferredHeight: 32
                 text: "Vertex positions"
-                //padding: 5
                 enabled: true
                 //onClicked: imageFileDialog.open()
             }
@@ -51,59 +50,11 @@ Rectangle {
                 Layout.preferredWidth: 115
                 //Layout.preferredHeight: 32
                 text: "Edge list"
-                //padding: 5
                 enabled: true
                 //onClicked: imageFileDialog.open()
             }
-
-            /*Button {
-                id: btnAddNodes
-                Layout.preferredWidth: 100
-                Layout.preferredHeight: 32
-                text: ""
-                enabled: true
-                //onClicked: imageFileDialog.open()
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 5
-                    color: "#808080"
-
-                    Label {
-                        text: "Vertex positions"
-                        color: "white"
-                        font.bold: true
-                        font.pixelSize: 10
-                        anchors.centerIn: parent
-                    }
-                }
-            }
-
-            Button {
-                id: btnAddEdges
-                Layout.preferredWidth: 100
-                Layout.preferredHeight: 32
-                text: ""
-                enabled: false
-                //onClicked: imageFileDialog.open()
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 5
-                    color: "#808080"
-
-                    Label {
-                        text: "Edge list"
-                        color: "white"
-                        font.bold: true
-                        font.pixelSize: 10
-                        anchors.centerIn: parent
-                    }
-                }
-            }*/
 
         }
-
 
     }
 

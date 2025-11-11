@@ -11,6 +11,7 @@ Rectangle {
     GridLayout {
         anchors.fill: parent
         columns: 1
+        rows: 1
 
         NetworkView{}
 

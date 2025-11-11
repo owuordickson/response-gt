@@ -9,6 +9,6 @@ Rectangle {
     Layout.fillHeight: true
     color: "transparent"
     clip: true  // Ensures only the selected area is visible
-    visible: true //imageController.display_image()
+    visible: false //imageController.display_image()
 
 }
