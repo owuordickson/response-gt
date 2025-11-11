@@ -5,6 +5,7 @@ Pyside6 (GUI components) main controller class.
 
 import os
 import logging
+import sgtlib.modules as sgt
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Signal, Slot, QObject
 
@@ -41,12 +42,75 @@ class MainController(QObject):
         # Create Persistent Workers (Processes)
         self._rgt_worker = None #PersistentProcessWorker()
 
+    def _cancel_loading(self):
+        pass
+
     def cleanup_workers(self):
         """Stop all persistent workers before app exit."""
         self.showAlertSignal.emit("Important Alert", "Please wait as we safely close the app...")
         for worker in [self._rgt_worker]:
             if worker:
                 worker.stop()
+
+    def handle_progress_update(self, status_data: sgt.ProgressData) -> None:
+        """
+        Handler function for progress updates for ongoing GT tasks.
+        Args:
+            status_data: ProgressData object that contains the percentage and status message of the current task.
+
+        Returns:
+
+        """
+
+        if status_data is None:
+            return
+
+        if 0 <= status_data.percent <= 100:
+            self.updateProgressSignal.emit(status_data.percent, status_data.message)
+            logging.info(f"({status_data.sender}) {status_data.percent}%: {status_data.message}", extra={'user': 'SGT Logs'})
+
+        if status_data.type == "info":
+            self.updateProgressSignal.emit(101, status_data.message)
+            logging.info(f"({status_data.sender}) {status_data.message}", extra={'user': 'SGT Logs'})
+        elif status_data.type == "error":
+            self.errorSignal.emit(status_data.message)
+            logging.exception(f"({status_data.sender}) {status_data.message}", extra={'user': 'SGT Logs'})
+
+    def handle_finished(self, success_val: bool, result: None | sgt.TaskResult) -> None:
+        """
+        Handler function for sending updates/signals on termination of tasks.
+        Args:
+            success_val: True if the task was successful, False otherwise.
+            result: The result of the task.
+        Returns:
+            None
+        """
+        self._cancel_loading()
+        if not success_val:
+            if type(result) is list:
+                logging.info(result[0] + ": " + result[1], extra={'user': 'SGT Logs'})
+                self.taskTerminatedSignal.emit(success_val, result)
+        else:
+            if isinstance(result, sgt.TaskResult):
+                self.stop_current_task(cancel_job=False)
+                if result.task_id == "Export Graph" or result.task_id == "Save Images":
+                    # Saving files to Output Folder
+                    self.handle_progress_update(sgt.ProgressData(percent=100, sender="GT", message=f"Files Saved!"))
+                    #self.taskTerminatedSignal.emit(success_val, ["Files Saved", result.message])
+                if result.task_id == "Compute GT":
+                    self.handle_progress_update(sgt.ProgressData(percent=100, sender="GT", message=f"GT PDF successfully generated! Check it out in 'Output Dir'."))
+                    #self.update_sgt_obj(result.data)
+                    #sgt_obj = self.get_selected_sgt_obj()
+                    # Sync models and refresh image
+                    #self.syncModelSignal.emit(sgt_obj)
+                    # Send task termination signal to QML
+                    #self.taskTerminatedSignal.emit(True, ["GT calculations completed", "The image's GT parameters have been calculated. Check out generated PDF in 'Output Dir'."])
+            else:
+                self.taskTerminatedSignal.emit(success_val, [])
+
+    def submit_job(self):
+        """"""
+        pass
 
     @Slot(result=str)
     def get_about_details(self):
@@ -66,16 +130,15 @@ class MainController(QObject):
     def stop_current_task(self, cancel_job: bool = True):
         """Stop a background thread and its associated worker."""
         # self.showAlertSignal.emit("Important Alert", "Cancelling job, please wait...")
-        """if cancel_job:
-            self.handle_progress_update(
-                ProgressData(percent=99, sender="GT", message="Cancelling job, please wait..."))
+        if cancel_job:
+            self.handle_progress_update(ProgressData(percent=99, sender="GT", message="Cancelling job, please wait..."))
         else:
             # Restart Process after 3 tasks
             if self._rgt_worker.task_count < 3:
                 return
         self._rgt_worker.stop()
         self._rgt_worker = PersistentProcessWorker()
-        self.handle_finished(True, None)"""
+        self.handle_finished(True, None)
 
     @Slot(result=bool)
     def is_task_running(self):
