@@ -30,5 +30,9 @@ MenuBar {
     }
 
 
+    Connections {
+        //target:
+    }
+
 }
 

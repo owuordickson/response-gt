@@ -83,50 +83,6 @@ Rectangle {
                 color: "#2266ff"
             }
 
-            Basic.Button {
-                id: btnNotify
-                text: ""
-                icon.source: "../assets/icons/notify_icon.png"
-                icon.width: 21
-                icon.height: 21
-                background: Rectangle { color: "transparent" }
-                ToolTip.text: "Check for updates"
-                ToolTip.visible: btnNotify.hovered
-                onClicked: drpDownNotify.open()
-                enabled: true
-                visible: !mainController.is_task_running()
-
-                Popup {
-                    id: drpDownNotify
-                    width: 128
-                    height: 64
-                    modal: false
-                    focus: true
-                    x: -60
-                    y: -60
-                    background: Rectangle {
-                        color: "#f0f0f0"
-                        border.color: "#d0d0d0"
-                        border.width: 1
-                        radius: 2
-                    }
-
-                    ColumnLayout {
-                        anchors.fill: parent
-
-                        Label {
-                            id: lblNotifyMsg
-                            font.pixelSize: 10
-                            wrapMode: Text.Wrap
-                            textFormat: Text.RichText  // Enable HTML formatting
-                            onLinkActivated: (link) => Qt.openUrlExternally(link)  // Opens links in default browser
-                            text: projectController.get_software_download_details()
-                        }
-                    }
-
-                }
-
-            }
         }
         */
     }
@@ -148,7 +104,6 @@ Rectangle {
             lblStatusMsg.visible = mainController.is_task_running();
             progressBar.visible = mainController.is_task_running();
             btnCancel.visible = mainController.is_task_running();
-            btnNotify.visible = !mainController.is_task_running();
             btnCancel.enabled = mainController.is_task_running();
         }
 
@@ -161,7 +116,6 @@ Rectangle {
             lblStatusMsg.visible = mainController.is_task_running();
             progressBar.visible = mainController.is_task_running();
             btnCancel.visible = mainController.is_task_running();
-            btnNotify.visible = !mainController.is_task_running();
             btnCancel.enabled = mainController.is_task_running();
         }
 
@@ -181,23 +135,10 @@ Rectangle {
                 dialogAlert.open();
             }
 
-            const updates_available = projectController.check_for_updates();
-            lblNotifyMsg.text = projectController.get_software_download_details();
-            if (updates_available) {
-                btnNotify.icon.source = "../assets/icons/notify_active_icon.png";
-                btnNotify.icon.width = 28;
-                btnNotify.icon.height = 28;
-            } else {
-                btnNotify.icon.source = "../assets/icons/notify_icon.png";
-                btnNotify.icon.width = 21;
-                btnNotify.icon.height = 21;
-            }
-
             lblVersion.visible = !mainController.is_task_running();
             lblStatusMsg.visible = mainController.is_task_running();
             progressBar.visible = mainController.is_task_running();
             btnCancel.visible = mainController.is_task_running();
-            btnNotify.visible = !mainController.is_task_running();
             btnCancel.enabled = mainController.is_task_running();
         }
 

@@ -9,6 +9,41 @@ Rectangle {
     Layout.fillHeight: true
     color: "transparent"
     clip: true  // Ensures only the selected area is visible
-    visible: false //imageController.display_image()
+    visible: true //imageController.display_image()
+
+
+    Flickable {
+        id: flickableArea
+        anchors.fill: parent
+        contentWidth: imgView.width * imgView.scale
+        contentHeight: imgView.height * imgView.scale
+        //clip: true
+        flickableDirection: Flickable.HorizontalAndVerticalFlick
+
+        ScrollBar.vertical: ScrollBar {
+            id: vScrollBar
+            policy: flickableArea.contentHeight > flickableArea.height ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+        }
+        ScrollBar.horizontal: ScrollBar {
+            id: hScrollBar
+            policy: flickableArea.contentWidth > flickableArea.width ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+        }
+
+        Image {
+            id: imgView
+            width: flickableArea.width
+            height: flickableArea.height
+            anchors.centerIn: parent
+            transformOrigin: Item.Center
+            fillMode: Image.PreserveAspectFit
+            source: ""
+            visible: false
+        }
+
+    }
+
+    Connections {
+        //target:
+    }
 
 }

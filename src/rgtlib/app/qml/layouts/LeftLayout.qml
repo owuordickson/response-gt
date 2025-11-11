@@ -12,7 +12,20 @@ Rectangle {
     ColumnLayout {
         anchors.fill: parent
 
+        Label {
+            id: lblNoNetwork
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            text: "No graph network to show!\nUpload CSV files of vertex/node\n positions and edge list."
+            color: "#808080"
+            visible: false//!imageController.display_image()
+        }
 
+
+    }
+
+
+    Connections {
+        //target:
     }
 
 }

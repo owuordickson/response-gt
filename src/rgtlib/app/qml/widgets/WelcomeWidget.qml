@@ -8,7 +8,7 @@ Rectangle {
     Layout.fillWidth: true
     Layout.fillHeight: true
     color: "transparent"
-    visible: true //!imageController.display_image()
+    visible: false //!imageController.display_image()
 
     ColumnLayout {
         anchors.centerIn: parent
@@ -56,6 +56,11 @@ Rectangle {
 
         }
 
+    }
+
+
+    Connections {
+        //target:
     }
 
 }
