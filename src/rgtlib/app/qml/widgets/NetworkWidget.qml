@@ -9,7 +9,7 @@ Rectangle {
     Layout.fillHeight: true
     color: "transparent"
     clip: true  // Ensures only the selected area is visible
-    visible: true //imageController.display_image()
+    visible: mainController.display_image()
 
 
     Flickable {
@@ -43,7 +43,11 @@ Rectangle {
     }
 
     Connections {
-        //target:
+        target: mainController
+
+        function onImageChangedSignal() {
+            // Force refresh
+        }
     }
 
 }

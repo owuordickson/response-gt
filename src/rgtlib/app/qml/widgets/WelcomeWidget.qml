@@ -8,7 +8,7 @@ Rectangle {
     Layout.fillWidth: true
     Layout.fillHeight: true
     color: "transparent"
-    visible: false //!imageController.display_image()
+    visible: !mainController.display_image()
 
     ColumnLayout {
         anchors.centerIn: parent
@@ -60,7 +60,13 @@ Rectangle {
 
 
     Connections {
-        //target:
+        target: mainController
+
+        function onImageChangedSignal() {
+            // Force refresh
+            welcomeContainer.visible = !mainController.display_image();
+        }
+
     }
 
 }
