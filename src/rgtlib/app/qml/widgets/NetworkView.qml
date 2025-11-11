@@ -8,4 +8,10 @@ ColumnLayout {
     Layout.fillHeight: true
     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
+    // The welcome view
+    WelcomeWidget{}
+
+    // The network container
+    NetworkWidget{}
+
 }
