@@ -11,8 +11,8 @@ from PySide6.QtCore import Signal, Slot, QObject
 from .network_controller import NetworkController
 from ... import __version__, __title__
 
-class MainController(QObject):
 
+class MainController(QObject):
     _waitChanged = Signal()
     _waitTextChanged = Signal()
     errorSignal = Signal(str)
@@ -49,3 +49,22 @@ class MainController(QObject):
     def get_app_version(self):
         """"""
         return f"v{__version__}"
+
+    @Slot(int)
+    def stop_current_task(self, cancel_job: bool = True):
+        """Stop a background thread and its associated worker."""
+        # self.showAlertSignal.emit("Important Alert", "Cancelling job, please wait...")
+        """if cancel_job:
+            self.handle_progress_update(
+                ProgressData(percent=99, sender="GT", message="Cancelling job, please wait..."))
+        else:
+            # Restart Process after 3 tasks
+            if self._rgt_worker.task_count < 3:
+                return
+        self._rgt_worker.stop()
+        self._rgt_worker = PersistentProcessWorker()
+        self.handle_finished(True, None)"""
+
+    @Slot(result=bool)
+    def is_task_running(self):
+        return self._wait_flag

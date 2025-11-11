@@ -10,7 +10,7 @@ import QtQuick.Controls.Imagine as Imagine
 Rectangle {
     id: statusBar
     width: parent.width
-    height: 40
+    height: 64
     color: "#e0e0e0"
     //border.color: "#d0d0d0"
 
@@ -18,7 +18,6 @@ Rectangle {
         anchors.fill: parent
         spacing: 2
 
-        /*
         // First Row: Progress Bar
         RowLayout {
             Layout.fillWidth: true // Make the row take the full width of the column
@@ -52,7 +51,7 @@ Rectangle {
                 onClicked: {
                     btnCancel.visible = false;
                     lblStatusMsg.text = "initiating abort...";
-                    mainController.stop_current_task(1);
+                    mainController.stop_current_task();
                 }
             }
         }
@@ -84,10 +83,9 @@ Rectangle {
             }
 
         }
-        */
+
     }
 
-    /*
     Connections {
         target: mainController
 
@@ -143,5 +141,4 @@ Rectangle {
         }
 
     }
-    */
 }
