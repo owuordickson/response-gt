@@ -49,6 +49,11 @@ class MainController(QObject):
                 worker.stop()
 
     @Slot(result=str)
+    def get_about_details(self):
+        about_str = f"""{__title__} v{__version__}"""
+        return about_str
+
+    @Slot(result=str)
     def get_app_title(self):
         return f"{__title__}"
 
