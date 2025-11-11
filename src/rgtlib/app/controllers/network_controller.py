@@ -5,10 +5,14 @@ Pyside6 (GUI components) controller class for network retrieval and computations
 
 import numpy as np
 import logging
-from PySide6.QtCore import Slot, QObject
+from PySide6.QtCore import Signal, Slot, QObject
 
 
 class NetworkController(QObject):
+
+
+    changeImageSignal = Signal()
+    imageChangedSignal = Signal()
 
     def __init__(self, controller_obj, parent: QObject = None):
         super().__init__(parent)

@@ -9,7 +9,7 @@ Rectangle {
     Layout.fillHeight: true
     color: "transparent"
     clip: true  // Ensures only the selected area is visible
-    visible: mainController.display_image()
+    visible: networkController.display_image()
 
 
     Flickable {
@@ -42,8 +42,10 @@ Rectangle {
 
     }
 
+
+
     Connections {
-        target: mainController
+        target: networkController
 
         function onImageChangedSignal() {
             // Force refresh

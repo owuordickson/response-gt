@@ -8,7 +8,7 @@ Rectangle {
     Layout.fillWidth: true
     Layout.fillHeight: true
     color: "transparent"
-    visible: !mainController.display_image()
+    visible: !networkController.display_image()
 
     ColumnLayout {
         anchors.centerIn: parent
@@ -60,11 +60,11 @@ Rectangle {
 
 
     Connections {
-        target: mainController
+        target: networkController
 
         function onImageChangedSignal() {
             // Force refresh
-            welcomeContainer.visible = !mainController.display_image();
+            welcomeContainer.visible = !networkController.display_image();
         }
 
     }

@@ -5,7 +5,7 @@ Pyside6 (GUI components) main controller class.
 
 import os
 import logging
-import sgtlib.modules as sgt
+#from sgtlib import modules as sgt
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Signal, Slot, QObject
 
@@ -18,8 +18,6 @@ class MainController(QObject):
     _waitTextChanged = Signal()
     errorSignal = Signal(str)
     showAlertSignal = Signal(str, str)
-    changeImageSignal = Signal()
-    imageChangedSignal = Signal()
     syncModelSignal = Signal(object)
     updateProgressSignal = Signal(int, str)
     taskTerminatedSignal = Signal(bool, list)
@@ -52,7 +50,7 @@ class MainController(QObject):
             if worker:
                 worker.stop()
 
-    def handle_progress_update(self, status_data: sgt.ProgressData) -> None:
+    def handle_progress_update(self, status_data): #sgt.ProgressData) -> None:
         """
         Handler function for progress updates for ongoing GT tasks.
         Args:
@@ -76,7 +74,7 @@ class MainController(QObject):
             self.errorSignal.emit(status_data.message)
             logging.exception(f"({status_data.sender}) {status_data.message}", extra={'user': 'SGT Logs'})
 
-    def handle_finished(self, success_val: bool, result: None | sgt.TaskResult) -> None:
+    def handle_finished(self, success_val: bool, result): #None | sgt.TaskResult) -> None:
         """
         Handler function for sending updates/signals on termination of tasks.
         Args:

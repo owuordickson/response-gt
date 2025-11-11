@@ -9,7 +9,7 @@ ColumnLayout {
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignTop
     enabled: false
-    visible: true
+    visible: networkController.display_image()
 
 
     Text {
@@ -22,7 +22,7 @@ ColumnLayout {
 
 
     Connections {
-        target: mainController
+        target: networkController
 
         function onImageChangedSignal() {
             // Force refresh
