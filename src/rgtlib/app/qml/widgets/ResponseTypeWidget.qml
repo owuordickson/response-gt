@@ -8,6 +8,7 @@ ColumnLayout {
     Layout.preferredHeight: 250
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignTop
+    enabled: false//!imageController.display_image()
     visible: true
 
 
