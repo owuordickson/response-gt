@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "../widgets"
 
 Rectangle {
     width: parent.width
@@ -20,6 +21,14 @@ Rectangle {
             visible: false//!imageController.display_image()
         }
 
+
+        ResponseTypeWidget{}
+
+
+        ImposedNodesWidget{}
+
+
+        MaterialPropertyWidget{}
 
     }
 
