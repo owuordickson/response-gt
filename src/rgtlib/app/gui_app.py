@@ -38,7 +38,7 @@ class PySideApp(QObject):
         self._initialize_controllers()
 
         ## Cleanup when the app is closing
-        # self.app.aboutToQuit.connect(self._ctrl.cleanup_workers)
+        self.app.aboutToQuit.connect(self._ctrl.cleanup_workers)
 
         # Load UI
         # Get the directory of the current script

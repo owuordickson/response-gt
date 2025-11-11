@@ -39,7 +39,14 @@ class MainController(QObject):
         self.network_ctrl = NetworkController(self)
 
         # Create Persistent Workers (Processes)
-        # self._rgt_worker = PersistentProcessWorker()
+        self._rgt_worker = None #PersistentProcessWorker()
+
+    def cleanup_workers(self):
+        """Stop all persistent workers before app exit."""
+        self.showAlertSignal.emit("Important Alert", "Please wait as we safely close the app...")
+        for worker in [self._rgt_worker]:
+            if worker:
+                worker.stop()
 
     @Slot(result=str)
     def get_app_title(self):
