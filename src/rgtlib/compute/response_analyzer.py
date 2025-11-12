@@ -87,7 +87,7 @@ class ResponseAnalyzer(ProgressUpdate):
             :returns: the incidence matrix of the network, where rows are directed edges and columns are vertices
             """
 
-            # We first initialize lists, to which we will append the row, column, and value of the non-zero elements that will fill our sparse C array
+            # We first initialize lists, to which we will append the row, column, and value of the non-zero elements that will fill our sparse incidence array
             c_rows = []
             c_cols = []
             c_vals = []
@@ -155,97 +155,96 @@ class ResponseAnalyzer(ProgressUpdate):
         leak_resistivity = 1000000000
 
         num_selected = int(given_potential_fraction * num_vertices)
-        C = incidence_matrix() # The incidence matrix of the network, where rows are directed edges and columns are vertices
-        R_list = resistivity * np.ones(len(edge_list)) # The array of resistance for each EDGE
-        L_list = inductance * np.ones(len(edge_list))  # The array of inductance for each EDGE
-        C_list = capacitance * np.ones(num_vertices - 2 * num_selected) # The array of capacitance for each NODE that is NOT given an applied potential. nodes are taken to be capacitors connected to a grounded potential (0).
-        RL_list = leak_resistivity * np.ones(num_vertices - 2 * num_selected) # The array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
+        c_mat = incidence_matrix() # The incidence matrix of the network, where rows are directed edges and columns are vertices
+        res_list = resistivity * np.ones(len(edge_list)) # The array of resistance for each EDGE
+        ind_list = inductance * np.ones(len(edge_list))  # The array of inductance for each EDGE
+        cap_list = capacitance * np.ones(num_vertices - 2 * num_selected) # The array of capacitance for each NODE that is NOT given an applied potential. nodes are taken to be capacitors connected to a grounded potential (0).
+        leak_res_list = leak_resistivity * np.ones(num_vertices - 2 * num_selected) # The array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
         omega = given_potential_frequency # The angular frequency of applied alternating potential
         ua_list, va_list = imposed_potential_response() # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
 
-        N = (C[0].shape)[0]  # Number of vertices in the graph
-        va_list = np.array(va_list,
-                           dtype=int)  # numpy array of vertices that have a forced potential, casting to int in case given as float
-        Na = int(len(va_list))  # number of vertices in va_list
-        Nb = int(N - Na)  # number of vertices in vb_list
+        vertices_count = c_mat[0].shape[0]  # Number of vertices in the graph
+        va_list = np.array(va_list, dtype=int)  # numpy array of vertices that have a forced potential, casting to int in case given as float
+        va_vertices_count = int(len(va_list))  # number of vertices in va_list
+        vb_vertices_count = int(vertices_count - va_vertices_count)  # number of vertices in vb_list
 
-        sparseY = diags(1 / (
-                    R_list + 1j * omega * L_list))  # diags(1/(rho+1j*omega*inductance)*np.ones(len(edges))) #Y=(R+iwL)^-1, admittance matrix
-        CT = C.T  # transpose of incidence matrix
-        sparseD = CT @ sparseY @ C  # sparse version of the dynamical matrix
+        admittance_mat = diags(1 / (res_list + 1j * omega * ind_list))  # diags(1/(rho+1j*omega*inductance)*np.ones(len(edges))) #Y=(R+iwL)^-1, admittance matrix
+        c_mat_transposed = c_mat.T  # transpose of incidence matrix
+        dynamical_mat = c_mat_transposed @ admittance_mat @ c_mat  # sparse version of the dynamical matrix
 
-        isA_list = np.zeros(N)  # auxiliary array where the value stored at an index is 1 if that index is in va_list
+        auxiliary_mat = np.zeros(vertices_count)  # auxiliary array where the value stored at an index is 1 if that index is in va_list
         for vert in va_list:
-            isA_list[vert] = 1
+            auxiliary_mat[vert] = 1
         vb_list = []
-        for i in range(N):  # constructing vb_list in O(n) time
-            if isA_list[i] == 0:
+        for i in range(vertices_count):  # constructing vb_list in O(n) time
+            if auxiliary_mat[i] == 0:
                 vb_list.append(i)
 
-        A_index_list = np.zeros(N)
+        aux_a_index_list = np.zeros(vertices_count)
         for i in range(len(va_list)):
-            A_index_list[va_list[i]] = i
-        B_index_list = np.zeros(N)
+            aux_a_index_list[va_list[i]] = i
+
+        aux_b_index_list = np.zeros(vertices_count)
         for i in range(len(vb_list)):
-            B_index_list[vb_list[i]] = i
+            aux_b_index_list[vb_list[i]] = i
 
-        sparseD_coo = sparseD.tocoo()
-        sparseD_as_list = np.column_stack((sparseD_coo.row, sparseD_coo.col, sparseD_coo.data))
+        dynamical_mat_coo = dynamical_mat.tocoo()
+        dynamical_mat_as_list = np.column_stack((dynamical_mat_coo.row, dynamical_mat_coo.col, dynamical_mat_coo.data))
 
-        aaRows = []
-        aaCols = []
-        aaVals = []
+        aa_rows = []
+        aa_cols = []
+        aa_vals = []
 
-        bbRows = []
-        bbCols = []
-        bbVals = []
+        bb_rows = []
+        bb_cols = []
+        bb_vals = []
 
-        baRows = []
-        baCols = []
-        baVals = []
+        ba_rows = []
+        ba_cols = []
+        ba_vals = []
 
-        for elem in sparseD_as_list:
+        for elem in dynamical_mat_as_list:
             x = int(np.real(elem[0]))
             y = int(np.real(elem[1]))
             val = elem[2]
 
-            if isA_list[x] == 1:
-                if isA_list[y] == 1:  # Daa
-                    sp_x = int(A_index_list[x])
-                    sp_y = int(A_index_list[y])
-                    aaRows.append(sp_x)
-                    aaCols.append(sp_y)
-                    aaVals.append(val)
+            if auxiliary_mat[x] == 1:
+                if auxiliary_mat[y] == 1:  # Daa
+                    sp_x = int(aux_a_index_list[x])
+                    sp_y = int(aux_a_index_list[y])
+                    aa_rows.append(sp_x)
+                    aa_cols.append(sp_y)
+                    aa_vals.append(val)
             else:
-                if isA_list[y] == 0:  # Dbb
-                    sp_x = int(B_index_list[x])
-                    sp_y = int(B_index_list[y])
-                    bbRows.append(sp_x)
-                    bbCols.append(sp_y)
-                    bbVals.append(val)
+                if auxiliary_mat[y] == 0:  # Dbb
+                    sp_x = int(aux_b_index_list[x])
+                    sp_y = int(aux_b_index_list[y])
+                    bb_rows.append(sp_x)
+                    bb_cols.append(sp_y)
+                    bb_vals.append(val)
                 else:  # Dba
-                    sp_x = int(B_index_list[x])
-                    sp_y = int(A_index_list[y])
-                    baRows.append(sp_x)
-                    baCols.append(sp_y)
-                    baVals.append(val)
+                    sp_x = int(aux_b_index_list[x])
+                    sp_y = int(aux_a_index_list[y])
+                    ba_rows.append(sp_x)
+                    ba_cols.append(sp_y)
+                    ba_vals.append(val)
 
-        # Creating the sub-matrices for the Dynamical matrix, Daa, Dbb, Dab
-        D_aa = csc_array((aaVals, (aaRows, aaCols)), shape=(Na, Na), dtype="complex")
-        D_ba = csc_array((baVals, (baRows, baCols)), shape=(Nb, Na), dtype="complex")
-        D_bb = csc_array((bbVals, (bbRows, bbCols)), shape=(Nb, Nb), dtype="complex")
+        # Creating the sub-matrices for the Dynamical matrix, dynamical_aa, dynamical_bb, dynamical_ba
+        dynamical_aa = csc_array((aa_vals, (aa_rows, aa_cols)), shape=(va_vertices_count, va_vertices_count), dtype="complex")
+        dynamical_ba = csc_array((ba_vals, (ba_rows, ba_cols)), shape=(vb_vertices_count, va_vertices_count), dtype="complex")
+        dynamical_bb = csc_array((bb_vals, (bb_rows, bb_cols)), shape=(vb_vertices_count, vb_vertices_count), dtype="complex")
 
         # Need to solve the equation -Dba ua = (Dbb - alpha I) ub
         # LHS = p, RHS = Q.ub
         # calculating p and Q:
-        p = - D_ba @ ua_list
-        Q = D_bb - diags(1j * omega * C_list) - diags(1 / RL_list)
+        p = - dynamical_ba @ ua_list
+        Q = dynamical_bb - diags(1j * omega * cap_list) - diags(1 / leak_res_list)
 
         # solving for u_b
         ub_list = spsolve(Q, p)
 
         # calculating potential response
-        pot_res = np.zeros(N, dtype="complex")
+        pot_res = np.zeros(vertices_count, dtype="complex")
 
         # splicing the a and b components of the response back into a single list
         for i in range(len(va_list)):
@@ -255,7 +254,7 @@ class ResponseAnalyzer(ProgressUpdate):
             pot_res[vb_list[i]] = ub_list[i]
 
         # calculating current response
-        cur_res = sparseY @ C @ pot_res
+        cur_res = admittance_mat @ c_mat @ pot_res
 
         return pot_res, cur_res
 
