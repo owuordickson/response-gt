@@ -230,33 +230,33 @@ class ResponseAnalyzer(ProgressUpdate):
                     ba_vals.append(val)
 
         # Creating the sub-matrices for the Dynamical matrix, dynamical_aa, dynamical_bb, dynamical_ba
-        dynamical_aa = csc_array((aa_vals, (aa_rows, aa_cols)), shape=(va_vertices_count, va_vertices_count), dtype="complex")
+        # dynamical_aa = csc_array((aa_vals, (aa_rows, aa_cols)), shape=(va_vertices_count, va_vertices_count), dtype="complex")
         dynamical_ba = csc_array((ba_vals, (ba_rows, ba_cols)), shape=(vb_vertices_count, va_vertices_count), dtype="complex")
         dynamical_bb = csc_array((bb_vals, (bb_rows, bb_cols)), shape=(vb_vertices_count, vb_vertices_count), dtype="complex")
 
         # Need to solve the equation -Dba ua = (Dbb - alpha I) ub
-        # LHS = p, RHS = Q.ub
-        # calculating p and Q:
-        p = - dynamical_ba @ ua_list
-        Q = dynamical_bb - diags(1j * omega * cap_list) - diags(1 / leak_res_list)
+        # LHS = p_mat, RHS = q_mat.ub
+        # calculating p_mat and q_mat:
+        p_mat = - dynamical_ba @ ua_list
+        q_mat = dynamical_bb - diags(1j * omega * cap_list) - diags(1 / leak_res_list)
 
         # solving for u_b
-        ub_list = spsolve(Q, p)
+        ub_list = spsolve(q_mat, p_mat)
 
         # calculating potential response
-        pot_res = np.zeros(vertices_count, dtype="complex")
+        potential_response = np.zeros(vertices_count, dtype="complex")
 
         # splicing the a and b components of the response back into a single list
         for i in range(len(va_list)):
-            pot_res[va_list[i]] = ua_list[i]
+            potential_response[va_list[i]] = ua_list[i]
 
         for i in range(len(vb_list)):
-            pot_res[vb_list[i]] = ub_list[i]
+            potential_response[vb_list[i]] = ub_list[i]
 
         # calculating current response
-        cur_res = admittance_mat @ c_mat @ pot_res
+        current_response = admittance_mat @ c_mat @ potential_response
 
-        return pot_res, cur_res
+        return potential_response, current_response
 
     def plot_vert(self, phase_labels=None):
         vertpos = self.vertex_coordinates
