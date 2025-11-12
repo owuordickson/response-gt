@@ -305,7 +305,7 @@ class ResponseAnalyzer(ProgressUpdate):
                 edge_collection = LineCollection(edge_segments, colors="0", linewidths=edge_lw * cur_mags_normalized)
             ax.add_collection(edge_collection)
 
-        def plot_color_wheel():
+        def plot_color_wheel(phase_angle_labels: dict = None):
             """Plot color wheel."""
             # Create the color-wheel legend
             ax_color = fig.add_axes((0.75, 0.15, 0.15, 0.15), projection='polar')  # this vector is x-position, y-position, width, height of color-wheel
@@ -331,15 +331,15 @@ class ResponseAnalyzer(ProgressUpdate):
             ax_color.text(0, 1.1, '|z|', ha='center', va='center')
 
             # Add the phase-angle labels
-            if phase_labels is None:
-                phase_labels = {
+            if phase_angle_labels is None:
+                phase_angle_labels = {
                     0: '0',
                     np.pi/2: r'$\pi/2$',
                     np.pi: r'$\pi$',
                     3*np.pi/2: r'$3\pi/2$'
                 }
 
-            for angle, label in phase_labels.items():
+            for angle, label in phase_angle_labels.items():
                 ax_color.text(angle, 1.3, label, ha='center', va='center')
 
             ax_color.set_xticks([])
@@ -357,6 +357,8 @@ class ResponseAnalyzer(ProgressUpdate):
         # Create a figure and an axis
         if graph_type == "all":
             fig, ax = plt.subplots(figsize=(16.4 / 2, 10.7 / 2))  # last ordered pair is aspect ratio
+            # fig = plt.Figure(figsize=(16.4 / 2, 10.7 / 2)) # last ordered pair is aspect ratio
+            # ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
             mk_size = 10 if vertex_marker_size is None else vertex_marker_size
             lw = 5 if edge_line_width is None else edge_line_width
             color_phases = False if show_current_phase is None else show_current_phase
@@ -364,6 +366,8 @@ class ResponseAnalyzer(ProgressUpdate):
             plot_edges(edge_lw=lw, use_edge_colors=color_phases, normalize_colors=True)
         else:
             fig, ax = plt.subplots(figsize=(9, 9))
+            # fig = plt.Figure(figsize=(9, 9))
+            # ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
             if graph_type == "vertices":
                 mk_size = 30 if vertex_marker_size is None else vertex_marker_size
                 plot_vertices(marker_size=mk_size)
@@ -373,7 +377,7 @@ class ResponseAnalyzer(ProgressUpdate):
                 plot_edges(edge_lw=lw, use_edge_colors=color_phases)
 
         if show_color_wheel:
-            plot_color_wheel()
+            plot_color_wheel(phase_labels)
 
         # Determine plot ranges
         x_min, x_max = vert_pos[:, 0].min(), vert_pos[:, 0].max()
@@ -383,6 +387,7 @@ class ResponseAnalyzer(ProgressUpdate):
         ax.set_xlim(x_min - x_pad, x_max + x_pad)
         ax.set_ylim(y_min - y_pad, y_max + y_pad)
 
-
         plt.tight_layout()
         plt.show()
+        # fig.tight_layout()
+        # return fig
