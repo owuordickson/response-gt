@@ -74,24 +74,28 @@ class ResponseAnalyzer(ProgressUpdate):
         self._edge_list = None
         self._edge_currents = None
 
-    def incidence_matrix_from_edgelist(self):  # makes an incidence matrix from a list of edges in O(n) time
+    def incidence_matrix_from_edgelist(self):
+        # makes an incidence matrix from a list of edges in O(n) time
         # We first initalize lists, to which we will append the row, column, and value of the non-zero elements that will fill our sparse C array
         Crows = []
         Ccols = []
         Cvals = []
 
+        num_edges = len(self.edge_list)
+        num_vertices = len(self.vertex_coordinates)
+        edge_list = self.edge_list
+
         # Appending non-zero entries and their row/col data for each edge in the list. Edges are considered directed (+1/-1), but direction does not matter
-        for i in range(len(Edge_list)):
+        for i in range(len(edge_list)):
             Crows.append(i)
-            Ccols.append(int(Edge_list[i, 0]))
+            Ccols.append(int(edge_list[i, 0]))
             Cvals.append(-1)
             Crows.append(i)
-            Ccols.append(int(Edge_list[i, 1]))
+            Ccols.append(int(edge_list[i, 1]))
             Cvals.append(1)
             # It is faster to append each element/coord to a list and then make a sparse array than it is to make a sparse array and then update each element
 
-        C = csc_array((Cvals, (Crows, Ccols)), shape=(N_edges, N_vertices), dtype="complex")
-
+        C = csc_array((Cvals, (Crows, Ccols)), shape=(num_edges, num_vertices), dtype="complex")
         return C
 
     def ac_response(self):
@@ -109,6 +113,49 @@ class ResponseAnalyzer(ProgressUpdate):
         From my testing on square-lattice networks, this method has time complexity of O(n^~1.4).
         Time complexity might increase significantly in networks with higher average node degree.
         """
+        # num_edges = len(self.edge_list)
+        num_vertices = len(self.vertex_coordinates)
+        edge_list = self.edge_list
+        vert_pos = self.vertex_coordinates
+        C = self.incidence_matrix_from_edgelist()
+
+        ##making the imposed potential -- THIS IS WHAT YOU NEED TO CHANGE TO GET DIFFERENT RESPONSES ON THE SAME SYSTEM, here we just apply a top-bottom potential
+        given_potential_fraction = 0.05
+        given_potential_magnitude = 100
+        num_selected = int(given_potential_fraction * num_vertices)
+        given_potential_list = np.zeros(
+            int(2 * num_selected))  # Ultimately this is what gets passed on, the other code in this block just makes this a top-bottom potential
+        vertex_list = np.zeros(
+            int(2 * num_selected))  # Ultimately this is what gets passed on, the other code in this block just makes this a top-bottom potential
+        # Sort vertices by y-position
+        sorted_vertices = sorted(enumerate(vert_pos), key=lambda x: x[-1][-1])  # x[-1][-1])  # Sort by y-coordinate
+        # Select the top and bottom vertices
+        top_vertices = sorted_vertices[-num_selected:]  # Top f% (highest y-values)
+        bottom_vertices = sorted_vertices[:num_selected]  # Bottom f% (lowest y-values)
+        top_list = [idx for idx, _ in top_vertices]
+        bottom_list = [idx for idx, _ in bottom_vertices]
+        for i in range(len(top_list)):
+            given_potential_list[i] = given_potential_magnitude
+            vertex_list[i] = top_list[i]
+        for i in range(len(bottom_list)):
+            given_potential_list[len(top_list) + i] = -given_potential_magnitude
+            vertex_list[len(top_list) + i] = bottom_list[i]
+
+        # example parameters, set to very large/small numbers for DC response
+        given_potential_frequency = 0.000000000001
+        resistivity = 1
+        capacitance = 0.000000000001
+        inductance = 0.00000000000000000001
+        leak_resistivity = 1000000000
+
+        R_list = resistivity * np.ones(len(edge_list))
+        L_list = inductance * np.ones(len(edge_list))
+        C_list = capacitance * np.ones(num_vertices - 2 * num_selected)
+        RL_list = leak_resistivity * np.ones(num_vertices - 2 * num_selected)
+        omega = given_potential_frequency
+        ua_list = given_potential_list
+        va_list = vertex_list
+
         N = (C[0].shape)[0]  # Number of vertices in the graph
         va_list = np.array(va_list,
                            dtype=int)  # numpy array of vertices that have a forced potential, casting to int in case given as float
@@ -206,6 +253,11 @@ class ResponseAnalyzer(ProgressUpdate):
         return (pot_res, cur_res)
 
     def plot_vert(self, phase_labels=None):
+        vertpos = self.vertex_coordinates
+        edgelist = self.edge_list
+        pot_res = self._vertex_potentials
+        cur_res = self._edge_currents
+
         # Convert to numpy arrays
         vertpos = np.array(vertpos)
         pot_res = np.array(pot_res)
@@ -298,6 +350,11 @@ class ResponseAnalyzer(ProgressUpdate):
         plt.show()
 
     def plot_edge(self, phase_labels=None):
+        vertpos = self.vertex_coordinates
+        edgelist = self.edge_list
+        pot_res = self._vertex_potentials
+        cur_res = self._edge_currents
+
         # Convert to numpy arrays
         vertpos = np.array(vertpos)
         pot_res = np.array(pot_res)
@@ -390,6 +447,11 @@ class ResponseAnalyzer(ProgressUpdate):
         plt.show()
 
     def plot_all(self, phase_labels=None):
+        vertpos = self.vertex_coordinates
+        edgelist = self.edge_list
+        pot_res = self._vertex_potentials
+        cur_res = self._edge_currents
+
         # Convert to numpy arrays
         vertpos = np.array(vertpos)
         pot_res = np.array(pot_res)

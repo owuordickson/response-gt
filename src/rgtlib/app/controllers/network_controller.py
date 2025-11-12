@@ -60,10 +60,14 @@ class NetworkController(QObject):
     @Slot(str, result=bool)
     def upload_vertex_positions(self, file_path: str):
         """Upload a vertex position file and return True if successful."""
-        positions = self._ctrl.rgt_obj.add_graph_file(file_path)
-        if positions is None:
+        node_positions = self._ctrl.rgt_obj.add_graph_file(file_path)
+        if node_positions is None:
             return False
-        self._ctrl.rgt_obj.vertex_coordinates = positions
+
+        # flips vertically to have same orientation as initial image
+        y_coords, x_coords = zip(*node_positions)
+        neg_y_coords = [y * -1 for y in y_coords]
+        self._ctrl.rgt_obj.vertex_coordinates = np.array(list(zip(x_coords, neg_y_coords)))
         return True
 
     @Slot()
