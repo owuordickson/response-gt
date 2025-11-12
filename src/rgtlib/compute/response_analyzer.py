@@ -258,7 +258,7 @@ class ResponseAnalyzer(ProgressUpdate):
 
         return potential_response, current_response
 
-    def plot_response_graph(self, graph_type: str = "all", show_color_wheel: bool = False, phase_labels: dict = None):
+    def plot_response_graph(self, graph_type: str = "all", show_current_phase: bool = None, vertex_marker_size: float = None, edge_line_width: float = None, show_color_wheel: bool = None, phase_labels: dict = None):
         """
         Draws the response graph of the network.
         """
@@ -271,7 +271,7 @@ class ResponseAnalyzer(ProgressUpdate):
             hsv = np.stack([h_mat, s_mat, v_mat], axis=-1)
             return mcolors.hsv_to_rgb(hsv)
 
-        def plot_vertices():
+        def plot_vertices(marker_size: float = 30):
             """Plot graph vertices only."""
             # Normalize magnitudes for vertices
             pot_mags = np.abs(potential_resp)
@@ -282,11 +282,9 @@ class ResponseAnalyzer(ProgressUpdate):
             vertex_colors = complex_to_rgb(pot_phases, np.array([x for x in pot_mags_normalized]))
 
             # Plot vertices
-            ax.scatter(vert_pos[:, 0], vert_pos[:, 1], c=vertex_colors, s=30 * pot_mags_normalized, edgecolors='none', zorder=3)
-            # ALL
-            # ax.scatter(vert_pos[:, 0], vert_pos[:, 1], c=vertex_colors, s=10 * pot_mags_normalized, edgecolors='none', zorder=3)  # s is the size variable, might need to change for your usage
+            ax.scatter(vert_pos[:, 0], vert_pos[:, 1], c=vertex_colors, s=marker_size * pot_mags_normalized, edgecolors='none', zorder=3)
 
-        def plot_edges():
+        def plot_edges(edge_lw: float = 3, use_edge_colors: bool = True, normalize_colors: bool = False):
             """Plot graph edges only."""
             # Normalize magnitudes for edges
             cur_mags = np.abs(current_resp)
@@ -294,15 +292,17 @@ class ResponseAnalyzer(ProgressUpdate):
             cur_phases = np.angle(current_resp) % (2 * np.pi)
 
             # cur_mags_normalized
-            edge_colors = complex_to_rgb(np.mod(2 * cur_phases, 2 * np.pi), np.array([x for x in cur_mags_normalized]))
-            # ALL
-            # edge_colors = complex_to_rgb(cur_phases, np.array([1 for x in cur_mags_normalized]))
+            if normalize_colors:
+                edge_colors = complex_to_rgb(cur_phases, np.array([1 for _ in cur_mags_normalized]))
+            else:
+                edge_colors = complex_to_rgb(np.mod(2 * cur_phases, 2 * np.pi), np.array([x for x in cur_mags_normalized]))
 
             # Plot edges
             edge_segments = np.array([[vert_pos[int(i)], vert_pos[int(j)]] for i, j in edge_list])
-            edge_collection = LineCollection(edge_segments, colors=edge_colors, linewidths=3 * cur_mags_normalized)
-            # ALL
-            edge_collection = LineCollection(edge_segments, colors="0", linewidths=5 * cur_mags_normalized)  # might need to change linewidths for your usage #can set colors=edge_colors to show phase of current response
+            if use_edge_colors:
+                edge_collection = LineCollection(edge_segments, colors=edge_colors, linewidths=edge_lw * cur_mags_normalized)
+            else:
+                edge_collection = LineCollection(edge_segments, colors="0", linewidths=edge_lw * cur_mags_normalized)
             ax.add_collection(edge_collection)
 
         def plot_color_wheel():
@@ -357,8 +357,23 @@ class ResponseAnalyzer(ProgressUpdate):
         # Create a figure and an axis
         if graph_type == "all":
             fig, ax = plt.subplots(figsize=(16.4 / 2, 10.7 / 2))  # last ordered pair is aspect ratio
+            mk_size = 10 if vertex_marker_size is None else vertex_marker_size
+            lw = 5 if edge_line_width is None else edge_line_width
+            color_phases = False if show_current_phase is None else show_current_phase
+            plot_vertices(marker_size=mk_size)
+            plot_edges(edge_lw=lw, use_edge_colors=color_phases, normalize_colors=True)
         else:
             fig, ax = plt.subplots(figsize=(9, 9))
+            if graph_type == "vertices":
+                mk_size = 30 if vertex_marker_size is None else vertex_marker_size
+                plot_vertices(marker_size=mk_size)
+            elif graph_type == "edges":
+                lw = 3 if edge_line_width is None else edge_line_width
+                color_phases = True if show_current_phase is None else show_current_phase
+                plot_edges(edge_lw=lw, use_edge_colors=color_phases)
+
+        if show_color_wheel:
+            plot_color_wheel()
 
         # Determine plot ranges
         x_min, x_max = vert_pos[:, 0].min(), vert_pos[:, 0].max()
