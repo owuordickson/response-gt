@@ -57,10 +57,7 @@ ApplicationWindow {
 
     // Dialogs
     DialogAbout{id: dlgAbout}
+    DialogFileVertices{id: dlgFileVertices}
+    DialogFileEdges{id: dlgFileEdges}
 
-
-    Connections {
-        //target: mainController
-
-    }
 }

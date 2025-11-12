@@ -41,8 +41,8 @@ Rectangle {
                 Layout.preferredWidth: 135
                 //Layout.preferredHeight: 32
                 text: "Vertex positions"
-                enabled: true
-                //onClicked: imageFileDialog.open()
+                enabled: networkController.enable_vertex_positions_upload()
+                onClicked: dlgFileVertices.open()
             }
 
             Material.Button {
@@ -50,8 +50,8 @@ Rectangle {
                 Layout.preferredWidth: 115
                 //Layout.preferredHeight: 32
                 text: "Edge list"
-                enabled: true
-                //onClicked: imageFileDialog.open()
+                enabled: networkController.enable_edge_list_upload()
+                onClicked: dlgFileEdges.open()
             }
 
         }
@@ -65,6 +65,8 @@ Rectangle {
         function onImageChangedSignal() {
             // Force refresh
             welcomeContainer.visible = !networkController.graph_is_ready();
+            btnAddNodes.enabled = networkController.enable_vertex_positions_upload();
+            btnAddEdges.enabled = networkController.enable_edge_list_upload();
         }
 
     }

@@ -8,6 +8,8 @@ import numpy as np
 from sgtlib.modules import ProgressData, TaskResult
 from PySide6.QtCore import Signal, Slot, QObject
 
+from ...compute.response_analyzer import ALLOWED_GRAPH_FILE_EXTENSIONS
+
 
 class NetworkController(QObject):
 
@@ -50,19 +52,36 @@ class NetworkController(QObject):
         unique_num = np.random.randint(low=21, high=1000)
         return "image://imageProvider/" + str(unique_num)
 
+    @Slot(result=str)
+    def get_file_extensions(self):
+        pattern_string = ' '.join(ALLOWED_GRAPH_FILE_EXTENSIONS)
+        return f"Graph files ({pattern_string})"
+
+    @Slot(result=bool)
+    def enable_edge_list_upload(self):
+        return True if self._ctrl.rgt_obj.edge_list is None else False
+
+    @Slot(result=bool)
+    def enable_vertex_positions_upload(self):
+        return True if self._ctrl.rgt_obj.vertex_coordinates is None else False
+
     @Slot(str, result=bool)
     def upload_edge_list(self, file_path: str):
         """Upload an edge list file and return True if successful."""
-        edges = self._ctrl.rgt_obj.add_graph_file(file_path)
+        edges = self._ctrl.add_graph_file(file_path)
         if edges is None:
             return False
         self._ctrl.rgt_obj.edge_list = edges
+
+        self.run_response_analyzer()
+        self._ctrl.load_graph_into_view()
+        print("Upload successful")
         return True
 
     @Slot(str, result=bool)
     def upload_vertex_positions(self, file_path: str):
         """Upload a vertex position file and return True if successful."""
-        node_positions = self._ctrl.rgt_obj.add_graph_file(file_path)
+        node_positions = self._ctrl.add_graph_file(file_path)
         if node_positions is None:
             return False
 
@@ -70,6 +89,10 @@ class NetworkController(QObject):
         y_coords, x_coords = zip(*node_positions)
         neg_y_coords = [y * -1 for y in y_coords]
         self._ctrl.rgt_obj.vertex_coordinates = np.array(list(zip(x_coords, neg_y_coords)))
+
+        self.run_response_analyzer()
+        self._ctrl.load_graph_into_view()
+        print("Nodes upload successful")
         return True
 
     @Slot()

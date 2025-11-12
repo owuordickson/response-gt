@@ -16,8 +16,8 @@ MenuBar {
         Menu {
             id: mnuImportGraphFrom
             title: "Import network from..."
-            MenuItem {id: mnuImportNodes; text:"Vertex Positions (CSV)"; enabled: true; }//onTriggered: graphFileDialog.open()}
-            MenuItem {id: mnuImportEdges; text:"Edge List (CSV)"; enabled: true; }//onTriggered: graphFileDialog.open()}
+            MenuItem {id: mnuImportNodes; text:"Vertex Positions (CSV)"; enabled: true; onTriggered: dlgFileVertices.open()}
+            MenuItem {id: mnuImportEdges; text:"Edge List (CSV)"; enabled: true; onTriggered: dlgFileEdges.open()}
         }
         MenuSeparator{}
 

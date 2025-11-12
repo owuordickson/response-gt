@@ -186,7 +186,8 @@ class MainController(QObject):
             plt_fig = self.rgt_obj.plot_response_graph()
             if plt_fig is not None:
                 self.network_ctrl._graph_loaded = True
+            self.network_ctrl.imageChangedSignal.emit()
         except Exception as err:
-            self.reset_rgt_obj()
+            # self.reset_rgt_obj()
             logging.exception("View Error: %s", err, extra={'user': 'RGT Logs'})
             self.showAlertSignal.emit("Graph Error", "Error loading graph. Try again.")
