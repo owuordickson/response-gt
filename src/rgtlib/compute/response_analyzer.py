@@ -258,32 +258,107 @@ class ResponseAnalyzer(ProgressUpdate):
 
         return potential_response, current_response
 
-    def plot_response_graph(self, graph_type: str = "all", phase_labels = None):
+    def plot_response_graph(self, graph_type: str = "all", show_color_wheel: bool = False, phase_labels: dict = None):
         """
         Draws the response graph of the network.
         """
 
+        def complex_to_rgb(phases, mags):
+            """Convert complex numbers to colors (HSV where H=phase, S=1, V=normalized magnitude)."""
+            h_mat = phases / (2 * np.pi)
+            s_mat = mags
+            v_mat = np.ones_like(h_mat)
+            hsv = np.stack([h_mat, s_mat, v_mat], axis=-1)
+            return mcolors.hsv_to_rgb(hsv)
+
         def plot_vertices():
             """Plot graph vertices only."""
-            pass
+            # Normalize magnitudes for vertices
+            pot_mags = np.abs(potential_resp)
+            pot_mags_normalized = (pot_mags - pot_mags.min()) / (pot_mags.max() - pot_mags.min() + 1e-10)
+            pot_phases = np.angle(potential_resp) % (2 * np.pi)
+
+            # pot_mags_normalized
+            vertex_colors = complex_to_rgb(pot_phases, np.array([x for x in pot_mags_normalized]))
+
+            # Plot vertices
+            ax.scatter(vert_pos[:, 0], vert_pos[:, 1], c=vertex_colors, s=30 * pot_mags_normalized, edgecolors='none', zorder=3)
+            # ALL
+            # ax.scatter(vert_pos[:, 0], vert_pos[:, 1], c=vertex_colors, s=10 * pot_mags_normalized, edgecolors='none', zorder=3)  # s is the size variable, might need to change for your usage
 
         def plot_edges():
             """Plot graph edges only."""
-            pass
+            # Normalize magnitudes for edges
+            cur_mags = np.abs(current_resp)
+            cur_mags_normalized = (cur_mags - cur_mags.min()) / (cur_mags.max() - cur_mags.min() + 1e-10)
+            cur_phases = np.angle(current_resp) % (2 * np.pi)
 
-    def plot_vert(self, phase_labels=None):
+            # cur_mags_normalized
+            edge_colors = complex_to_rgb(np.mod(2 * cur_phases, 2 * np.pi), np.array([x for x in cur_mags_normalized]))
+            # ALL
+            # edge_colors = complex_to_rgb(cur_phases, np.array([1 for x in cur_mags_normalized]))
+
+            # Plot edges
+            edge_segments = np.array([[vert_pos[int(i)], vert_pos[int(j)]] for i, j in edge_list])
+            edge_collection = LineCollection(edge_segments, colors=edge_colors, linewidths=3 * cur_mags_normalized)
+            # ALL
+            edge_collection = LineCollection(edge_segments, colors="0", linewidths=5 * cur_mags_normalized)  # might need to change linewidths for your usage #can set colors=edge_colors to show phase of current response
+            ax.add_collection(edge_collection)
+
+        def plot_color_wheel():
+            """Plot color wheel."""
+            # Create the color-wheel legend
+            ax_color = fig.add_axes((0.75, 0.15, 0.15, 0.15), projection='polar')  # this vector is x-position, y-position, width, height of color-wheel
+
+            # Create the color-wheel using bars instead of fill_between
+            n_angles = 360
+            theta = np.linspace(0, 2 * np.pi, n_angles, endpoint=False)
+            width = 2 * np.pi / n_angles
+            radii = np.ones(n_angles)
+
+            # Create the HSV colors for the wheel
+            h = theta / (2 * np.pi)
+            s = np.ones_like(h)
+            v = np.ones_like(h)
+            hsv = np.stack([h, s, v], axis=-1)
+            colors = mcolors.hsv_to_rgb(hsv)
+
+            # Plot the color wheel using bar plot
+            ax_color.bar(theta, radii, width=width, bottom=0, color=colors) # uncomment to show color-wheel
+
+            # Add magnitude indicator (radius)
+            ax_color.plot([0, 0], [0, 1], 'k-', lw=1)  # magnitude indicator
+            ax_color.text(0, 1.1, '|z|', ha='center', va='center')
+
+            # Add the phase-angle labels
+            if phase_labels is None:
+                phase_labels = {
+                    0: '0',
+                    np.pi/2: r'$\pi/2$',
+                    np.pi: r'$\pi$',
+                    3*np.pi/2: r'$3\pi/2$'
+                }
+
+            for angle, label in phase_labels.items():
+                ax_color.text(angle, 1.3, label, ha='center', va='center')
+
+            ax_color.set_xticks([])
+            ax_color.set_yticks([])
+            ax_color.set_theta_direction(-1)
+            ax_color.set_theta_offset(np.pi / 2)
+            ax_color.set_frame_on(False)
+
+        # Retrieve computed response data (should be numpy arrays)
         vert_pos = self.vertex_coordinates
         edge_list = self.edge_list
-        pot_res = self._vertex_potentials
-        cur_res = self._edge_currents
+        potential_resp = self._vertex_potentials
+        current_resp = self._edge_currents
 
-        # Convert to numpy arrays
-        vert_pos = np.array(vert_pos)
-        pot_res = np.array(pot_res)
-        cur_res = np.array(cur_res)
-
-        # Create the figure and axis
-        fig, ax = plt.subplots(figsize=(9, 9))
+        # Create a figure and an axis
+        if graph_type == "all":
+            fig, ax = plt.subplots(figsize=(16.4 / 2, 10.7 / 2))  # last ordered pair is aspect ratio
+        else:
+            fig, ax = plt.subplots(figsize=(9, 9))
 
         # Determine plot ranges
         x_min, x_max = vert_pos[:, 0].min(), vert_pos[:, 0].max()
@@ -293,271 +368,6 @@ class ResponseAnalyzer(ProgressUpdate):
         ax.set_xlim(x_min - x_pad, x_max + x_pad)
         ax.set_ylim(y_min - y_pad, y_max + y_pad)
 
-        # Normalize magnitudes for vertices and edges separately
-        pot_mags = np.abs(pot_res)
-        pot_mags_normalized = (pot_mags - pot_mags.min()) / (pot_mags.max() - pot_mags.min() + 1e-10)
-        pot_phases = np.angle(pot_res) % (2 * np.pi)
-
-        cur_mags = np.abs(cur_res)
-        cur_mags_normalized = (cur_mags - cur_mags.min()) / (cur_mags.max() - cur_mags.min() + 1e-10)
-        cur_phases = np.angle(cur_res) % (2 * np.pi)
-
-        # Convert complex numbers to colors (HSV where H=phase, S=1, V=normalized magnitude)
-        def complex_to_rgb(phases, mags):
-            h = phases / (2 * np.pi)
-            s = mags
-            v = np.ones_like(h)
-            hsv = np.stack([h, s, v], axis=-1)
-            return mcolors.hsv_to_rgb(hsv)
-
-        vertex_colors = complex_to_rgb(pot_phases, np.array([x for x in pot_mags_normalized]))  # pot_mags_normalized
-        edge_colors = complex_to_rgb(cur_phases, np.array([1 for x in cur_mags_normalized]))  # cur_mags_normalized
-
-        # Plot edges
-        edge_segments = np.array([[vert_pos[int(i)], vert_pos[int(j)]] for i, j in edge_list])
-        edge_collection = LineCollection(edge_segments, colors="0",
-                                         linewidths=1 * cur_mags_normalized)  # colors=edge_colors
-        # ax.add_collection(edge_collection)
-
-        # Plot vertices
-        ax.scatter(vert_pos[:, 0], vert_pos[:, 1], c=vertex_colors, s=30 * pot_mags_normalized, edgecolors='none',
-                   zorder=3)  # s=50*pot_mags_normalized
-
-        # Create the color-wheel legend
-        ax_color = fig.add_axes([0.75, 0.15, 0.15, 0.15],
-                                projection='polar')  # this vector is x-position, y-position, width, height of colorwheel
-
-        # Create the color wheel using bars instead of fill_between
-        n_angles = 360
-        theta = np.linspace(0, 2 * np.pi, n_angles, endpoint=False)
-        width = 2 * np.pi / n_angles
-        radii = np.ones(n_angles)
-
-        # Create HSV colors for the wheel
-        h = theta / (2 * np.pi)
-        s = np.ones_like(h)
-        v = np.ones_like(h)
-        hsv = np.stack([h, s, v], axis=-1)
-        colors = mcolors.hsv_to_rgb(hsv)
-
-        # Plot the color wheel using bar plot
-        # bars = ax_color.bar(theta, radii, width=width, bottom=0, color=colors)
-
-        # Add magnitude indicator (radius)
-        # ax_color.plot([0, 0], [0, 1], 'k-', lw=1)  # magnitude indicator
-        # ax_color.text(0, 1.1, '|z|', ha='center', va='center')
-
-        # Add phase angle labels
-        if phase_labels is None:
-            phase_labels = {
-                # 0: '0',
-                # np.pi/2: r'$\pi/2$',
-                # np.pi: r'$\pi$',
-                # 3*np.pi/2: r'$3\pi/2$'
-            }
-
-        for angle, label in phase_labels.items():
-            ax_color.text(angle, 1.3, label, ha='center', va='center')
-
-        ax_color.set_xticks([])
-        ax_color.set_yticks([])
-        ax_color.set_theta_direction(-1)
-        ax_color.set_theta_offset(np.pi / 2)
-        ax_color.set_frame_on(False)
-
-        plt.tight_layout()
-        plt.show()
-
-    def plot_edge(self, phase_labels=None):
-        vert_pos = self.vertex_coordinates
-        edge_list = self.edge_list
-        pot_res = self._vertex_potentials
-        cur_res = self._edge_currents
-
-        # Convert to numpy arrays
-        vert_pos = np.array(vert_pos)
-        pot_res = np.array(pot_res)
-        cur_res = np.array(cur_res)
-
-        # Create the figure and axis
-        fig, ax = plt.subplots(figsize=(9, 9))
-
-        # Determine plot ranges
-        x_min, x_max = vert_pos[:, 0].min(), vert_pos[:, 0].max()
-        y_min, y_max = vert_pos[:, 1].min(), vert_pos[:, 1].max()
-        x_pad = (x_max - x_min) * 0.1
-        y_pad = (y_max - y_min) * 0.1
-        ax.set_xlim(x_min - x_pad, x_max + x_pad)
-        ax.set_ylim(y_min - y_pad, y_max + y_pad)
-
-        # Normalize magnitudes for vertices and edges separately
-        pot_mags = np.abs(pot_res)
-        pot_mags_normalized = (pot_mags - pot_mags.min()) / (pot_mags.max() - pot_mags.min() + 1e-10)
-        pot_phases = np.angle(pot_res) % (2 * np.pi)
-
-        cur_mags = np.abs(cur_res)
-        cur_mags_normalized = (cur_mags - cur_mags.min()) / (cur_mags.max() - cur_mags.min() + 1e-10)
-        cur_phases = np.angle(cur_res) % (2 * np.pi)
-
-        # Convert complex numbers to colors (HSV where H=phase, S=1, V=normalized magnitude)
-        def complex_to_rgb(phases, mags):
-            h = phases / (2 * np.pi)
-            s = mags
-            v = np.ones_like(h)
-            hsv = np.stack([h, s, v], axis=-1)
-            return mcolors.hsv_to_rgb(hsv)
-
-        vertex_colors = complex_to_rgb(pot_phases, np.array([x for x in pot_mags_normalized]))  # pot_mags_normalized
-        edge_colors = complex_to_rgb(np.mod(2 * cur_phases, 2 * np.pi),
-                                     np.array([x for x in cur_mags_normalized]))  # cur_mags_normalized
-
-        # Plot edges
-        edge_segments = np.array([[vert_pos[int(i)], vert_pos[int(j)]] for i, j in edge_list])
-        edge_collection = LineCollection(edge_segments, colors=edge_colors,
-                                         linewidths=3 * cur_mags_normalized)  # colors=edge_colors
-        ax.add_collection(edge_collection)
-
-        # Plot vertices
-        # ax.scatter(vert_pos[:, 0], vert_pos[:, 1], c=vertex_colors, s=10*pot_mags_normalized, edgecolors='none', zorder=3) #s=50*pot_mags_normalized
-
-        # Create the color-wheel legend
-        ax_color = fig.add_axes([0.75, 0.15, 0.15, 0.15],
-                                projection='polar')  # this vector is x-position, y-position, width, height of colorwheel
-
-        # Create the color-wheel using bars instead of fill_between
-        n_angles = 360
-        theta = np.linspace(0, 2 * np.pi, n_angles, endpoint=False)
-        width = 2 * np.pi / n_angles
-        radii = np.ones(n_angles)
-
-        # Create HSV colors for the wheel
-        h = theta / (2 * np.pi)
-        s = np.ones_like(h)
-        v = np.ones_like(h)
-        hsv = np.stack([h, s, v], axis=-1)
-        colors = mcolors.hsv_to_rgb(hsv)
-
-        # Plot the color wheel using bar plot
-        # bars = ax_color.bar(theta, radii, width=width, bottom=0, color=colors)
-
-        # Add magnitude indicator (radius)
-        # ax_color.plot([0, 0], [0, 1], 'k-', lw=1)  # magnitude indicator
-        # ax_color.text(0, 1.1, '|z|', ha='center', va='center')
-
-        # Add phase angle labels
-        if phase_labels is None:
-            phase_labels = {
-                # 0: '0',
-                # np.pi/2: r'$\pi/2$',
-                # np.pi: r'$\pi$',
-                # 3*np.pi/2: r'$3\pi/2$'
-            }
-
-        for angle, label in phase_labels.items():
-            ax_color.text(angle, 1.3, label, ha='center', va='center')
-
-        ax_color.set_xticks([])
-        ax_color.set_yticks([])
-        ax_color.set_theta_direction(-1)
-        ax_color.set_theta_offset(np.pi / 2)
-        ax_color.set_frame_on(False)
-
-        plt.tight_layout()
-        plt.show()
-
-    def plot_all(self, phase_labels=None):
-        vert_pos = self.vertex_coordinates
-        edge_list = self.edge_list
-        pot_res = self._vertex_potentials
-        cur_res = self._edge_currents
-
-        # Convert to numpy arrays
-        vert_pos = np.array(vert_pos)
-        pot_res = np.array(pot_res)
-        cur_res = np.array(cur_res)
-
-        # Create the figure and axis
-        fig, ax = plt.subplots(figsize=(9, 9))  # last ordered pair is aspect ratio
-
-        # Determine plot ranges
-        x_min, x_max = vert_pos[:, 0].min(), vert_pos[:, 0].max()
-        y_min, y_max = vert_pos[:, 1].min(), vert_pos[:, 1].max()
-        x_pad = (x_max - x_min) * 0.1
-        y_pad = (y_max - y_min) * 0.1
-        ax.set_xlim(x_min - x_pad, x_max + x_pad)
-        ax.set_ylim(y_min - y_pad, y_max + y_pad)
-
-        # Normalize magnitudes for vertices and edges separately
-        pot_mags = np.abs(pot_res)
-        pot_mags_normalized = (pot_mags - pot_mags.min()) / (pot_mags.max() - pot_mags.min() + 1e-10)
-        pot_phases = np.angle(pot_res) % (2 * np.pi)
-
-        cur_mags = np.abs(cur_res)
-        cur_mags_normalized = (cur_mags - cur_mags.min()) / (cur_mags.max() - cur_mags.min() + 1e-10)
-        cur_phases = np.angle(cur_res) % (2 * np.pi)
-
-        # Convert complex numbers to colors (HSV where H=phase, S=1, V=normalized magnitude)
-        def complex_to_rgb(phases, mags):
-            h = phases / (2 * np.pi)
-            s = mags
-            v = np.ones_like(h)
-            hsv = np.stack([h, s, v], axis=-1)
-            return mcolors.hsv_to_rgb(hsv)
-
-        vertex_colors = complex_to_rgb(pot_phases, np.array([x for x in pot_mags_normalized]))
-        edge_colors = complex_to_rgb(cur_phases, np.array([1 for x in cur_mags_normalized]))
-
-        # Plot edges
-        edge_segments = np.array([[vert_pos[int(i)], vert_pos[int(j)]] for i, j in edge_list])
-        edge_collection = LineCollection(edge_segments, colors="0",
-                                         linewidths=5 * cur_mags_normalized)  # might need to change linewidths for your usage #can set colors=edge_colors to show phase of current response
-        ax.add_collection(edge_collection)
-
-        # Plot vertices
-        ax.scatter(vert_pos[:, 0], vert_pos[:, 1], c=vertex_colors, s=10 * pot_mags_normalized, edgecolors='none',
-                   zorder=3)  # s is the size variable, might need to change for your usage
-
-        # Create the color-wheel legend
-        ax_color = fig.add_axes([0.75, 0.15, 0.15, 0.15],
-                                projection='polar')  # this vector is x-position, y-position, width, height of colorwheel
-
-        # Create the color-wheel using bars instead of fill_between
-        n_angles = 360
-        theta = np.linspace(0, 2 * np.pi, n_angles, endpoint=False)
-        width = 2 * np.pi / n_angles
-        radii = np.ones(n_angles)
-
-        # Create HSV colors for the wheel
-        h = theta / (2 * np.pi)
-        s = np.ones_like(h)
-        v = np.ones_like(h)
-        hsv = np.stack([h, s, v], axis=-1)
-        colors = mcolors.hsv_to_rgb(hsv)
-
-        # Plot the color wheel using bar plot
-        # bars = ax_color.bar(theta, radii, width=width, bottom=0, color=colors) #uncomment to show colorwheel
-
-        # Add magnitude indicator (radius)
-        # ax_color.plot([0, 0], [0, 1], 'k-', lw=1)  # magnitude indicator
-        # ax_color.text(0, 1.1, '|z|', ha='center', va='center')
-
-        # Add phase angle labels
-        if phase_labels is None:
-            phase_labels = {
-                # 0: '0',
-                # np.pi/2: r'$\pi/2$',
-                # np.pi: r'$\pi$',
-                # 3*np.pi/2: r'$3\pi/2$'
-            }
-
-        for angle, label in phase_labels.items():
-            ax_color.text(angle, 1.3, label, ha='center', va='center')
-
-        ax_color.set_xticks([])
-        ax_color.set_yticks([])
-        ax_color.set_theta_direction(-1)
-        ax_color.set_theta_offset(np.pi / 2)
-        ax_color.set_frame_on(False)
 
         plt.tight_layout()
         plt.show()
