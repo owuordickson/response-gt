@@ -5,12 +5,15 @@ Pyside6 (GUI components) main controller class.
 
 import os
 import logging
-#from sgtlib import modules as sgt
+import numpy as np
+import pandas as pd
+from sgtlib import modules as sgt
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Signal, Slot, QObject
 
 from .network_controller import NetworkController
 from ... import __version__, __title__
+from ...compute.response_analyzer import ResponseAnalyzer, ALLOWED_GRAPH_FILE_EXTENSIONS
 
 
 class MainController(QObject):
@@ -32,14 +35,18 @@ class MainController(QObject):
         self._wait_msg = ""
 
         # Create network objects
-        # self._config_file = config_file
-        self._rgt_obj = None
+        self._config_file = ""
+        self._rgt_obj = ResponseAnalyzer(self._config_file)
 
         # Add Controllers
         self.network_ctrl = NetworkController(self)
 
         # Create Persistent Workers (Processes)
         self._rgt_worker = None #PersistentProcessWorker()
+
+    @property
+    def rgt_obj(self):
+        return self._rgt_obj
 
     def _cancel_loading(self):
         pass
@@ -51,7 +58,7 @@ class MainController(QObject):
             if worker:
                 worker.stop()
 
-    def handle_progress_update(self, status_data): #sgt.ProgressData) -> None:
+    def handle_progress_update(self, status_data: sgt.ProgressData) -> None:
         """
         Handler function for progress updates for ongoing GT tasks.
         Args:
@@ -75,7 +82,7 @@ class MainController(QObject):
             self.errorSignal.emit(status_data.message)
             logging.exception(f"({status_data.sender}) {status_data.message}", extra={'user': 'SGT Logs'})
 
-    def handle_finished(self, success_val: bool, result): #None | sgt.TaskResult) -> None:
+    def handle_finished(self, success_val: bool, result: None | sgt.TaskResult) -> None:
         """
         Handler function for sending updates/signals on termination of tasks.
         Args:
@@ -111,6 +118,30 @@ class MainController(QObject):
         """"""
         pass
 
+    def add_graph_file(self, file_path: str) -> None | np.ndarray:
+        """Read the file and return graph data."""
+        success, result = sgt.verify_path(file_path)
+        if success:
+            file_path = result
+        else:
+            logging.info(result, extra={'user': 'SGT Logs'})
+            self.showAlertSignal.emit("File Error", result)
+            return None
+
+        try:
+            file_ext = os.path.splitext(file_path)[1].lower()
+            allowed_ext = tuple(ext[1:] if ext.startswith('*.') else ext for ext in ALLOWED_GRAPH_FILE_EXTENSIONS)
+            if file_ext not in allowed_ext:
+                throw_msg = f"File extension {file_ext} is not allowed. Allowed extensions are {allowed_ext}"
+                raise ValueError(throw_msg)
+
+            graph_data = pd.read_csv(file_path, header=None, index_col=False).to_numpy()
+            return graph_data
+        except Exception as err:
+            logging.exception("File Error: %s", err, extra={'user': 'SGT Logs'})
+            self.showAlertSignal.emit("File Error", f"Error reading {file_path}. Try again.")
+            return None
+
     @Slot(result=str)
     def get_about_details(self):
         about_str = f"""{__title__} v{__version__}"""
@@ -130,7 +161,7 @@ class MainController(QObject):
         """Stop a background thread and its associated worker."""
         # self.showAlertSignal.emit("Important Alert", "Cancelling job, please wait...")
         if cancel_job:
-            self.handle_progress_update(ProgressData(percent=99, sender="GT", message="Cancelling job, please wait..."))
+            self.handle_progress_update(sgt.ProgressData(percent=99, sender="GT", message="Cancelling job, please wait..."))
         else:
             # Restart Process after 3 tasks
             if self._rgt_worker.task_count < 3:

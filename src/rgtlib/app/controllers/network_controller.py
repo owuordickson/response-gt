@@ -3,10 +3,14 @@
 Pyside6 (GUI components) controller class for network retrieval and computations.
 """
 
-import numpy as np
+import os
 import logging
+import numpy as np
+import pandas as pd
 from PySide6.QtCore import Signal, Slot, QObject
+from sgtlib.modules import verify_path
 
+from ...compute.response_analyzer import ALLOWED_GRAPH_FILE_EXTENSIONS
 
 class NetworkController(QObject):
 
@@ -48,6 +52,24 @@ class NetworkController(QObject):
         """Returns the URL that QML should use to load the image"""
         unique_num = np.random.randint(low=21, high=1000)
         return "image://imageProvider/" + str(unique_num)
+
+    @Slot(str, result=bool)
+    def upload_edge_list(self, file_path: str):
+        """Upload an edge list file and return True if successful."""
+        edges = self._ctrl.rgt_obj.add_graph_file(file_path)
+        if edges is None:
+            return False
+        self._ctrl.rgt_obj.edge_list = edges
+        return True
+
+    @Slot(str, result=bool)
+    def upload_vertex_positions(self, file_path: str):
+        """Upload a vertex position file and return True if successful."""
+        positions = self._ctrl.rgt_obj.add_graph_file(file_path)
+        if positions is None:
+            return False
+        self._ctrl.rgt_obj.vertex_coordinates = positions
+        return True
 
     @Slot()
     def export_response_to_file(self, response_type: str):
