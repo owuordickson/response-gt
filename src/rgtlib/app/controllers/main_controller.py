@@ -7,9 +7,9 @@ import os
 import logging
 import numpy as np
 import pandas as pd
-from sgtlib import modules as sgt
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Signal, Slot, QObject
+from sgtlib.modules import ProgressData, TaskResult, verify_path
 
 from .network_controller import NetworkController
 from ... import __version__, __title__
@@ -58,7 +58,7 @@ class MainController(QObject):
             if worker:
                 worker.stop()
 
-    def handle_progress_update(self, status_data: sgt.ProgressData) -> None:
+    def handle_progress_update(self, status_data: ProgressData) -> None:
         """
         Handler function for progress updates for ongoing GT tasks.
         Args:
@@ -82,7 +82,7 @@ class MainController(QObject):
             self.errorSignal.emit(status_data.message)
             logging.exception(f"({status_data.sender}) {status_data.message}", extra={'user': 'SGT Logs'})
 
-    def handle_finished(self, success_val: bool, result: None | sgt.TaskResult) -> None:
+    def handle_finished(self, success_val: bool, result: None | TaskResult | list) -> None:
         """
         Handler function for sending updates/signals on termination of tasks.
         Args:
@@ -94,17 +94,17 @@ class MainController(QObject):
         self._cancel_loading()
         if not success_val:
             if type(result) is list:
-                logging.info(result[0] + ": " + result[1], extra={'user': 'SGT Logs'})
+                logging.info(f"{result[0]} : {result[1]}", extra={'user': 'SGT Logs'})
                 self.taskTerminatedSignal.emit(success_val, result)
         else:
-            if isinstance(result, sgt.TaskResult):
+            if isinstance(result, TaskResult):
                 self.stop_current_task(cancel_job=False)
                 if result.task_id == "Export Graph" or result.task_id == "Save Images":
                     # Saving files to Output Folder
-                    self.handle_progress_update(sgt.ProgressData(percent=100, sender="GT", message=f"Files Saved!"))
+                    self.handle_progress_update(ProgressData(percent=100, sender="GT", message=f"Files Saved!"))
                     #self.taskTerminatedSignal.emit(success_val, ["Files Saved", result.message])
                 if result.task_id == "Compute GT":
-                    self.handle_progress_update(sgt.ProgressData(percent=100, sender="GT", message=f"GT PDF successfully generated! Check it out in 'Output Dir'."))
+                    self.handle_progress_update(ProgressData(percent=100, sender="GT", message=f"GT PDF successfully generated! Check it out in 'Output Dir'."))
                     #self.update_sgt_obj(result.data)
                     #sgt_obj = self.get_selected_sgt_obj()
                     # Sync models and refresh image
@@ -120,7 +120,7 @@ class MainController(QObject):
 
     def add_graph_file(self, file_path: str) -> None | np.ndarray:
         """Read the file and return graph data."""
-        success, result = sgt.verify_path(file_path)
+        success, result = verify_path(file_path)
         if success:
             file_path = result
         else:
@@ -161,7 +161,7 @@ class MainController(QObject):
         """Stop a background thread and its associated worker."""
         # self.showAlertSignal.emit("Important Alert", "Cancelling job, please wait...")
         if cancel_job:
-            self.handle_progress_update(sgt.ProgressData(percent=99, sender="GT", message="Cancelling job, please wait..."))
+            self.handle_progress_update(ProgressData(percent=99, sender="GT", message="Cancelling job, please wait..."))
         else:
             # Restart Process after 3 tasks
             if self._rgt_worker.task_count < 3:

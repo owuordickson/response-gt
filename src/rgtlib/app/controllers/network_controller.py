@@ -3,14 +3,9 @@
 Pyside6 (GUI components) controller class for network retrieval and computations.
 """
 
-import os
-import logging
 import numpy as np
-import pandas as pd
 from PySide6.QtCore import Signal, Slot, QObject
-from sgtlib.modules import verify_path
 
-from ...compute.response_analyzer import ALLOWED_GRAPH_FILE_EXTENSIONS
 
 class NetworkController(QObject):
 
@@ -73,5 +68,5 @@ class NetworkController(QObject):
 
     @Slot()
     def export_response_to_file(self, response_type: str):
-        """Export network data and save as a file."""
+        """Export response (edge currents OR vertex potentials) and save as a file."""
         pass

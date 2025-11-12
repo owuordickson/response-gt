@@ -24,9 +24,12 @@ MenuBar {
         Menu {
             id: mnuExportResponseAs
             title: "Export as..."
-            MenuItem {id:mnuExportEdges; text: "Response U"; enabled: false; onTriggered: console.log("Export U") }
-            MenuItem {id:mnuExportNodes; text: "Response V"; enabled: false; onTriggered: console.log("Export I") }
+            MenuItem {id:mnuExportEdges; text: "Vertex Potentials"; enabled: false; onTriggered: console.log("Export Potentials") }
+            MenuItem {id:mnuExportNodes; text: "Edge Currents"; enabled: false; onTriggered: console.log("Export Currents") }
         }
+        MenuSeparator{}
+
+        MenuItem {id: mnuDeleteAll; text: "Clear Workspace"; onTriggered: console.log("Deleted All")}
     }
 
 

@@ -60,3 +60,11 @@ class ResponseAnalyzer(ProgressUpdate):
     @vertex_potentials.setter
     def vertex_potentials(self, vertex_potentials: np.ndarray):
         self._vertex_potentials = vertex_potentials
+
+    def reset(self):
+        """Reset all properties"""
+        self._props = []
+        self._vertex_coordinates = None
+        self._vertex_potentials = None
+        self._edge_list = None
+        self._edge_currents = None
