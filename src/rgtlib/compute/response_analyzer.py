@@ -74,7 +74,7 @@ class ResponseAnalyzer(ProgressUpdate):
         self._edge_list = None
         self._edge_currents = None
 
-    def ac_response(self):
+    def compute_ac_response(self) -> tuple[np.ndarray, np.ndarray]:
         """
         From my testing on square-lattice networks, this method has the time complexity of O(n^~1.4).
         Time complexity might increase significantly in networks with higher average node degree.
@@ -138,6 +138,10 @@ class ResponseAnalyzer(ProgressUpdate):
 
             return given_potential_list, vertex_list
 
+        if self.vertex_coordinates is None:
+            raise ValueError("Vertex positions are missing! Please upload them via a CSV file.")
+        if self.edge_list is None:
+            raise ValueError("Edge list is missing! Please upload them via a CSV file.")
 
         # num_edges = len(self.edge_list)
         num_vertices = len(self.vertex_coordinates)
@@ -256,6 +260,8 @@ class ResponseAnalyzer(ProgressUpdate):
         # calculating current response
         current_response = admittance_mat @ c_mat @ potential_response
 
+        self._vertex_potentials = potential_response
+        self._edge_currents = current_response
         return potential_response, current_response
 
     def plot_response_graph(self, graph_type: str = "all", show_current_phase: bool = None, vertex_marker_size: float = None, edge_line_width: float = None, show_color_wheel: bool = None, phase_labels: dict = None):
