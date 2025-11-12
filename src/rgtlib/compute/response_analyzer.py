@@ -74,87 +74,94 @@ class ResponseAnalyzer(ProgressUpdate):
         self._edge_list = None
         self._edge_currents = None
 
-    def incidence_matrix_from_edgelist(self):
-        # makes an incidence matrix from a list of edges in O(n) time
-        # We first initalize lists, to which we will append the row, column, and value of the non-zero elements that will fill our sparse C array
-        Crows = []
-        Ccols = []
-        Cvals = []
-
-        num_edges = len(self.edge_list)
-        num_vertices = len(self.vertex_coordinates)
-        edge_list = self.edge_list
-
-        # Appending non-zero entries and their row/col data for each edge in the list. Edges are considered directed (+1/-1), but direction does not matter
-        for i in range(len(edge_list)):
-            Crows.append(i)
-            Ccols.append(int(edge_list[i, 0]))
-            Cvals.append(-1)
-            Crows.append(i)
-            Ccols.append(int(edge_list[i, 1]))
-            Cvals.append(1)
-            # It is faster to append each element/coord to a list and then make a sparse array than it is to make a sparse array and then update each element
-
-        C = csc_array((Cvals, (Crows, Ccols)), shape=(num_edges, num_vertices), dtype="complex")
-        return C
-
     def ac_response(self):
-
         """
-        C: The incidence matrix of the network, where rows are directed edges and columns are vertices
-        R_list: array of resistance for each EDGE,
-        L_list: array of inductance for each EDGE.
-        C_list: array of capacitance of each NODE that is NOT given an applied potential. nodes are taken to be capactiors connected to a grounded potential (0).
-        RL_list: array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
-        omega: angular frequency of applied alternating potential
-        ua_list: array applied potentials
-        va_list: array of nodes with the corresponding applied potential
-
-        From my testing on square-lattice networks, this method has time complexity of O(n^~1.4).
+        From my testing on square-lattice networks, this method has the time complexity of O(n^~1.4).
         Time complexity might increase significantly in networks with higher average node degree.
         """
+
+        def incidence_matrix():
+            """
+            Makes an incidence matrix from a list of edges in O(n) time
+
+            :returns: the incidence matrix of the network, where rows are directed edges and columns are vertices
+            """
+
+            # We first initialize lists, to which we will append the row, column, and value of the non-zero elements that will fill our sparse C array
+            c_rows = []
+            c_cols = []
+            c_vals = []
+
+            # Appending non-zero entries and their row/col data for each edge in the list. Edges are considered directed (+1/-1), but the direction does not matter
+            for idx in range(len(edge_list)):
+                c_rows.append(idx)
+                c_cols.append(int(edge_list[idx, 0]))
+                c_vals.append(-1)
+                c_rows.append(idx)
+                c_cols.append(int(edge_list[idx, 1]))
+                c_vals.append(1)
+                # It is faster to append each element/coord to a list and then make a sparse array than it is to make a sparse array and then update each element
+
+            incidence_mat = csc_array((c_vals, (c_rows, c_cols)), shape=(num_edges, num_vertices), dtype="complex")
+            return incidence_mat
+
+        def imposed_potential_response():
+            """
+            Makes the imposed potential -- THIS IS WHAT YOU NEED TO CHANGE TO GET DIFFERENT RESPONSES ON THE SAME SYSTEM
+
+            Here we just apply a top-bottom potential
+
+            :returns: ua_list--array applied potentials, va_list--array of nodes with the corresponding applied potential
+            """
+
+            given_potential_list = np.zeros(
+                int(2 * num_selected))  # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
+            vertex_list = np.zeros(
+                int(2 * num_selected))  # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
+
+            # Sort vertices by y-position
+            sorted_vertices = sorted(enumerate(vert_pos), key=lambda x_pos: x_pos[-1][-1])  # Sort by y-coordinate
+
+            # Select the top and bottom vertices
+            top_vertices = sorted_vertices[-num_selected:]  # Top f% (highest y-values)
+            bottom_vertices = sorted_vertices[:num_selected]  # Bottom f% (lowest y-values)
+            top_list = [idx for idx, _ in top_vertices]
+            bottom_list = [idx for idx, _ in bottom_vertices]
+
+            for idx in range(len(top_list)):
+                given_potential_list[idx] = given_potential_magnitude
+                vertex_list[idx] = top_list[idx]
+
+            for idx in range(len(bottom_list)):
+                given_potential_list[len(top_list) + idx] = -given_potential_magnitude
+                vertex_list[len(top_list) + idx] = bottom_list[idx]
+
+            return given_potential_list, vertex_list
+
+
         # num_edges = len(self.edge_list)
         num_vertices = len(self.vertex_coordinates)
+        num_edges = len(self.edge_list)
         edge_list = self.edge_list
         vert_pos = self.vertex_coordinates
-        C = self.incidence_matrix_from_edgelist()
-
-        ##making the imposed potential -- THIS IS WHAT YOU NEED TO CHANGE TO GET DIFFERENT RESPONSES ON THE SAME SYSTEM, here we just apply a top-bottom potential
-        given_potential_fraction = 0.05
-        given_potential_magnitude = 100
-        num_selected = int(given_potential_fraction * num_vertices)
-        given_potential_list = np.zeros(
-            int(2 * num_selected))  # Ultimately this is what gets passed on, the other code in this block just makes this a top-bottom potential
-        vertex_list = np.zeros(
-            int(2 * num_selected))  # Ultimately this is what gets passed on, the other code in this block just makes this a top-bottom potential
-        # Sort vertices by y-position
-        sorted_vertices = sorted(enumerate(vert_pos), key=lambda x: x[-1][-1])  # x[-1][-1])  # Sort by y-coordinate
-        # Select the top and bottom vertices
-        top_vertices = sorted_vertices[-num_selected:]  # Top f% (highest y-values)
-        bottom_vertices = sorted_vertices[:num_selected]  # Bottom f% (lowest y-values)
-        top_list = [idx for idx, _ in top_vertices]
-        bottom_list = [idx for idx, _ in bottom_vertices]
-        for i in range(len(top_list)):
-            given_potential_list[i] = given_potential_magnitude
-            vertex_list[i] = top_list[i]
-        for i in range(len(bottom_list)):
-            given_potential_list[len(top_list) + i] = -given_potential_magnitude
-            vertex_list[len(top_list) + i] = bottom_list[i]
 
         # example parameters, set to very large/small numbers for DC response
         given_potential_frequency = 0.000000000001
+        given_potential_fraction = 0.05
+        given_potential_magnitude = 100
         resistivity = 1
         capacitance = 0.000000000001
         inductance = 0.00000000000000000001
         leak_resistivity = 1000000000
 
-        R_list = resistivity * np.ones(len(edge_list))
-        L_list = inductance * np.ones(len(edge_list))
-        C_list = capacitance * np.ones(num_vertices - 2 * num_selected)
-        RL_list = leak_resistivity * np.ones(num_vertices - 2 * num_selected)
-        omega = given_potential_frequency
-        ua_list = given_potential_list
-        va_list = vertex_list
+        num_selected = int(given_potential_fraction * num_vertices)
+        C = incidence_matrix() # The incidence matrix of the network, where rows are directed edges and columns are vertices
+        R_list = resistivity * np.ones(len(edge_list)) # The array of resistance for each EDGE
+        L_list = inductance * np.ones(len(edge_list))  # The array of inductance for each EDGE
+        C_list = capacitance * np.ones(num_vertices - 2 * num_selected) # The array of capacitance for each NODE that is NOT given an applied potential. nodes are taken to be capacitors connected to a grounded potential (0).
+        RL_list = leak_resistivity * np.ones(num_vertices - 2 * num_selected) # The array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
+        omega = given_potential_frequency # The angular frequency of applied alternating potential
+        ua_list, va_list = imposed_potential_response() # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
 
         N = (C[0].shape)[0]  # Number of vertices in the graph
         va_list = np.array(va_list,
@@ -163,9 +170,9 @@ class ResponseAnalyzer(ProgressUpdate):
         Nb = int(N - Na)  # number of vertices in vb_list
 
         sparseY = diags(1 / (
-                    R_list + 1j * omega * L_list))  # diags(1/(rho+1j*omega*inductance)*np.ones(len(edges))) #Y=(R+iwL)^-1, addmittance matrix
+                    R_list + 1j * omega * L_list))  # diags(1/(rho+1j*omega*inductance)*np.ones(len(edges))) #Y=(R+iwL)^-1, admittance matrix
         CT = C.T  # transpose of incidence matrix
-        sparseD = CT @ sparseY @ C  # sparse version of the dynamical martrix
+        sparseD = CT @ sparseY @ C  # sparse version of the dynamical matrix
 
         isA_list = np.zeros(N)  # auxiliary array where the value stored at an index is 1 if that index is in va_list
         for vert in va_list:
@@ -228,7 +235,7 @@ class ResponseAnalyzer(ProgressUpdate):
         D_ba = csc_array((baVals, (baRows, baCols)), shape=(Nb, Na), dtype="complex")
         D_bb = csc_array((bbVals, (bbRows, bbCols)), shape=(Nb, Nb), dtype="complex")
 
-        # Keed to solve the equation -Dba ua = (Dbb - alpha I) ub
+        # Need to solve the equation -Dba ua = (Dbb - alpha I) ub
         # LHS = p, RHS = Q.ub
         # calculating p and Q:
         p = - D_ba @ ua_list
@@ -237,7 +244,7 @@ class ResponseAnalyzer(ProgressUpdate):
         # solving for u_b
         ub_list = spsolve(Q, p)
 
-        # calculting potential response
+        # calculating potential response
         pot_res = np.zeros(N, dtype="complex")
 
         # splicing the a and b components of the response back into a single list
@@ -250,7 +257,7 @@ class ResponseAnalyzer(ProgressUpdate):
         # calculating current response
         cur_res = sparseY @ C @ pot_res
 
-        return (pot_res, cur_res)
+        return pot_res, cur_res
 
     def plot_vert(self, phase_labels=None):
         vertpos = self.vertex_coordinates
@@ -263,7 +270,7 @@ class ResponseAnalyzer(ProgressUpdate):
         pot_res = np.array(pot_res)
         cur_res = np.array(cur_res)
 
-        # Create figure and axis
+        # Create the figure and axis
         fig, ax = plt.subplots(figsize=(9, 9))
 
         # Determine plot ranges
@@ -304,11 +311,11 @@ class ResponseAnalyzer(ProgressUpdate):
         ax.scatter(vertpos[:, 0], vertpos[:, 1], c=vertex_colors, s=30 * pot_mags_normalized, edgecolors='none',
                    zorder=3)  # s=50*pot_mags_normalized
 
-        # Create color wheel legend
+        # Create the color-wheel legend
         ax_color = fig.add_axes([0.75, 0.15, 0.15, 0.15],
                                 projection='polar')  # this vector is x-position, y-position, width, height of colorwheel
 
-        # Create color wheel using bars instead of fill_between
+        # Create the color wheel using bars instead of fill_between
         n_angles = 360
         theta = np.linspace(0, 2 * np.pi, n_angles, endpoint=False)
         width = 2 * np.pi / n_angles
@@ -360,7 +367,7 @@ class ResponseAnalyzer(ProgressUpdate):
         pot_res = np.array(pot_res)
         cur_res = np.array(cur_res)
 
-        # Create figure and axis
+        # Create the figure and axis
         fig, ax = plt.subplots(figsize=(9, 9))
 
         # Determine plot ranges
@@ -401,11 +408,11 @@ class ResponseAnalyzer(ProgressUpdate):
         # Plot vertices
         # ax.scatter(vertpos[:, 0], vertpos[:, 1], c=vertex_colors, s=10*pot_mags_normalized, edgecolors='none', zorder=3) #s=50*pot_mags_normalized
 
-        # Create color wheel legend
+        # Create the color-wheel legend
         ax_color = fig.add_axes([0.75, 0.15, 0.15, 0.15],
                                 projection='polar')  # this vector is x-position, y-position, width, height of colorwheel
 
-        # Create color wheel using bars instead of fill_between
+        # Create the color-wheel using bars instead of fill_between
         n_angles = 360
         theta = np.linspace(0, 2 * np.pi, n_angles, endpoint=False)
         width = 2 * np.pi / n_angles
@@ -457,7 +464,7 @@ class ResponseAnalyzer(ProgressUpdate):
         pot_res = np.array(pot_res)
         cur_res = np.array(cur_res)
 
-        # Create figure and axis
+        # Create the figure and axis
         fig, ax = plt.subplots(figsize=(9, 9))  # last ordered pair is aspect ratio
 
         # Determine plot ranges
@@ -496,13 +503,13 @@ class ResponseAnalyzer(ProgressUpdate):
 
         # Plot vertices
         ax.scatter(vertpos[:, 0], vertpos[:, 1], c=vertex_colors, s=10 * pot_mags_normalized, edgecolors='none',
-                   zorder=3)  # s is size variable, might need to change for your usage
+                   zorder=3)  # s is the size variable, might need to change for your usage
 
-        # Create color wheel legend
+        # Create the color-wheel legend
         ax_color = fig.add_axes([0.75, 0.15, 0.15, 0.15],
                                 projection='polar')  # this vector is x-position, y-position, width, height of colorwheel
 
-        # Create color wheel using bars instead of fill_between
+        # Create the color-wheel using bars instead of fill_between
         n_angles = 360
         theta = np.linspace(0, 2 * np.pi, n_angles, endpoint=False)
         width = 2 * np.pi / n_angles
