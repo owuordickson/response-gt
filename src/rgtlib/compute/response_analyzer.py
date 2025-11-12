@@ -258,14 +258,27 @@ class ResponseAnalyzer(ProgressUpdate):
 
         return potential_response, current_response
 
+    def plot_response_graph(self, graph_type: str = "all", phase_labels = None):
+        """
+        Draws the response graph of the network.
+        """
+
+        def plot_vertices():
+            """Plot graph vertices only."""
+            pass
+
+        def plot_edges():
+            """Plot graph edges only."""
+            pass
+
     def plot_vert(self, phase_labels=None):
-        vertpos = self.vertex_coordinates
-        edgelist = self.edge_list
+        vert_pos = self.vertex_coordinates
+        edge_list = self.edge_list
         pot_res = self._vertex_potentials
         cur_res = self._edge_currents
 
         # Convert to numpy arrays
-        vertpos = np.array(vertpos)
+        vert_pos = np.array(vert_pos)
         pot_res = np.array(pot_res)
         cur_res = np.array(cur_res)
 
@@ -273,8 +286,8 @@ class ResponseAnalyzer(ProgressUpdate):
         fig, ax = plt.subplots(figsize=(9, 9))
 
         # Determine plot ranges
-        x_min, x_max = vertpos[:, 0].min(), vertpos[:, 0].max()
-        y_min, y_max = vertpos[:, 1].min(), vertpos[:, 1].max()
+        x_min, x_max = vert_pos[:, 0].min(), vert_pos[:, 0].max()
+        y_min, y_max = vert_pos[:, 1].min(), vert_pos[:, 1].max()
         x_pad = (x_max - x_min) * 0.1
         y_pad = (y_max - y_min) * 0.1
         ax.set_xlim(x_min - x_pad, x_max + x_pad)
@@ -301,13 +314,13 @@ class ResponseAnalyzer(ProgressUpdate):
         edge_colors = complex_to_rgb(cur_phases, np.array([1 for x in cur_mags_normalized]))  # cur_mags_normalized
 
         # Plot edges
-        edge_segments = np.array([[vertpos[int(i)], vertpos[int(j)]] for i, j in edgelist])
+        edge_segments = np.array([[vert_pos[int(i)], vert_pos[int(j)]] for i, j in edge_list])
         edge_collection = LineCollection(edge_segments, colors="0",
                                          linewidths=1 * cur_mags_normalized)  # colors=edge_colors
         # ax.add_collection(edge_collection)
 
         # Plot vertices
-        ax.scatter(vertpos[:, 0], vertpos[:, 1], c=vertex_colors, s=30 * pot_mags_normalized, edgecolors='none',
+        ax.scatter(vert_pos[:, 0], vert_pos[:, 1], c=vertex_colors, s=30 * pot_mags_normalized, edgecolors='none',
                    zorder=3)  # s=50*pot_mags_normalized
 
         # Create the color-wheel legend
@@ -356,13 +369,13 @@ class ResponseAnalyzer(ProgressUpdate):
         plt.show()
 
     def plot_edge(self, phase_labels=None):
-        vertpos = self.vertex_coordinates
-        edgelist = self.edge_list
+        vert_pos = self.vertex_coordinates
+        edge_list = self.edge_list
         pot_res = self._vertex_potentials
         cur_res = self._edge_currents
 
         # Convert to numpy arrays
-        vertpos = np.array(vertpos)
+        vert_pos = np.array(vert_pos)
         pot_res = np.array(pot_res)
         cur_res = np.array(cur_res)
 
@@ -370,8 +383,8 @@ class ResponseAnalyzer(ProgressUpdate):
         fig, ax = plt.subplots(figsize=(9, 9))
 
         # Determine plot ranges
-        x_min, x_max = vertpos[:, 0].min(), vertpos[:, 0].max()
-        y_min, y_max = vertpos[:, 1].min(), vertpos[:, 1].max()
+        x_min, x_max = vert_pos[:, 0].min(), vert_pos[:, 0].max()
+        y_min, y_max = vert_pos[:, 1].min(), vert_pos[:, 1].max()
         x_pad = (x_max - x_min) * 0.1
         y_pad = (y_max - y_min) * 0.1
         ax.set_xlim(x_min - x_pad, x_max + x_pad)
@@ -399,13 +412,13 @@ class ResponseAnalyzer(ProgressUpdate):
                                      np.array([x for x in cur_mags_normalized]))  # cur_mags_normalized
 
         # Plot edges
-        edge_segments = np.array([[vertpos[int(i)], vertpos[int(j)]] for i, j in edgelist])
+        edge_segments = np.array([[vert_pos[int(i)], vert_pos[int(j)]] for i, j in edge_list])
         edge_collection = LineCollection(edge_segments, colors=edge_colors,
                                          linewidths=3 * cur_mags_normalized)  # colors=edge_colors
         ax.add_collection(edge_collection)
 
         # Plot vertices
-        # ax.scatter(vertpos[:, 0], vertpos[:, 1], c=vertex_colors, s=10*pot_mags_normalized, edgecolors='none', zorder=3) #s=50*pot_mags_normalized
+        # ax.scatter(vert_pos[:, 0], vert_pos[:, 1], c=vertex_colors, s=10*pot_mags_normalized, edgecolors='none', zorder=3) #s=50*pot_mags_normalized
 
         # Create the color-wheel legend
         ax_color = fig.add_axes([0.75, 0.15, 0.15, 0.15],
@@ -453,13 +466,13 @@ class ResponseAnalyzer(ProgressUpdate):
         plt.show()
 
     def plot_all(self, phase_labels=None):
-        vertpos = self.vertex_coordinates
-        edgelist = self.edge_list
+        vert_pos = self.vertex_coordinates
+        edge_list = self.edge_list
         pot_res = self._vertex_potentials
         cur_res = self._edge_currents
 
         # Convert to numpy arrays
-        vertpos = np.array(vertpos)
+        vert_pos = np.array(vert_pos)
         pot_res = np.array(pot_res)
         cur_res = np.array(cur_res)
 
@@ -467,8 +480,8 @@ class ResponseAnalyzer(ProgressUpdate):
         fig, ax = plt.subplots(figsize=(9, 9))  # last ordered pair is aspect ratio
 
         # Determine plot ranges
-        x_min, x_max = vertpos[:, 0].min(), vertpos[:, 0].max()
-        y_min, y_max = vertpos[:, 1].min(), vertpos[:, 1].max()
+        x_min, x_max = vert_pos[:, 0].min(), vert_pos[:, 0].max()
+        y_min, y_max = vert_pos[:, 1].min(), vert_pos[:, 1].max()
         x_pad = (x_max - x_min) * 0.1
         y_pad = (y_max - y_min) * 0.1
         ax.set_xlim(x_min - x_pad, x_max + x_pad)
@@ -495,13 +508,13 @@ class ResponseAnalyzer(ProgressUpdate):
         edge_colors = complex_to_rgb(cur_phases, np.array([1 for x in cur_mags_normalized]))
 
         # Plot edges
-        edge_segments = np.array([[vertpos[int(i)], vertpos[int(j)]] for i, j in edgelist])
+        edge_segments = np.array([[vert_pos[int(i)], vert_pos[int(j)]] for i, j in edge_list])
         edge_collection = LineCollection(edge_segments, colors="0",
                                          linewidths=5 * cur_mags_normalized)  # might need to change linewidths for your usage #can set colors=edge_colors to show phase of current response
         ax.add_collection(edge_collection)
 
         # Plot vertices
-        ax.scatter(vertpos[:, 0], vertpos[:, 1], c=vertex_colors, s=10 * pot_mags_normalized, edgecolors='none',
+        ax.scatter(vert_pos[:, 0], vert_pos[:, 1], c=vertex_colors, s=10 * pot_mags_normalized, edgecolors='none',
                    zorder=3)  # s is the size variable, might need to change for your usage
 
         # Create the color-wheel legend
