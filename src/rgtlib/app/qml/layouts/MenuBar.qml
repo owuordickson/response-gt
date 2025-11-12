@@ -6,8 +6,8 @@ MenuBar {
 
     Menu {
         title: mainController.get_app_title();
-        MenuItem { text: "&About"; }//onTriggered: dialogAbout.open(); }
-        MenuItem { id:mnuHelp; text: "ResponseGT Help"; enabled: true; }//onTriggered: dialogAbout.open() }
+        MenuItem { text: "&About"; onTriggered: dlgAbout.open(); }
+        MenuItem { id:mnuHelp; text: "ResponseGT Help"; enabled: true; onTriggered: dlgAbout.open() }
         MenuSeparator{}
         MenuItem { text: "&Quit"; onTriggered: Qt.quit(); }
     }
@@ -29,7 +29,7 @@ MenuBar {
         }
         MenuSeparator{}
 
-        MenuItem {id: mnuDeleteAll; text: "Clear Workspace"; onTriggered: console.log("Deleted All")}
+        MenuItem {id: mnuDeleteAll; text: "Clear Workspace"; onTriggered: mainController.reset_rgt_obj()}
     }
 
 

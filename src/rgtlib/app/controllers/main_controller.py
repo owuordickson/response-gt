@@ -174,6 +174,12 @@ class MainController(QObject):
         return self._wait_flag
 
     @Slot()
+    def reset_rgt_obj(self):
+        self.rgt_obj.reset()
+        self.network_ctrl._graph_loaded = False
+        print("RGT object has been reset.")
+
+    @Slot()
     def load_graph_into_view(self):
         """Load the graph into the view."""
         try:
@@ -181,7 +187,6 @@ class MainController(QObject):
             if plt_fig is not None:
                 self.network_ctrl._graph_loaded = True
         except Exception as err:
-            self.rgt_obj.reset()
-            self.network_ctrl._graph_loaded = False
+            self.reset_rgt_obj()
             logging.exception("View Error: %s", err, extra={'user': 'RGT Logs'})
             self.showAlertSignal.emit("Graph Error", "Error loading graph. Try again.")

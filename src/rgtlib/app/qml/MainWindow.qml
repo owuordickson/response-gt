@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import "widgets"
 import "layouts"
+import "dialogs"
 
 ApplicationWindow {
     id: mainWindow
@@ -13,10 +14,13 @@ ApplicationWindow {
     font.family: "Arial"  // or Qt.application.font.family
     color: "#f0f0f0"
 
+    // Top Menu Bar
     menuBar: MenuBar {}
 
+    // Bottom Status Bar
     footer: StatusBarLayout {}
 
+    // Main Content
     GridLayout {
         anchors.fill: parent
         rows: 1
@@ -50,6 +54,9 @@ ApplicationWindow {
         }
 
     }
+
+    // Dialogs
+    DialogAbout{id: dlgAbout}
 
 
     Connections {
