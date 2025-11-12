@@ -166,8 +166,8 @@ class MainController(QObject):
             # Restart Process after 3 tasks
             if self._rgt_worker.task_count < 3:
                 return
-        self._rgt_worker.stop()
-        self._rgt_worker = PersistentProcessWorker()
+        #self._rgt_worker.stop()
+        #self._rgt_worker = PersistentProcessWorker()
         self.handle_finished(True, None)
 
     @Slot(result=bool)
