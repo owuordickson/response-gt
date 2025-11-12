@@ -9,7 +9,7 @@ Rectangle {
     Layout.fillHeight: true
     color: "transparent"
     clip: true  // Ensures only the selected area is visible
-    visible: networkController.display_image()
+    visible: networkController.graph_is_ready()
 
 
     Flickable {

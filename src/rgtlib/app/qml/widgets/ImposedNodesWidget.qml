@@ -9,7 +9,7 @@ ColumnLayout {
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignTop
     enabled: false
-    visible: networkController.display_image()
+    visible: networkController.graph_is_ready()
 
     Text {
         text: "Imposed Vertices"

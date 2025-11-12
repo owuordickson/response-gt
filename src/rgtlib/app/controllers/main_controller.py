@@ -73,14 +73,14 @@ class MainController(QObject):
 
         if 0 <= status_data.percent <= 100:
             self.updateProgressSignal.emit(status_data.percent, status_data.message)
-            logging.info(f"({status_data.sender}) {status_data.percent}%: {status_data.message}", extra={'user': 'SGT Logs'})
+            logging.info(f"({status_data.sender}) {status_data.percent}%: {status_data.message}", extra={'user': 'RGT Logs'})
 
         if status_data.type == "info":
             self.updateProgressSignal.emit(101, status_data.message)
-            logging.info(f"({status_data.sender}) {status_data.message}", extra={'user': 'SGT Logs'})
+            logging.info(f"({status_data.sender}) {status_data.message}", extra={'user': 'RGT Logs'})
         elif status_data.type == "error":
             self.errorSignal.emit(status_data.message)
-            logging.exception(f"({status_data.sender}) {status_data.message}", extra={'user': 'SGT Logs'})
+            logging.exception(f"({status_data.sender}) {status_data.message}", extra={'user': 'RGT Logs'})
 
     def handle_finished(self, success_val: bool, result: None | TaskResult | list) -> None:
         """
@@ -94,29 +94,28 @@ class MainController(QObject):
         self._cancel_loading()
         if not success_val:
             if type(result) is list:
-                logging.info(f"{result[0]} : {result[1]}", extra={'user': 'SGT Logs'})
+                logging.info(f"{result[0]} : {result[1]}", extra={'user': 'RGT Logs'})
                 self.taskTerminatedSignal.emit(success_val, result)
         else:
             if isinstance(result, TaskResult):
                 self.stop_current_task(cancel_job=False)
-                if result.task_id == "Export Graph" or result.task_id == "Save Images":
+                if result.task_id == "Export Graph":
                     # Saving files to Output Folder
-                    self.handle_progress_update(ProgressData(percent=100, sender="GT", message=f"Files Saved!"))
-                    #self.taskTerminatedSignal.emit(success_val, ["Files Saved", result.message])
-                if result.task_id == "Compute GT":
-                    self.handle_progress_update(ProgressData(percent=100, sender="GT", message=f"GT PDF successfully generated! Check it out in 'Output Dir'."))
-                    #self.update_sgt_obj(result.data)
-                    #sgt_obj = self.get_selected_sgt_obj()
-                    # Sync models and refresh image
-                    #self.syncModelSignal.emit(sgt_obj)
-                    # Send task termination signal to QML
-                    #self.taskTerminatedSignal.emit(True, ["GT calculations completed", "The image's GT parameters have been calculated. Check out generated PDF in 'Output Dir'."])
+                    self.handle_progress_update(ProgressData(percent=100, sender="RGT", message=f"Files Saved!"))
+                    self.taskTerminatedSignal.emit(success_val, ["Files Saved", result.message])
+                if result.task_id == "Compute Response":
+                    self.handle_progress_update(ProgressData(percent=100, sender="RGT", message=result.message))
+                    self.load_graph_into_view()  # trigger QML UI update
+                    self.taskTerminatedSignal.emit(success_val, ["Response calculations completed", result.message])
             else:
                 self.taskTerminatedSignal.emit(success_val, [])
 
-    def submit_job(self):
+    def submit_job(self, task_fxn, fxn_args=()):
         """"""
-        pass
+        if task_fxn == "Compute Response":
+            print(f"{self._rgt_obj}: {fxn_args}")
+        else:
+            return
 
     def add_graph_file(self, file_path: str) -> None | np.ndarray:
         """Read the file and return graph data."""
@@ -124,7 +123,7 @@ class MainController(QObject):
         if success:
             file_path = result
         else:
-            logging.info(result, extra={'user': 'SGT Logs'})
+            logging.info(result, extra={'user': 'RGT Logs'})
             self.showAlertSignal.emit("File Error", result)
             return None
 
@@ -138,7 +137,7 @@ class MainController(QObject):
             graph_data = pd.read_csv(file_path, header=None, index_col=False).to_numpy()
             return graph_data
         except Exception as err:
-            logging.exception("File Error: %s", err, extra={'user': 'SGT Logs'})
+            logging.exception("File Error: %s", err, extra={'user': 'RGT Logs'})
             self.showAlertSignal.emit("File Error", f"Error reading {file_path}. Try again.")
             return None
 
@@ -161,7 +160,7 @@ class MainController(QObject):
         """Stop a background thread and its associated worker."""
         # self.showAlertSignal.emit("Important Alert", "Cancelling job, please wait...")
         if cancel_job:
-            self.handle_progress_update(ProgressData(percent=99, sender="GT", message="Cancelling job, please wait..."))
+            self.handle_progress_update(ProgressData(percent=99, sender="RGT", message="Cancelling job, please wait..."))
         else:
             # Restart Process after 3 tasks
             if self._rgt_worker.task_count < 3:
@@ -173,3 +172,16 @@ class MainController(QObject):
     @Slot(result=bool)
     def is_task_running(self):
         return self._wait_flag
+
+    @Slot()
+    def load_graph_into_view(self):
+        """Load the graph into the view."""
+        try:
+            plt_fig = self.rgt_obj.plot_response_graph()
+            if plt_fig is not None:
+                self.network_ctrl._graph_loaded = True
+        except Exception as err:
+            self.rgt_obj.reset()
+            self.network_ctrl._graph_loaded = False
+            logging.exception("View Error: %s", err, extra={'user': 'RGT Logs'})
+            self.showAlertSignal.emit("Graph Error", "Error loading graph. Try again.")

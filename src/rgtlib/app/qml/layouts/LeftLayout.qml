@@ -18,7 +18,7 @@ Rectangle {
             Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             text: "No graph network to show!\nUpload CSV files of vertex/node\n positions and edge list."
             color: "#808080"
-            visible: !networkController.display_image()
+            visible: !networkController.graph_is_ready()
         }
 
 
@@ -38,7 +38,7 @@ Rectangle {
 
         function onImageChangedSignal() {
             // Force refresh
-            lblNoNetwork.visible = !networkController.display_image();
+            lblNoNetwork.visible = !networkController.graph_is_ready();
         }
     }
 

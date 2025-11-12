@@ -8,7 +8,7 @@ Rectangle {
     Layout.fillWidth: true
     Layout.fillHeight: true
     color: "transparent"
-    visible: !networkController.display_image()
+    visible: !networkController.graph_is_ready()
 
     ColumnLayout {
         anchors.centerIn: parent
@@ -64,7 +64,7 @@ Rectangle {
 
         function onImageChangedSignal() {
             // Force refresh
-            welcomeContainer.visible = !networkController.display_image();
+            welcomeContainer.visible = !networkController.graph_is_ready();
         }
 
     }

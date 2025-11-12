@@ -269,6 +269,9 @@ class ResponseAnalyzer(ProgressUpdate):
         Draws the response graph of the network.
         """
 
+        if self._vertex_potentials is None or self._edge_currents is None:
+            raise ValueError("Response data is missing! Please run the compute_response() method first.")
+
         def complex_to_rgb(phases, mags):
             """Convert complex numbers to colors (HSV where H=phase, S=1, V=normalized magnitude)."""
             h_mat = phases / (2 * np.pi)

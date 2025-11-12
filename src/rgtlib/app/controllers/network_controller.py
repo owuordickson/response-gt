@@ -3,7 +3,9 @@
 Pyside6 (GUI components) controller class for network retrieval and computations.
 """
 
+import logging
 import numpy as np
+from sgtlib.modules import ProgressData, TaskResult
 from PySide6.QtCore import Signal, Slot, QObject
 
 
@@ -16,7 +18,7 @@ class NetworkController(QObject):
     def __init__(self, controller_obj, parent: QObject = None):
         super().__init__(parent)
         self._ctrl = controller_obj
-        self._img_loaded = False
+        self._graph_loaded = False
 
         # Create Models
         # self.rgt = TreeModel([])
@@ -39,8 +41,8 @@ class NetworkController(QObject):
         pass
 
     @Slot(result=bool)
-    def display_image(self):
-        return self._img_loaded
+    def graph_is_ready(self):
+        return self._graph_loaded
 
     @Slot(result=str)
     def get_pixmap(self):
@@ -69,6 +71,25 @@ class NetworkController(QObject):
         neg_y_coords = [y * -1 for y in y_coords]
         self._ctrl.rgt_obj.vertex_coordinates = np.array(list(zip(x_coords, neg_y_coords)))
         return True
+
+    @Slot()
+    def run_response_analyzer(self):
+        """Run the response analyzer and send a progress signal."""
+
+        if self._ctrl.wait_flag:
+            logging.info("Please Wait: Another task is running!", extra={'user': 'RGT Logs'})
+            self._ctrl.showAlertSignal.emit("Please Wait", "Another task is running!")
+            return
+
+        try:
+            self.start_task()
+            self._ctrl.rgt_obj.compute_ac_response()
+            self._ctrl.handle_finished(True, TaskResult(task_id="Compute Response", data=self._ctrl.rgt_obj, message="Response analyzer completed successfully!"))
+        except Exception as err:
+            self.stop_task()
+            logging.exception("Response Analyzer Error: %s", err, extra={'user': 'RGT Logs'})
+            self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Fatal error occurred! Close the app and try again."))
+            self._ctrl.handle_finished(False, ["Analyzer Error",  "Fatal error while trying to compute ac-response. Close the app and try again."])
 
     @Slot()
     def export_response_to_file(self, response_type: str):
