@@ -75,7 +75,6 @@ class NetworkController(QObject):
 
         self.run_response_analyzer()
         self._ctrl.load_graph_into_view()
-        print("Upload successful")
         return True
 
     @Slot(str, result=bool)
@@ -92,7 +91,6 @@ class NetworkController(QObject):
 
         self.run_response_analyzer()
         self._ctrl.load_graph_into_view()
-        print("Nodes upload successful")
         return True
 
     @Slot()
@@ -105,6 +103,9 @@ class NetworkController(QObject):
             return
 
         try:
+            if self._ctrl.rgt_obj.edge_list is None or self._ctrl.rgt_obj.vertex_coordinates is None:
+                return
+
             self.start_task()
             self._ctrl.rgt_obj.compute_ac_response()
             self._ctrl.handle_finished(True, TaskResult(task_id="Compute Response", data=self._ctrl.rgt_obj, message="Response analyzer completed successfully!"))

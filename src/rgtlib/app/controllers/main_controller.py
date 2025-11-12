@@ -45,6 +45,26 @@ class MainController(QObject):
         self._rgt_worker = None #PersistentProcessWorker()
 
     @property
+    def wait_flag(self) -> bool:
+        """Returns the wait flag indicating if the application is currently running a task in the background."""
+        return self._wait_flag
+
+    @wait_flag.setter
+    def wait_flag(self, value: bool):
+        """Sets the wait flag indicating if the application is currently running a task in the background."""
+        self._wait_flag = value
+
+    @property
+    def wait_msg(self) -> str:
+        """Returns the wait message indicating the current task."""
+        return self._wait_msg
+
+    @wait_msg.setter
+    def wait_msg(self, value: str):
+        """Sets the wait message indicating the current task."""
+        self._wait_msg = value
+
+    @property
     def rgt_obj(self):
         return self._rgt_obj
 
@@ -177,17 +197,21 @@ class MainController(QObject):
     def reset_rgt_obj(self):
         self.rgt_obj.reset()
         self.network_ctrl._graph_loaded = False
-        print("RGT object has been reset.")
+        self.load_graph_into_view()
 
     @Slot()
     def load_graph_into_view(self):
         """Load the graph into the view."""
         try:
-            plt_fig = self.rgt_obj.plot_response_graph()
-            if plt_fig is not None:
-                self.network_ctrl._graph_loaded = True
+            if self.rgt_obj.vertex_coordinates is not None and self.rgt_obj.edge_list is not None:
+                plt_fig = self.rgt_obj.plot_response_graph()
+                if plt_fig is not None:
+                    self.network_ctrl._graph_loaded = True
+            self.network_ctrl._graph_loaded = False
             self.network_ctrl.imageChangedSignal.emit()
         except Exception as err:
             # self.reset_rgt_obj()
+            self.network_ctrl._graph_loaded = False
+            self.network_ctrl.imageChangedSignal.emit()
             logging.exception("View Error: %s", err, extra={'user': 'RGT Logs'})
             self.showAlertSignal.emit("Graph Error", "Error loading graph. Try again.")
