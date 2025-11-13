@@ -181,10 +181,10 @@ class MainController(QObject):
         # self.showAlertSignal.emit("Important Alert", "Cancelling job, please wait...")
         if cancel_job:
             self.handle_progress_update(ProgressData(percent=99, sender="RGT", message="Cancelling job, please wait..."))
-        else:
+        # else:
             # Restart Process after 3 tasks
-            if self._rgt_worker.task_count < 3:
-                return
+            # if self._rgt_worker.task_count < 3:
+            #    return
         #self._rgt_worker.stop()
         #self._rgt_worker = PersistentProcessWorker()
         self.handle_finished(True, None)
@@ -203,15 +203,11 @@ class MainController(QObject):
     def load_graph_into_view(self):
         """Load the graph into the view."""
         try:
-            if self.rgt_obj.vertex_coordinates is not None and self.rgt_obj.edge_list is not None:
-                plt_fig = self.rgt_obj.plot_response_graph()
-                if plt_fig is not None:
-                    self.network_ctrl._graph_loaded = True
-            self.network_ctrl._graph_loaded = False
-            self.network_ctrl.imageChangedSignal.emit()
+            if (self.rgt_obj.vertex_coordinates is not None) and (self.rgt_obj.edge_list is not None):
+                self.rgt_obj.plot_response_graph()
+                self.network_ctrl.changeImageSignal.emit()
         except Exception as err:
             # self.reset_rgt_obj()
-            self.network_ctrl._graph_loaded = False
             self.network_ctrl.imageChangedSignal.emit()
             logging.exception("View Error: %s", err, extra={'user': 'RGT Logs'})
             self.showAlertSignal.emit("Graph Error", "Error loading graph. Try again.")

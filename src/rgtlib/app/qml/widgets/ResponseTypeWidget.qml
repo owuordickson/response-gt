@@ -26,6 +26,7 @@ ColumnLayout {
 
         function onImageChangedSignal() {
             // Force refresh
+            responseTypeWidget.visible = networkController.graph_is_ready();
         }
     }
 

@@ -40,6 +40,13 @@ Rectangle {
             visible: false
         }
 
+        Rectangle {
+            width: flickableArea.width
+            height: flickableArea.height
+            color: "transparent"
+            border.color: "#b0b0b0"
+        }
+
     }
 
 
@@ -49,6 +56,8 @@ Rectangle {
 
         function onImageChangedSignal() {
             // Force refresh
+            imgContainer.visible = networkController.graph_is_ready();
+            imgView.source = networkController.get_pixmap();
         }
     }
 

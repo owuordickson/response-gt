@@ -73,8 +73,8 @@ class NetworkController(QObject):
             return False
         self._ctrl.rgt_obj.edge_list = edges
 
-        self.run_response_analyzer()
-        self._ctrl.load_graph_into_view()
+        self.imageChangedSignal.emit()
+        self.run_response_analyzer()  # TO BE DELETED
         return True
 
     @Slot(str, result=bool)
@@ -89,8 +89,7 @@ class NetworkController(QObject):
         neg_y_coords = [y * -1 for y in y_coords]
         self._ctrl.rgt_obj.vertex_coordinates = np.array(list(zip(x_coords, neg_y_coords)))
 
-        self.run_response_analyzer()
-        self._ctrl.load_graph_into_view()
+        self.imageChangedSignal.emit()
         return True
 
     @Slot()

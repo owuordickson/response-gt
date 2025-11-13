@@ -6,10 +6,11 @@ Compute AC response metrics
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-from sgtlib.modules import ProgressUpdate
+from sgtlib.modules import ProgressUpdate, plot_to_opencv
 from scipy.sparse.linalg import spsolve
 from scipy.sparse import diags, csc_array
 from matplotlib.collections import LineCollection
+
 from ..utils.config_loader import load_rgt_configs
 
 
@@ -20,11 +21,16 @@ class ResponseAnalyzer(ProgressUpdate):
         """"""
         super(ResponseAnalyzer, self).__init__()
         self._configs: dict = load_rgt_configs(config_file)
+        self._network_img: None | np.ndarray = None
         self._props: list = []
         self._vertex_coordinates: None | np.ndarray = None
         self._vertex_potentials: None | np.ndarray = None
         self._edge_list: None | np.ndarray = None
         self._edge_currents: None | np.ndarray = None
+
+    @property
+    def network_img(self):
+        return self._network_img
 
     @property
     def configs(self):
@@ -365,18 +371,16 @@ class ResponseAnalyzer(ProgressUpdate):
 
         # Create a figure and an axis
         if graph_type == "all":
-            fig, ax = plt.subplots(figsize=(16.4 / 2, 10.7 / 2))  # last ordered pair is aspect ratio
-            # fig = plt.Figure(figsize=(16.4 / 2, 10.7 / 2)) # last ordered pair is aspect ratio
-            # ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
+            fig = plt.Figure(figsize=(16.4 / 2, 10.7 / 2)) # last ordered pair is aspect ratio
+            ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
             mk_size = 10 if vertex_marker_size is None else vertex_marker_size
             lw = 5 if edge_line_width is None else edge_line_width
             color_phases = False if show_current_phase is None else show_current_phase
             plot_vertices(marker_size=mk_size)
             plot_edges(edge_lw=lw, use_edge_colors=color_phases, normalize_colors=True)
         else:
-            fig, ax = plt.subplots(figsize=(9, 9))
-            # fig = plt.Figure(figsize=(9, 9))
-            # ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
+            fig = plt.Figure(figsize=(9, 9))
+            ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
             if graph_type == "vertices":
                 mk_size = 30 if vertex_marker_size is None else vertex_marker_size
                 plot_vertices(marker_size=mk_size)
@@ -396,7 +400,6 @@ class ResponseAnalyzer(ProgressUpdate):
         ax.set_xlim(x_min - x_pad, x_max + x_pad)
         ax.set_ylim(y_min - y_pad, y_max + y_pad)
 
-        plt.tight_layout()
-        plt.show()
         # fig.tight_layout()
-        # return fig
+        self._network_img = plot_to_opencv(fig)
+        return fig

@@ -11,12 +11,13 @@ from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
 from .controllers.main_controller import MainController
+from .models.image_provider import ImageProvider
 
 class PySideApp(QObject):
 
     def _initialize_models(self):
         """Initialize the models and providers used by the QML engine."""
-        # self._ui_engine.addImageProvider("imageProvider", self._image_provider)
+        self._ui_engine.addImageProvider("imageProvider", self._image_provider)
 
     def _initialize_controllers(self):
         """Initialize the controllers used by the QML engine."""
@@ -30,7 +31,7 @@ class PySideApp(QObject):
         ## Register Controller for Dynamic Updates
         self._ctrl = MainController(qml_app=self.app)
         ## Register Image Provider
-        #self._image_provider = ImageProvider(self._ctrl)
+        self._image_provider = ImageProvider(self._ctrl)
         self._qml_file = 'qml/MainWindow.qml'
 
         # Set Models in QML Context
