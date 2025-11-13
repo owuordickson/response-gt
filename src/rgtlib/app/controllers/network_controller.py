@@ -8,6 +8,7 @@ import numpy as np
 from sgtlib.modules import ProgressData
 from PySide6.QtCore import Signal, Slot, QObject
 
+from ..models.checkbox_model import CheckBoxModel
 from ...compute.response_analyzer import ALLOWED_GRAPH_FILE_EXTENSIONS
 
 
@@ -21,12 +22,13 @@ class NetworkController(QObject):
         super().__init__(parent)
         self._ctrl = controller_obj
         self._graph_loaded = False
+        self._applying_changes = False
 
         # Create Models
-        # self.rgt = TreeModel([])
+        self.rgtACParams = CheckBoxModel([])
 
         # Attach listener for syncing models
-        self._ctrl.syncModelSignal.connect(self.synchronize_graph_models)
+        self._ctrl.syncModelSignal.connect(self.synchronize_rgt_models)
 
     def start_task(self, msg: str = "please wait..."):
         """Activate the wait flag and send a wait signal."""
@@ -38,9 +40,28 @@ class NetworkController(QObject):
         self._ctrl.wait_msg = ""
         self._ctrl.wait_flag = False
 
-    def synchronize_graph_models(self, rgt_obj):
-        """"""
-        pass
+    def synchronize_rgt_models(self, rgt_obj):
+        """
+        Reload ResponseGT configuration selections and controls from saved dict to QML components at every sync signal.
+
+        :param rgt_obj: ResponseGT object with all the saved user-selected configuration selections.
+        """
+        if rgt_obj is None:
+            return
+
+        try:
+            # Models Auto-update with saved sgt_obj configs. No need to re-assign!
+            options_rgt = rgt_obj.configs
+            print(options_rgt)
+
+            # Get data from object configs
+            rgt_ac_params = [v for v in options_rgt.values() if v["type"] == "ac-metric"]
+
+            # Update QML adapter-models with fetched data
+            self.rgtACParams.reset_data(rgt_ac_params)
+        except Exception as err:
+            logging.exception("Fatal Error: %s", err, extra={'user': 'RGT Logs'})
+            self._ctrl.showAlertSignal.emit("Fatal Error", "Error re-loading RGT configurations! Close app and try again.")
 
     @Slot(result=bool)
     def graph_is_ready(self):
@@ -74,6 +95,13 @@ class NetworkController(QObject):
         is_edge_list_uploaded = not self.enable_edge_list_upload()
         is_vertex_positions_uploaded = not self.enable_vertex_positions_upload()
         return is_edge_list_uploaded and is_vertex_positions_uploaded
+
+    @Slot()
+    def apply_changes(self):
+        """Retrieve changes made by the user and apply to the response graph."""
+        if not self._applying_changes:  # Disallow concurrent changes
+            self._applying_changes = True
+            self.changeImageSignal.emit()
 
     @Slot(str)
     def upload_edge_list(self, file_path: str):

@@ -34,14 +34,14 @@ def load_rgt_configs(cfg_path: str = ""):
     """ResponseGT computation configuration loader."""
 
     options_rgt: dict[str, dict[str, Union[int, float]]]  = {
-        "response_type": {"id": "response_type", "type": "ac-metric", "text": "Response Type", "value": 0},
-        "potential_frequency": {"id": "potential_frequency", "type": "dc-metric", "text": "", "value": 0.000000000001},
-        "potential_fraction": {"id": "potential_fraction", "type": "dc-metric", "text": "", "value": 0.05},
-        "potential_magnitude": {"id": "potential_magnitude", "type": "dc-metric", "text": "", "value": 100.0},
-        "resistivity": {"id": "resistivity", "type": "dc-metric", "text": "", "value": 1.0},
-        "capacitance": {"id": "capacitance", "type": "dc-metric", "text": "", "value": 0.000000000001},
-        "inductance": {"id": "inductance", "type": "dc-metric", "text": "", "value": 0.00000000000000000001},
-        "leak_resistivity": {"id": "leak_resistivity", "type": "dc-metric", "text": "", "value": 1000000000}
+        "response_type": {"id": "response_type", "type": "ac-metric", "text": "Response Type", "visible": 1, "value": 0},
+        "potential_frequency": {"id": "potential_frequency", "type": "dc-metric", "text": "Potential Frequency", "visible": 1, "value": 0.000000000001},
+        "potential_fraction": {"id": "potential_fraction", "type": "dc-metric", "text": "Potential Fraction", "visible": 1, "value": 0.05},
+        "potential_magnitude": {"id": "potential_magnitude", "type": "dc-metric", "text": "Potential Magnitude", "visible": 1, "value": 100.0},
+        "resistivity": {"id": "resistivity", "type": "dc-metric", "text": "Resistivity", "visible": 1, "value": 1.0},
+        "capacitance": {"id": "capacitance", "type": "dc-metric", "text": "Capacitance", "visible": 1, "value": 0.000000000001},
+        "inductance": {"id": "inductance", "type": "dc-metric", "text": "Inductance", "visible": 1, "value": 0.00000000000000000001},
+        "leak_resistivity": {"id": "leak_resistivity", "type": "dc-metric", "text": "Leak Resistivity", "visible": 1, "value": 1000000000}
     }
 
     # Load configuration from the file

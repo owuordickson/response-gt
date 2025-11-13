@@ -205,15 +205,16 @@ class ResponseAnalyzer(ProgressUpdate):
         num_edges = len(self.edge_list)
         edge_list = self.edge_list
         vert_pos = self.vertex_coordinates
+        opt_rgt = self._configs
 
         # example parameters, set to very large/small numbers for DC response
-        given_potential_frequency = 0.000000000001
-        given_potential_fraction = 0.05
-        given_potential_magnitude = 100
-        resistivity = 1
-        capacitance = 0.000000000001
-        inductance = 0.00000000000000000001
-        leak_resistivity = 1000000000
+        given_potential_frequency = opt_rgt["potential_frequency"]["value"]
+        given_potential_fraction = opt_rgt["potential_fraction"]["value"]
+        given_potential_magnitude = opt_rgt["potential_magnitude"]["value"]
+        resistivity = opt_rgt["resistivity"]["value"]
+        capacitance = opt_rgt["capacitance"]["value"]
+        inductance = opt_rgt["inductance"]["value"]
+        leak_resistivity = opt_rgt["leak_resistivity"]["value"]
 
         self.update_status(ProgressData(percent=10, sender="RGT", message=f"Initializing parameters...")) if not silent else None
         num_selected = int(given_potential_fraction * num_vertices)

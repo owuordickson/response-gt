@@ -151,6 +151,8 @@ class MainController(QObject):
                     new_rgt_obj = result.data
                     self.rgt_obj.copy_computations(new_rgt_obj)
                     self.handle_progress_update(ProgressData(percent=100, sender="RGT", message=result.message))
+
+                    self.syncModelSignal.emit(self.rgt_obj) # Sync models and refresh image
                     self.network_ctrl.changeImageSignal.emit() # trigger QML UI update (load image)
                     self.taskTerminatedSignal.emit(success_val, [])  # Hide Alert-Dialog
             else:
