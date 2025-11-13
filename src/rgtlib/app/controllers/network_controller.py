@@ -52,7 +52,6 @@ class NetworkController(QObject):
         try:
             # Models Auto-update with saved sgt_obj configs. No need to re-assign!
             options_rgt = rgt_obj.configs
-            print(options_rgt)
 
             # Get data from object configs
             rgt_ac_params = [v for v in options_rgt.values() if v["type"] == "ac-metric"]
