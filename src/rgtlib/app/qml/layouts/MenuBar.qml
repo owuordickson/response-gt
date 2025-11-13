@@ -20,9 +20,6 @@ MenuBar {
             MenuItem {id: mnuImportEdges; text:"Edge List (CSV)"; enabled: true; onTriggered: dlgFileEdges.open()}
         }
         MenuItem {id: mnuDownloadResults; text: "Download Results"; enabled: false; onTriggered: networkController.export_response_to_file() }
-        MenuSeparator{}
-
-        MenuItem {id: mnuDeleteAll; text: "Clear Workspace"; onTriggered: mainController.reset_rgt_obj()}
     }
     Menu {
         title: "Compute"
@@ -38,9 +35,9 @@ MenuBar {
             // Force refresh
             mnuImportNodes.enabled = networkController.enable_vertex_positions_upload();
             mnuImportEdges.enabled = networkController.enable_edge_list_upload();
-            mnuDownloadResults.enabled = !networkController.enable_vertex_positions_upload() && networkController.enable_edge_list_upload();
-            mnuRunResponse.enabled = !networkController.enable_vertex_positions_upload() && networkController.enable_edge_list_upload();
-            mnuDeleteAll.enabled = !networkController.enable_vertex_positions_upload() && networkController.enable_edge_list_upload();
+            mnuDownloadResults.enabled = !networkController.enable_vertex_positions_upload() && !networkController.enable_edge_list_upload();
+            mnuRunResponse.enabled = !networkController.enable_vertex_positions_upload() && !networkController.enable_edge_list_upload();
+            mnuDeleteAll.enabled = !networkController.enable_vertex_positions_upload() && !networkController.enable_edge_list_upload();
         }
     }
 
