@@ -69,32 +69,39 @@ class NetworkController(QObject):
             return False
         return True if self._ctrl.rgt_obj.vertex_coordinates is None else False
 
-    @Slot(str, result=bool)
+    @Slot(str)
     def upload_edge_list(self, file_path: str):
         """Upload an edge list file and return True if successful."""
-        edges = self._ctrl.add_graph_file(file_path)
-        if edges is None:
-            return False
-        self._ctrl.rgt_obj.edge_list = edges
+        if self._ctrl.wait_flag:
+            logging.info("Please Wait: Another task is running!", extra={'user': 'RGT Logs'})
+            self._ctrl.showAlertSignal.emit("Please Wait", "Another task is running!")
+            return
 
-        self.imageChangedSignal.emit()
-        self.run_response_analyzer()  # TO BE DELETED
-        return True
+        try:
+            self.start_task()
+            self._ctrl.submit_job(1, "Upload CSV", (file_path, 2), True)
+        except Exception as err:
+            self.stop_task()
+            logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
+            self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Error occurred!"))
+            self._ctrl.handle_finished(False, ["Upload Error",  "Fatal error while trying to upload edge list."])
 
-    @Slot(str, result=bool)
+    @Slot(str)
     def upload_vertex_positions(self, file_path: str):
         """Upload a vertex position file and return True if successful."""
-        node_positions = self._ctrl.add_graph_file(file_path)
-        if node_positions is None:
-            return False
+        if self._ctrl.wait_flag:
+            logging.info("Please Wait: Another task is running!", extra={'user': 'RGT Logs'})
+            self._ctrl.showAlertSignal.emit("Please Wait", "Another task is running!")
+            return
 
-        # flips vertically to have same orientation as initial image
-        y_coords, x_coords = zip(*node_positions)
-        neg_y_coords = [y * -1 for y in y_coords]
-        self._ctrl.rgt_obj.vertex_coordinates = np.array(list(zip(x_coords, neg_y_coords)))
-
-        self.imageChangedSignal.emit()
-        return True
+        try:
+            self.start_task()
+            self._ctrl.submit_job(1, "Upload CSV", (file_path, 1,), True)
+        except Exception as err:
+            self.stop_task()
+            logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
+            self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Error occurred!"))
+            self._ctrl.handle_finished(False, ["Upload Error", "Fatal error while trying to upload vertex positions."])
 
     @Slot()
     def run_response_analyzer(self):
@@ -110,15 +117,27 @@ class NetworkController(QObject):
                 return
 
             self.start_task()
-            self._ctrl.rgt_obj.compute_ac_response()
-            self._ctrl.handle_finished(True, TaskResult(task_id="Compute Response", data=self._ctrl.rgt_obj, message="Response analyzer completed successfully!"))
+            self._ctrl.submit_job(1, "Compute Response", (self._ctrl.rgt_obj,), True)
         except Exception as err:
             self.stop_task()
             logging.exception("Response Analyzer Error: %s", err, extra={'user': 'RGT Logs'})
-            self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Fatal error occurred! Close the app and try again."))
-            self._ctrl.handle_finished(False, ["Analyzer Error",  "Fatal error while trying to compute ac-response. Close the app and try again."])
+            self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Fatal error occurred!"))
+            self._ctrl.handle_finished(False, ["Analyzer Error",  "Fatal error while trying to compute ac-response."])
 
     @Slot()
-    def export_response_to_file(self, response_type: str):
+    def export_response_to_file(self):
         """Export response (edge currents OR vertex potentials) and save as a file."""
-        pass
+        if self._ctrl.wait_flag:
+            logging.info("Please Wait: Another task is running!", extra={'user': 'RGT Logs'})
+            self._ctrl.showAlertSignal.emit("Please Wait", "Another task is running!")
+            return
+
+        try:
+            self.start_task()
+            self._ctrl.submit_job(1, "Save Results", (self._ctrl.rgt_obj,), True)
+        except Exception as err:
+            self.stop_task()
+            logging.exception("Download Error: %s", err, extra={'user': 'RGT Logs'})
+            self._ctrl.handle_progress_update(
+                ProgressData(type="error", sender="RGT", message=f"Fatal error occurred!"))
+            self._ctrl.handle_finished(False, ["Download Error", "Fatal error while trying to save results to file."])

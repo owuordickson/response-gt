@@ -121,7 +121,19 @@ class MainController(QObject):
             if isinstance(result, TaskResult):
                 self.stop_current_task(cancel_job=False)
                 if result.task_id == "Upload CSV":
-                    pass
+                    # node_positions = self._ctrl.add_graph_file(file_path)
+                    if node_positions is None:
+                        return False
+                    # flips vertically to have same orientation as initial image
+                    y_coords, x_coords = zip(*node_positions)
+                    neg_y_coords = [y * -1 for y in y_coords]
+                    self._ctrl.rgt_obj.vertex_coordinates = np.array(list(zip(x_coords, neg_y_coords)))
+
+                    # edges = self._ctrl.add_graph_file(file_path)
+                    if edges is None:
+                        return False
+                    self._ctrl.rgt_obj.edge_list = edges
+
                 if result.task_id == "Save Results":
                     # Saving files to Output Folder
                     self.handle_progress_update(ProgressData(percent=100, sender="RGT", message=f"Files Saved!"))

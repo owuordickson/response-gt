@@ -3,8 +3,10 @@
 Compute AC response metrics
 """
 
+import re
+import os
 import numpy as np
-# import pandas as pd
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from sgtlib.modules import ProgressUpdate, plot_to_opencv, ProgressData
@@ -23,6 +25,7 @@ class ResponseAnalyzer(ProgressUpdate):
         super(ResponseAnalyzer, self).__init__()
         self._configs: dict = load_rgt_configs(config_file)
         self._network_img: None | np.ndarray = None
+        self._save_path: str = ""
         self._props: list = []
         self._vertex_coordinates: None | np.ndarray = None
         self._vertex_potentials: None | np.ndarray = None
@@ -72,6 +75,23 @@ class ResponseAnalyzer(ProgressUpdate):
     @vertex_potentials.setter
     def vertex_potentials(self, vertex_potentials: np.ndarray):
         self._vertex_potentials = vertex_potentials
+
+    def get_filenames(self):
+        """
+        Splits the image path into file name and image directory.
+
+        Returns:
+            filename (str): image file name., output_dir (str): image directory path.
+        """
+        if self._save_path == "":
+            return None, None
+
+        output_dir, filename = os.path.split(self._save_path)
+        for ext in ALLOWED_GRAPH_FILE_EXTENSIONS:
+            ext = ext.replace('*', '')
+            pattern = re.escape(ext) + r'$'
+            filename = re.sub(pattern, '', filename)
+        return filename, output_dir
 
     def reset(self):
         """Reset all properties"""
@@ -437,3 +457,26 @@ class ResponseAnalyzer(ProgressUpdate):
 
         # fig.tight_layout()
         return fig
+
+    def save_results_to_file(self) -> bool:
+        """Save computed response data to a file."""
+        if self._vertex_potentials is None or self._edge_currents is None:
+            return False
+
+        filename, out_dir = self.get_filenames()
+        if filename is None:
+            return False
+
+        edges_filename = filename + "_EdgeCurrents.csv"
+        nodes_filename = filename + "_VertexPotentials.csv"
+        edges_file = os.path.join(out_dir, edges_filename)
+        nodes_file = os.path.join(out_dir, nodes_filename)
+
+        # Export the DataFrame to a CSV file without header and index
+        df_pot = pd.DataFrame(self._vertex_potentials)
+        df_pot.to_csv(str(nodes_file), header=False, index=False)
+
+        # Export the DataFrame to a CSV file without header and index
+        df_curr = pd.DataFrame(self._edge_currents)
+        df_curr.to_csv(str(edges_file), header=False, index=False)
+        return True

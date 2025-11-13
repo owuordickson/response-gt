@@ -43,8 +43,10 @@ class BaseWorker:
         """"""
         try:
             self._update_progress(ProgressData(percent=25, sender="RGT", message=f"Saving Response Data..."))
-            rgt_obj.save_results()
+            success = rgt_obj.save_results_to_file()
             self._update_progress(ProgressData(percent=95, sender="RGT", message=f"Saving Response Data..."))
+            if not success:
+                raise ValueError("Error while saving results!")
             task_data = TaskResult(task_id="Save Results", status="Finished", message="Response files successfully saved in 'Output Dir'")
             return True, task_data
         except Exception as err:
@@ -77,7 +79,7 @@ class BaseWorker:
             return False, ["Computation Failed", "Error occurred while computing ac-response. Re-upload the CSV files and try again. If error persists then close "
                                                    "the app and try again."]
 
-    def task_upload_csv(self, file_path):
+    def task_upload_csv(self, file_path: str, upload_type: int):
         """"""
         try:
             # 1. Verify if the file exists
@@ -100,7 +102,7 @@ class BaseWorker:
             self._update_progress(ProgressData(percent=50, sender="RGT", message=f"Reading File..."))
             graph_data = pd.read_csv(file_path, header=None, index_col=False).to_numpy()
             self._update_progress(ProgressData(percent=95, sender="RGT", message=f"Reading File..."))
-            task_data = TaskResult(task_id="Upload CSV", status="Finished", data=graph_data, message="CSV file successfully uploaded!")
+            task_data = TaskResult(task_id="Upload CSV", status="Finished", data={"upload_type": upload_type, "file": file_path, "graph_data": graph_data}, message="CSV file successfully uploaded!")
             return True, task_data
         except ValueError as err:
             logging.exception("Task Aborted: %s", err, extra={'user': 'RGT Logs'})
