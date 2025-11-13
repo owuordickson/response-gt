@@ -4,9 +4,10 @@ Compute AC response metrics
 """
 
 import numpy as np
+# import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-from sgtlib.modules import ProgressUpdate, plot_to_opencv
+from sgtlib.modules import ProgressUpdate, plot_to_opencv, ProgressData
 from scipy.sparse.linalg import spsolve
 from scipy.sparse import diags, csc_array
 from matplotlib.collections import LineCollection
@@ -80,10 +81,28 @@ class ResponseAnalyzer(ProgressUpdate):
         self._edge_list = None
         self._edge_currents = None
 
-    def compute_ac_response(self) -> tuple[np.ndarray, np.ndarray]:
+    def run_analyzer(self) -> None:
+        """Executes functions that will compute AC Response and draw the response graph"""
+
+        if self.abort:
+            self.update_status([-1, "Problem encountered while running Response Analyzer.."])
+            return
+
+        # 1. Compute AC Response
+        self._vertex_potentials, self._edge_currents = self.compute_ac_response()
+
+        # 2. Draw Response Graph
+        plt_fig = self.plot_response_graph()
+        self.update_status(ProgressData(percent=80, sender="RGT", message=f"Saving graph plot..."))
+        self._network_img = plot_to_opencv(plt_fig)
+
+    def compute_ac_response(self, silent: bool = False) -> tuple[None, None] | tuple[np.ndarray, np.ndarray]:
         """
-        From my testing on square-lattice networks, this method has the time complexity of O(n^~1.4).
-        Time complexity might increase significantly in networks with higher average node degree.
+        From my testing on square-lattice networks, this method has the time complexity of O(n^~1.4)
+
+        Time complexity might increase significantly in networks with higher average node degree
+
+        :return: potential_response (as a numpy array), current_response (as a numpy array)
         """
 
         def incidence_matrix():
@@ -145,10 +164,13 @@ class ResponseAnalyzer(ProgressUpdate):
             return given_potential_list, vertex_list
 
         if self.vertex_coordinates is None:
-            raise ValueError("Vertex positions are missing! Please upload them via a CSV file.")
+            self.update_status(ProgressData(type="error", sender="RGT", message=f"Vertex positions are missing! Please upload them via a CSV file.")) if not silent else None
+            return None, None
         if self.edge_list is None:
-            raise ValueError("Edge list is missing! Please upload them via a CSV file.")
+            self.update_status(ProgressData(type="error", sender="RGT", message=f"Edge list is missing! Please upload them via a CSV file.")) if not silent else None
+            return None, None
 
+        self.update_status(ProgressData(percent=1, sender="RGT", message=f"Computing AC response...")) if not silent else None
         # num_edges = len(self.edge_list)
         num_vertices = len(self.vertex_coordinates)
         num_edges = len(self.edge_list)
@@ -164,6 +186,7 @@ class ResponseAnalyzer(ProgressUpdate):
         inductance = 0.00000000000000000001
         leak_resistivity = 1000000000
 
+        self.update_status(ProgressData(percent=10, sender="RGT", message=f"Initializing parameters...")) if not silent else None
         num_selected = int(given_potential_fraction * num_vertices)
         c_mat = incidence_matrix() # The incidence matrix of the network, where rows are directed edges and columns are vertices
         res_list = resistivity * np.ones(len(edge_list)) # The array of resistance for each EDGE
@@ -178,6 +201,7 @@ class ResponseAnalyzer(ProgressUpdate):
         va_vertices_count = int(len(va_list))  # number of vertices in va_list
         vb_vertices_count = int(vertices_count - va_vertices_count)  # number of vertices in vb_list
 
+        self.update_status(ProgressData(percent=15, sender="RGT", message=f"Computing admittance, dynamical and auxiliary matrices...")) if not silent else None
         admittance_mat = diags(1 / (res_list + 1j * omega * ind_list))  # diags(1/(rho+1j*omega*inductance)*np.ones(len(edges))) #Y=(R+iwL)^-1, admittance matrix
         c_mat_transposed = c_mat.T  # transpose of incidence matrix
         dynamical_mat = c_mat_transposed @ admittance_mat @ c_mat  # sparse version of the dynamical matrix
@@ -244,6 +268,7 @@ class ResponseAnalyzer(ProgressUpdate):
         dynamical_ba = csc_array((ba_vals, (ba_rows, ba_cols)), shape=(vb_vertices_count, va_vertices_count), dtype="complex")
         dynamical_bb = csc_array((bb_vals, (bb_rows, bb_cols)), shape=(vb_vertices_count, vb_vertices_count), dtype="complex")
 
+        self.update_status(ProgressData(percent=50, sender="RGT", message=f"Solving response equation...")) if not silent else None
         # Need to solve the equation -Dba ua = (Dbb - alpha I) ub
         # LHS = p_mat, RHS = q_mat.ub
         # calculating p_mat and q_mat:
@@ -253,6 +278,7 @@ class ResponseAnalyzer(ProgressUpdate):
         # solving for u_b
         ub_list = spsolve(q_mat, p_mat)
 
+        self.update_status(ProgressData(percent=75, sender="RGT", message=f"Computing potential response...")) if not silent else None
         # calculating potential response
         potential_response = np.zeros(vertices_count, dtype="complex")
 
@@ -263,20 +289,19 @@ class ResponseAnalyzer(ProgressUpdate):
         for i in range(len(vb_list)):
             potential_response[vb_list[i]] = ub_list[i]
 
+        self.update_status(ProgressData(percent=85, sender="RGT", message=f"Computing current response...")) if not silent else None
         # calculating current response
         current_response = admittance_mat @ c_mat @ potential_response
-
-        self._vertex_potentials = potential_response
-        self._edge_currents = current_response
         return potential_response, current_response
 
-    def plot_response_graph(self, graph_type: str = "all", show_current_phase: bool = None, vertex_marker_size: float = None, edge_line_width: float = None, show_color_wheel: bool = None, phase_labels: dict = None):
+    def plot_response_graph(self, graph_type: str = "all", show_current_phase: bool = None, vertex_marker_size: float = None, edge_line_width: float = None, show_color_wheel: bool = None, phase_labels: dict = None) -> None | plt.Figure:
         """
         Draws the response graph of the network.
         """
 
         if self._vertex_potentials is None or self._edge_currents is None:
-            raise ValueError("Response data is missing! Please run the compute_response() method first.")
+            self.update_status(ProgressData(type="error", sender="RGT", message=f"Response data is missing! Please run the compute_response() method first."))
+            return None
 
         def complex_to_rgb(phases, mags):
             """Convert complex numbers to colors (HSV where H=phase, S=1, V=normalized magnitude)."""
@@ -363,12 +388,14 @@ class ResponseAnalyzer(ProgressUpdate):
             ax_color.set_theta_offset(np.pi / 2)
             ax_color.set_frame_on(False)
 
+        self.update_status(ProgressData(percent=1, sender="RGT", message=f"Generating response graph..."))
         # Retrieve computed response data (should be numpy arrays)
         vert_pos = self.vertex_coordinates
         edge_list = self.edge_list
         potential_resp = self._vertex_potentials
         current_resp = self._edge_currents
 
+        self.update_status(ProgressData(percent=5, sender="RGT", message=f"Fetching parameters..."))
         # Create a figure and an axis
         if graph_type == "all":
             fig = plt.Figure(figsize=(16.4 / 2, 10.7 / 2)) # last ordered pair is aspect ratio
@@ -376,20 +403,27 @@ class ResponseAnalyzer(ProgressUpdate):
             mk_size = 10 if vertex_marker_size is None else vertex_marker_size
             lw = 5 if edge_line_width is None else edge_line_width
             color_phases = False if show_current_phase is None else show_current_phase
+
+            self.update_status(ProgressData(percent=10, sender="RGT", message=f"Plotting graph vertices..."))
             plot_vertices(marker_size=mk_size)
+
+            self.update_status(ProgressData(percent=40, sender="RGT", message=f"Plotting graph edges..."))
             plot_edges(edge_lw=lw, use_edge_colors=color_phases, normalize_colors=True)
         else:
             fig = plt.Figure(figsize=(9, 9))
             ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
             if graph_type == "vertices":
+                self.update_status(ProgressData(percent=10, sender="RGT", message=f"Plotting graph vertices..."))
                 mk_size = 30 if vertex_marker_size is None else vertex_marker_size
                 plot_vertices(marker_size=mk_size)
             elif graph_type == "edges":
+                self.update_status(ProgressData(percent=10, sender="RGT", message=f"Plotting graph edges..."))
                 lw = 3 if edge_line_width is None else edge_line_width
                 color_phases = True if show_current_phase is None else show_current_phase
                 plot_edges(edge_lw=lw, use_edge_colors=color_phases)
 
         if show_color_wheel:
+            self.update_status(ProgressData(percent=60, sender="RGT", message=f"Plotting color wheel..."))
             plot_color_wheel(phase_labels)
 
         # Determine plot ranges
@@ -402,5 +436,4 @@ class ResponseAnalyzer(ProgressUpdate):
         #ax.set_axis_off()
 
         # fig.tight_layout()
-        self._network_img = plot_to_opencv(fig)
         return fig

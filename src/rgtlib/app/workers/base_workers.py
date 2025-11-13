@@ -4,8 +4,11 @@
 Base worker class for executing all resource-intensive StructuralGT tasks.
 """
 
+import os
 import logging
-from sgtlib.modules import ProgressData, TaskResult
+import pandas as pd
+from sgtlib.modules import ProgressData, TaskResult, verify_path
+from ...compute.response_analyzer import ALLOWED_GRAPH_FILE_EXTENSIONS
 
 
 class BaseWorker:
@@ -36,38 +39,19 @@ class BaseWorker:
         if self._progress_queue is None:
             self._progress_queue = queue
 
-    def task_save_images(self, ntwk_p, img_idx):
+    def task_save_results(self, rgt_obj):
         """"""
         try:
-            self._update_progress(ProgressData(percent=25, sender="GT", message=f"Saving Images..."))
-            ntwk_p.save_images_to_file(img_pos=img_idx)
-            self._update_progress(ProgressData(percent=95, sender="GT", message=f"Saving Images..."))
-            task_data = TaskResult(task_id="Save Images", status="Finished",
-                                   message="Image files successfully saved in 'Output Dir'")
+            self._update_progress(ProgressData(percent=25, sender="RGT", message=f"Saving Response Data..."))
+            rgt_obj.save_results()
+            self._update_progress(ProgressData(percent=95, sender="RGT", message=f"Saving Response Data..."))
+            task_data = TaskResult(task_id="Save Results", status="Finished", message="Response files successfully saved in 'Output Dir'")
             return True, task_data
         except Exception as err:
-            logging.exception("Error: %s", err, extra={'user': 'SGT Logs'})
-            return False, ["Save Images Failed", "Error while saving images!"]
+            logging.exception("Error: %s", err, extra={'user': 'RGT Logs'})
+            return False, ["Download Failed", "Error while saving results!"]
 
-    def task_export_graph(self, ntwk_p):
-        """"""
-        try:
-            # 1. Get filename
-            self._update_progress(ProgressData(percent=25, sender="GT", message=f"Exporting Graph..."))
-            filename, out_dir = ntwk_p.get_filenames()
-
-            # 2. Save graph data to the file
-            self._update_progress(ProgressData(percent=30, sender="GT", message=f"Exporting Graph..."))
-            ntwk_p.graph_obj.save_graph_to_file(filename, out_dir)
-            self._update_progress(ProgressData(percent=95, sender="GT", message=f"Exporting Graph..."))
-            task_data = TaskResult(task_id="Export Graph", status="Finished",
-                                   message="Graph successfully exported to file and saved in 'Output Dir'")
-            return True, task_data
-        except Exception as err:
-            logging.exception("Error: %s", err, extra={'user': 'SGT Logs'})
-            return False, ["Export Graph Failed", "Error while exporting graph!"]
-
-    def task_extract_graph(self, ntwk_p):
+    def task_compute_response(self, rgt_obj):
         """"""
         try:
             ntwk_p.abort = False
@@ -77,23 +61,56 @@ class BaseWorker:
             if ntwk_p.abort:
                 raise ValueError("Process aborted")
             ntwk_p.remove_listener(self._update_progress)
-            task_data = TaskResult(task_id="Extract Graph", status="Finished", message="Graph extracted successfully!", data=ntwk_p)
+            task_data = TaskResult(task_id="Extract Graph", status="Finished", message="Graph extracted successfully!",
+                                   data=ntwk_p)
             return True, task_data
         except ValueError as err:
-            logging.exception("Task Aborted: %s", err, extra={'user': 'SGT Logs'})
+            logging.exception("Task Aborted: %s", err, extra={'user': 'RGT Logs'})
             # Clean up listeners before exiting
             ntwk_p.remove_listener(self._update_progress)
             return False, ["Extract Graph Aborted", "Graph extraction aborted due to error! "
-                                                                          "Change image filters and/or graph settings "
-                                                                          "and try again. If error persists then close "
-                                                                          "the app and try again."]
+                                                    "Change image filters and/or graph settings "
+                                                    "and try again. If error persists then close "
+                                                    "the app and try again."]
         except Exception as err:
-            logging.exception("Error: %s", err, extra={'user': 'SGT Logs'})
+            logging.exception("Error: %s", err, extra={'user': 'RGT Logs'})
             self._update_progress(ProgressData(type="error", sender="GT", message=f"Error encountered! Try again."))
             # Clean up listeners before exiting
             ntwk_p.remove_listener(self._update_progress)
             # Emit failure signal (aborted)
             return False, ["Extract Graph Failed", "Graph extraction aborted due to error! "
-                                                                          "Change image filters and/or graph settings "
-                                                                          "and try again. If error persists then close "
-                                                                          "the app and try again."]
+                                                   "Change image filters and/or graph settings "
+                                                   "and try again. If error persists then close "
+                                                   "the app and try again."]
+
+    def task_upload_csv(self, file_path):
+        """"""
+        try:
+            # 1. Verify if the file exists
+            self._update_progress(ProgressData(percent=25, sender="RGT", message=f"Reading File..."))
+            success, result = verify_path(file_path)
+            if success:
+                file_path = result
+            else:
+                raise ValueError("File Error")
+
+            # 2. Check if the file extension is allowed
+            self._update_progress(ProgressData(percent=35, sender="RGT", message=f"Reading File..."))
+            file_ext = os.path.splitext(file_path)[1].lower()
+            allowed_ext = tuple(ext[1:] if ext.startswith('*.') else ext for ext in ALLOWED_GRAPH_FILE_EXTENSIONS)
+            if file_ext not in allowed_ext:
+                throw_msg = f"File extension {file_ext} is not allowed. Allowed extensions are {allowed_ext}"
+                raise ValueError(throw_msg)
+
+            # 3. Read the file and return graph data
+            self._update_progress(ProgressData(percent=50, sender="RGT", message=f"Reading File..."))
+            graph_data = pd.read_csv(file_path, header=None, index_col=False).to_numpy()
+            self._update_progress(ProgressData(percent=95, sender="RGT", message=f"Reading File..."))
+            task_data = TaskResult(task_id="Upload CSV", status="Finished", data=graph_data, message="CSV file successfully uploaded!")
+            return True, task_data
+        except ValueError as err:
+            logging.exception("Task Aborted: %s", err, extra={'user': 'RGT Logs'})
+            return False, ["File Upload Failed", f"Error while reading file {file_path}!"]
+        except Exception as err:
+            logging.exception("File Error: %s", err, extra={'user': 'RGT Logs'})
+            return False, ["File Error", f"Error reading {file_path}! Try again."]

@@ -3,19 +3,16 @@
 Pyside6 (GUI components) main controller class.
 """
 
-import os
 import logging
-import numpy as np
-import pandas as pd
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Signal, Slot, QObject
-from sgtlib.modules import ProgressData, TaskResult, verify_path
+from sgtlib.modules import ProgressData, TaskResult
 
 from .network_controller import NetworkController
 from ..workers.base_workers import BaseWorker
 from ..workers.persistent_worker import PersistentProcessWorker
 from ... import __version__, __title__
-from ...compute.response_analyzer import ResponseAnalyzer, ALLOWED_GRAPH_FILE_EXTENSIONS
+from ...compute.response_analyzer import ResponseAnalyzer
 
 
 class MainController(QObject):
@@ -123,11 +120,9 @@ class MainController(QObject):
         else:
             if isinstance(result, TaskResult):
                 self.stop_current_task(cancel_job=False)
-                if result.task_id == "Upload Nodes":
+                if result.task_id == "Upload CSV":
                     pass
-                if result.task_id == "Upload Edges":
-                    pass
-                if result.task_id == "Export Graph":
+                if result.task_id == "Save Results":
                     # Saving files to Output Folder
                     self.handle_progress_update(ProgressData(percent=100, sender="RGT", message=f"Files Saved!"))
                     self.taskTerminatedSignal.emit(success_val, ["Files Saved", result.message])
@@ -152,7 +147,11 @@ class MainController(QObject):
         base_funcs = BaseWorker()
 
         if task_fxn == "Compute Response":
-            target = base_funcs.task_extract_graph
+            target = base_funcs.task_compute_response
+        elif task_fxn == "Upload CSV":
+            target = base_funcs.task_upload_csv
+        elif task_fxn == "Save Results":
+            target = base_funcs.task_save_results
         else:
             return
 
@@ -164,30 +163,6 @@ class MainController(QObject):
             _sync_signals(self._rgt_worker)
         else:
             return
-
-    def add_graph_file(self, file_path: str) -> None | np.ndarray:
-        """Read the file and return graph data."""
-        success, result = verify_path(file_path)
-        if success:
-            file_path = result
-        else:
-            logging.info(result, extra={'user': 'RGT Logs'})
-            self.showAlertSignal.emit("File Error", result)
-            return None
-
-        try:
-            file_ext = os.path.splitext(file_path)[1].lower()
-            allowed_ext = tuple(ext[1:] if ext.startswith('*.') else ext for ext in ALLOWED_GRAPH_FILE_EXTENSIONS)
-            if file_ext not in allowed_ext:
-                throw_msg = f"File extension {file_ext} is not allowed. Allowed extensions are {allowed_ext}"
-                raise ValueError(throw_msg)
-
-            graph_data = pd.read_csv(file_path, header=None, index_col=False).to_numpy()
-            return graph_data
-        except Exception as err:
-            logging.exception("File Error: %s", err, extra={'user': 'RGT Logs'})
-            self.showAlertSignal.emit("File Error", f"Error reading {file_path}. Try again.")
-            return None
 
     @Slot(int)
     def stop_current_task(self, worker_id: int = 1, cancel_job: bool = True):
