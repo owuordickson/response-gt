@@ -139,11 +139,14 @@ class NetworkController(QObject):
             return
 
         try:
+            if self._ctrl.rgt_obj.edge_currents is None and self._ctrl.rgt_obj.vertex_potentials is None:
+                self._ctrl.handle_finished(1, False,["Download Error", "Please run the 'Compute Response' first."])
+                return
+
             self.start_task()
             self._ctrl.submit_job(1, "Save Results", (self._ctrl.rgt_obj,), True)
         except Exception as err:
             self.stop_task()
             logging.exception("Download Error: %s", err, extra={'user': 'RGT Logs'})
-            self._ctrl.handle_progress_update(
-                ProgressData(type="error", sender="RGT", message=f"Fatal error occurred!"))
+            self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Fatal error occurred!"))
             self._ctrl.handle_finished(1, False, ["Download Error", "Fatal error while trying to save results to file."])
