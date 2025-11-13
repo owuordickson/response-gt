@@ -428,8 +428,8 @@ def plot_all(vertpos, pot_res, edgelist, cur_res, phase_labels=None):
 #==========================================
 
 
-edges = pd.read_csv('../../../datasets/InVitroBioFilm_EdgeList.csv', header=None, index_col=False).to_numpy()
-vertpos = pd.read_csv('../../../datasets/InVitroBioFilm_NodePositions.csv', header=None, index_col=False).to_numpy()
+edges = pd.read_csv('../../../datasets/InVitroBioFilm_EdgeList-NoHeader.csv', header=None, index_col=False).to_numpy()
+vertpos = pd.read_csv('../../../datasets/InVitroBioFilm_NodePositions-NoHeader.csv', header=None, index_col=False).to_numpy()
 n_vertices=len(vertpos)
 
 
