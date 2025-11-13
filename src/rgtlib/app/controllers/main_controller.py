@@ -164,6 +164,7 @@ class MainController(QObject):
     @Slot(result=str)
     def get_about_details(self):
         about_str = f"""{__title__} v{__version__}"""
+        self.network_ctrl.imageChangedSignal.emit()
         return about_str
 
     @Slot(result=str)

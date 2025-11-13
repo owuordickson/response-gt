@@ -7,7 +7,7 @@ MenuBar {
     Menu {
         title: mainController.get_app_title();
         MenuItem { text: "&About"; onTriggered: dlgAbout.open(); }
-        MenuItem { id:mnuHelp; text: "ResponseGT Help"; enabled: true; onTriggered: dlgAbout.open() }
+        MenuItem { id:mnuHelp; text: "ResponseGT Help"; enabled: true; onTriggered: {dlgAbout.open(); mainController.get_about_details();} }
         MenuSeparator{}
         MenuItem { text: "&Quit"; onTriggered: Qt.quit(); }
     }
