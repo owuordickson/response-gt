@@ -470,12 +470,10 @@ class ResponseAnalyzer(ProgressUpdate):
     def save_results_to_file(self) -> bool:
         """Save computed response data to a file."""
         if self._vertex_potentials is None or self._edge_currents is None:
-            print("Response data is missing! Please run the compute_response() method first.")
             return False
 
         filename, out_dir = self.get_filenames()
         if filename is None:
-            print("Filename is missing!.")
             return False
 
         edges_filename = filename + "_EdgeCurrents.csv"
