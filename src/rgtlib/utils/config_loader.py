@@ -62,4 +62,3 @@ def load_rgt_configs(cfg_path: str = ""):
         return options_rgt
     except configparser.NoSectionError:
         return options_rgt
-
