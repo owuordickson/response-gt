@@ -399,6 +399,7 @@ class ResponseAnalyzer(ProgressUpdate):
         y_pad = (y_max - y_min) * 0.1
         ax.set_xlim(x_min - x_pad, x_max + x_pad)
         ax.set_ylim(y_min - y_pad, y_max + y_pad)
+        #ax.set_axis_off()
 
         # fig.tight_layout()
         self._network_img = plot_to_opencv(fig)

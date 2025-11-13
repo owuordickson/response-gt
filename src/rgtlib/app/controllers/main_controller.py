@@ -12,6 +12,8 @@ from PySide6.QtCore import Signal, Slot, QObject
 from sgtlib.modules import ProgressData, TaskResult, verify_path
 
 from .network_controller import NetworkController
+from ..workers.base_workers import BaseWorker
+from ..workers.persistent_worker import PersistentProcessWorker
 from ... import __version__, __title__
 from ...compute.response_analyzer import ResponseAnalyzer, ALLOWED_GRAPH_FILE_EXTENSIONS
 
@@ -42,7 +44,7 @@ class MainController(QObject):
         self.network_ctrl = NetworkController(self)
 
         # Create Persistent Workers (Processes)
-        self._rgt_worker = None #PersistentProcessWorker()
+        self._rgt_worker = PersistentProcessWorker(worker_id=1)
 
     @property
     def wait_flag(self) -> bool:
@@ -68,8 +70,9 @@ class MainController(QObject):
     def rgt_obj(self):
         return self._rgt_obj
 
-    def _cancel_loading(self):
-        pass
+    def _cancel_loading(self, worker_id):
+        if worker_id == 1:
+            self.network_ctrl.stop_task()
 
     def cleanup_workers(self):
         """Stop all persistent workers before app exit."""
@@ -102,16 +105,17 @@ class MainController(QObject):
             self.errorSignal.emit(status_data.message)
             logging.exception(f"({status_data.sender}) {status_data.message}", extra={'user': 'RGT Logs'})
 
-    def handle_finished(self, success_val: bool, result: None | TaskResult | list) -> None:
+    def handle_finished(self, worker_id: int, success_val: bool, result: None | TaskResult | list) -> None:
         """
         Handler function for sending updates/signals on termination of tasks.
         Args:
+            worker_id: The process worker ID.
             success_val: True if the task was successful, False otherwise.
             result: The result of the task.
         Returns:
             None
         """
-        self._cancel_loading()
+        self._cancel_loading(worker_id)
         if not success_val:
             if type(result) is list:
                 logging.info(f"{result[0]} : {result[1]}", extra={'user': 'RGT Logs'})
@@ -119,6 +123,10 @@ class MainController(QObject):
         else:
             if isinstance(result, TaskResult):
                 self.stop_current_task(cancel_job=False)
+                if result.task_id == "Upload Nodes":
+                    pass
+                if result.task_id == "Upload Edges":
+                    pass
                 if result.task_id == "Export Graph":
                     # Saving files to Output Folder
                     self.handle_progress_update(ProgressData(percent=100, sender="RGT", message=f"Files Saved!"))
@@ -130,10 +138,30 @@ class MainController(QObject):
             else:
                 self.taskTerminatedSignal.emit(success_val, [])
 
-    def submit_job(self, task_fxn, fxn_args=()):
-        """"""
+    def submit_job(self, worker_id, task_fxn, fxn_args=(), track_updates: bool = True) -> None:
+        """Start a background thread and its associated worker."""
+
+        def _sync_signals(bg_worker: PersistentProcessWorker):
+            bg_worker.taskCompleted.connect(self.handle_finished)
+            if track_updates:
+                bg_worker.inProgress.connect(self.handle_progress_update)
+
+        if task_fxn is None or worker_id is None:
+            return
+
+        base_funcs = BaseWorker()
+
         if task_fxn == "Compute Response":
-            print(f"{self._rgt_obj}: {fxn_args}")
+            target = base_funcs.task_extract_graph
+        else:
+            return
+
+        if worker_id == 1:
+            started = self._rgt_worker.submit_task(func=target, args=fxn_args)
+            if not started:
+                self.showAlertSignal.emit("Please Wait", "Another GT job is running!")
+                return
+            _sync_signals(self._rgt_worker)
         else:
             return
 
@@ -161,6 +189,22 @@ class MainController(QObject):
             self.showAlertSignal.emit("File Error", f"Error reading {file_path}. Try again.")
             return None
 
+    @Slot(int)
+    def stop_current_task(self, worker_id: int = 1, cancel_job: bool = True):
+        """Stop a background thread and its associated worker."""
+        # self.showAlertSignal.emit("Important Alert", "Cancelling job, please wait...")
+        if worker_id == 1:
+            if cancel_job:
+                self.handle_progress_update(
+                    ProgressData(percent=99, sender="RGT", message="Cancelling job, please wait..."))
+            else:
+                # Restart Process after 3 tasks
+                if self._rgt_worker.task_count < 3:
+                    return
+            self._rgt_worker.stop()
+            self._rgt_worker = PersistentProcessWorker(worker_id)
+            self.handle_finished(worker_id, True, None)
+
     @Slot(result=str)
     def get_about_details(self):
         about_str = f"""{__title__} v{__version__}"""
@@ -175,20 +219,6 @@ class MainController(QObject):
     def get_app_version(self):
         """"""
         return f"v{__version__}"
-
-    @Slot(int)
-    def stop_current_task(self, cancel_job: bool = True):
-        """Stop a background thread and its associated worker."""
-        # self.showAlertSignal.emit("Important Alert", "Cancelling job, please wait...")
-        if cancel_job:
-            self.handle_progress_update(ProgressData(percent=99, sender="RGT", message="Cancelling job, please wait..."))
-        # else:
-            # Restart Process after 3 tasks
-            # if self._rgt_worker.task_count < 3:
-            #    return
-        #self._rgt_worker.stop()
-        #self._rgt_worker = PersistentProcessWorker()
-        self.handle_finished(True, None)
 
     @Slot(result=bool)
     def is_task_running(self):
