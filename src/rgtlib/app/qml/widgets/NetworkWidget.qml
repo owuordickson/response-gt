@@ -37,14 +37,6 @@ Rectangle {
             transformOrigin: Item.Center
             fillMode: Image.PreserveAspectFit
             source: ""
-            visible: false
-        }
-
-        Rectangle {
-            width: flickableArea.width
-            height: flickableArea.height
-            color: "transparent"
-            border.color: "#b0b0b0"
         }
 
     }
