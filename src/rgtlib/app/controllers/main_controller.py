@@ -141,8 +141,8 @@ class MainController(QObject):
                         if edges is not None:
                             self.rgt_obj.edge_list = edges
                     self.handle_progress_update(ProgressData(percent=100, sender="RGT", message=f"File Uploaded!"))
-                    self.network_ctrl.imageChangedSignal.emit()
-                    self.taskTerminatedSignal.emit(success_val, ["File Uploaded", result.message])
+                    self.network_ctrl.imageChangedSignal.emit()  # trigger QML UI update
+                    self.taskTerminatedSignal.emit(success_val, [])  # Hide Alert-Dialog
                 if result.task_id == "Save Results":
                     # Saving files to Output Folder
                     self.handle_progress_update(ProgressData(percent=100, sender="RGT", message=f"Files Saved!"))
@@ -151,8 +151,8 @@ class MainController(QObject):
                     new_rgt_obj = result.data
                     self.rgt_obj.copy_computations(new_rgt_obj)
                     self.handle_progress_update(ProgressData(percent=100, sender="RGT", message=result.message))
-                    self.network_ctrl.changeImageSignal.emit() # trigger QML UI update
-                    self.taskTerminatedSignal.emit(success_val, ["Response calculations completed", result.message])
+                    self.network_ctrl.changeImageSignal.emit() # trigger QML UI update (load image)
+                    self.taskTerminatedSignal.emit(success_val, [])  # Hide Alert-Dialog
             else:
                 self.taskTerminatedSignal.emit(success_val, [])
 

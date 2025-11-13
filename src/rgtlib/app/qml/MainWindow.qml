@@ -57,6 +57,7 @@ ApplicationWindow {
 
     // Dialogs
     DialogAbout{id: dlgAbout}
+    DialogAlert{id: dialogAlert}
     DialogFileVertices{id: dlgFileVertices}
     DialogFileEdges{id: dlgFileEdges}
 
