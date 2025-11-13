@@ -58,7 +58,7 @@ class BaseWorker:
         try:
             rgt_obj.abort = False
             rgt_obj.add_listener(self._update_progress)
-            rgt_obj.run_response_analyzer()
+            rgt_obj.run_analyzer()
             if rgt_obj.abort:
                 raise ValueError("Process aborted")
             rgt_obj.remove_listener(self._update_progress)

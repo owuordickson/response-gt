@@ -18,7 +18,7 @@ MenuBar {
             title: "Import network from..."
             MenuItem {id: mnuImportNodes; text:"Vertex Positions (CSV)"; enabled: true; onTriggered: dlgFileVertices.open()}
             MenuItem {id: mnuImportEdges; text:"Edge List (CSV)"; enabled: true; onTriggered: dlgFileEdges.open()}
-            MenuItem {id: mnuDownloadResults; text: "Download Results"; enabled: false; onTriggered: console.log("Export Response Potentials and Currents") }
+            MenuItem {id: mnuDownloadResults; text: "Download Results"; enabled: false; onTriggered: networkController.export_response_to_file() }
         }
         MenuSeparator{}
 
