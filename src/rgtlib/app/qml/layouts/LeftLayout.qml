@@ -39,6 +39,12 @@ Rectangle {
         function onImageChangedSignal() {
             // Force refresh
             lblNoNetwork.visible = !networkController.graph_is_ready();
+
+            if (networkController.graph_data_uploaded()) {
+                lblNoNetwork.text = "No graph network to show!\nRun 'Compute Response'.";
+            } else {
+                lblNoNetwork.text = "No graph network to show!\nUpload CSV files of vertex/node\n positions and edge list.";
+            }
         }
     }
 

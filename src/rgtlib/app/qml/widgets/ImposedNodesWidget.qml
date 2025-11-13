@@ -25,7 +25,7 @@ ColumnLayout {
 
         function onImageChangedSignal() {
             // Force refresh
-            imposedNodesWidget.visible = networkController.graph_is_ready();
+            imposedNodesWidget.visible = false//networkController.graph_is_ready();
         }
     }
 
