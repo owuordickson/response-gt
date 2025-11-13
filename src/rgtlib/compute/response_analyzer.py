@@ -76,6 +76,23 @@ class ResponseAnalyzer(ProgressUpdate):
     def vertex_potentials(self, vertex_potentials: np.ndarray):
         self._vertex_potentials = vertex_potentials
 
+    def reset(self):
+        """Reset all properties"""
+        self._props = []
+        self._vertex_coordinates = None
+        self._vertex_potentials = None
+        self._edge_list = None
+        self._edge_currents = None
+
+    def copy_computations(self, other):
+        """Copy attributes from another ResponseAnalyzer object"""
+        try:
+            self._network_img = other.network_img
+            self._vertex_coordinates = other.vertex_coordinates
+            self._edge_currents = other.edge_currents
+        except AttributeError:
+            return
+
     def get_filenames(self):
         """
         Splits the image path into file name and image directory.
@@ -92,14 +109,6 @@ class ResponseAnalyzer(ProgressUpdate):
             pattern = re.escape(ext) + r'$'
             filename = re.sub(pattern, '', filename)
         return filename, output_dir
-
-    def reset(self):
-        """Reset all properties"""
-        self._props = []
-        self._vertex_coordinates = None
-        self._vertex_potentials = None
-        self._edge_list = None
-        self._edge_currents = None
 
     def run_analyzer(self) -> None:
         """Executes functions that will compute AC Response and draw the response graph"""

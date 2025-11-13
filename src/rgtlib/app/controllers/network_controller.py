@@ -5,7 +5,7 @@ Pyside6 (GUI components) controller class for network retrieval and computations
 
 import logging
 import numpy as np
-from sgtlib.modules import ProgressData, TaskResult
+from sgtlib.modules import ProgressData
 from PySide6.QtCore import Signal, Slot, QObject
 
 from ...compute.response_analyzer import ALLOWED_GRAPH_FILE_EXTENSIONS
@@ -84,7 +84,7 @@ class NetworkController(QObject):
             self.stop_task()
             logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Error occurred!"))
-            self._ctrl.handle_finished(False, ["Upload Error",  "Fatal error while trying to upload edge list."])
+            self._ctrl.handle_finished(1, False, ["Upload Error",  "Fatal error while trying to upload edge list."])
 
     @Slot(str)
     def upload_vertex_positions(self, file_path: str):
@@ -101,7 +101,7 @@ class NetworkController(QObject):
             self.stop_task()
             logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Error occurred!"))
-            self._ctrl.handle_finished(False, ["Upload Error", "Fatal error while trying to upload vertex positions."])
+            self._ctrl.handle_finished(1, False, ["Upload Error", "Fatal error while trying to upload vertex positions."])
 
     @Slot()
     def run_response_analyzer(self):
@@ -122,7 +122,7 @@ class NetworkController(QObject):
             self.stop_task()
             logging.exception("Response Analyzer Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Fatal error occurred!"))
-            self._ctrl.handle_finished(False, ["Analyzer Error",  "Fatal error while trying to compute ac-response."])
+            self._ctrl.handle_finished(1, False, ["Analyzer Error",  "Fatal error while trying to compute ac-response."])
 
     @Slot()
     def export_response_to_file(self):
@@ -140,4 +140,4 @@ class NetworkController(QObject):
             logging.exception("Download Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_progress_update(
                 ProgressData(type="error", sender="RGT", message=f"Fatal error occurred!"))
-            self._ctrl.handle_finished(False, ["Download Error", "Fatal error while trying to save results to file."])
+            self._ctrl.handle_finished(1, False, ["Download Error", "Fatal error while trying to save results to file."])

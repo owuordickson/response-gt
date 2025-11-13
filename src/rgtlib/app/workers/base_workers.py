@@ -102,7 +102,7 @@ class BaseWorker:
             self._update_progress(ProgressData(percent=50, sender="RGT", message=f"Reading File..."))
             graph_data = pd.read_csv(file_path, header=None, index_col=False).to_numpy()
             self._update_progress(ProgressData(percent=95, sender="RGT", message=f"Reading File..."))
-            task_data = TaskResult(task_id="Upload CSV", status="Finished", data={"upload_type": upload_type, "file": file_path, "graph_data": graph_data}, message="CSV file successfully uploaded!")
+            task_data = TaskResult(task_id="Upload CSV", status="Finished", message="CSV file successfully uploaded!", data=[upload_type, file_path,  graph_data])
             return True, task_data
         except ValueError as err:
             logging.exception("Task Aborted: %s", err, extra={'user': 'RGT Logs'})
