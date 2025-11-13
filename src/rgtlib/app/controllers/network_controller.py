@@ -69,6 +69,12 @@ class NetworkController(QObject):
             return False
         return True if self._ctrl.rgt_obj.vertex_coordinates is None else False
 
+    @Slot(result=bool)
+    def graph_data_uploaded(self):
+        is_edge_list_uploaded = not self.enable_edge_list_upload()
+        is_vertex_positions_uploaded = not self.enable_vertex_positions_upload()
+        return is_edge_list_uploaded and is_vertex_positions_uploaded
+
     @Slot(str)
     def upload_edge_list(self, file_path: str):
         """Upload an edge list file and return True if successful."""

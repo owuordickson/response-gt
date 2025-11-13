@@ -34,7 +34,9 @@ Rectangle {
         }
 
         RowLayout {
+            id: rowUploadButtons
             Layout.alignment: Qt.AlignHCenter
+            visible: true
 
             Material.Button {
                 id: btnAddNodes
@@ -53,7 +55,19 @@ Rectangle {
                 enabled: networkController.enable_edge_list_upload()
                 onClicked: dlgFileEdges.open()
             }
+        }
 
+        RowLayout {
+            id: rowAnalyzerButtons
+            Layout.alignment: Qt.AlignHCenter
+            visible: false
+
+            Material.Button {
+                id: btnRunAnalyzer
+                //Layout.preferredWidth: 135
+                text: "Compute Response"
+                onClicked: networkController.run_response_analyzer()
+            }
         }
 
     }
@@ -65,6 +79,9 @@ Rectangle {
         function onImageChangedSignal() {
             // Force refresh
             welcomeContainer.visible = !networkController.graph_is_ready();
+            rowUploadButtons.visible = !networkController.graph_data_uploaded();
+            rowAnalyzerButtons.visible = networkController.graph_data_uploaded();
+
             btnAddNodes.enabled = networkController.enable_vertex_positions_upload();
             btnAddEdges.enabled = networkController.enable_edge_list_upload();
         }

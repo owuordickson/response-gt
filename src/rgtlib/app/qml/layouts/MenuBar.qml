@@ -35,9 +35,9 @@ MenuBar {
             // Force refresh
             mnuImportNodes.enabled = networkController.enable_vertex_positions_upload();
             mnuImportEdges.enabled = networkController.enable_edge_list_upload();
-            mnuDownloadResults.enabled = !networkController.enable_vertex_positions_upload() && !networkController.enable_edge_list_upload();
-            mnuRunResponse.enabled = !networkController.enable_vertex_positions_upload() && !networkController.enable_edge_list_upload();
-            mnuDeleteAll.enabled = !networkController.enable_vertex_positions_upload() && !networkController.enable_edge_list_upload();
+            mnuDownloadResults.enabled = networkController.graph_data_uploaded();
+            mnuRunResponse.enabled = networkController.graph_data_uploaded();
+            mnuDeleteAll.enabled = networkController.graph_data_uploaded();
         }
     }
 
