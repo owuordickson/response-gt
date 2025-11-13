@@ -59,10 +59,14 @@ class NetworkController(QObject):
 
     @Slot(result=bool)
     def enable_edge_list_upload(self):
+        if self._ctrl.wait_flag:
+            return False
         return True if self._ctrl.rgt_obj.edge_list is None else False
 
     @Slot(result=bool)
     def enable_vertex_positions_upload(self):
+        if self._ctrl.wait_flag:
+            return False
         return True if self._ctrl.rgt_obj.vertex_coordinates is None else False
 
     @Slot(str, result=bool)

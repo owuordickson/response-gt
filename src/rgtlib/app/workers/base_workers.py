@@ -54,33 +54,27 @@ class BaseWorker:
     def task_compute_response(self, rgt_obj):
         """"""
         try:
-            ntwk_p.abort = False
-            ntwk_p.add_listener(self._update_progress)
-            ntwk_p.apply_img_filters()
-            ntwk_p.build_graph_network()
-            if ntwk_p.abort:
+            rgt_obj.abort = False
+            rgt_obj.add_listener(self._update_progress)
+            rgt_obj.run_response_analyzer()
+            if rgt_obj.abort:
                 raise ValueError("Process aborted")
-            ntwk_p.remove_listener(self._update_progress)
-            task_data = TaskResult(task_id="Extract Graph", status="Finished", message="Graph extracted successfully!",
-                                   data=ntwk_p)
+            rgt_obj.remove_listener(self._update_progress)
+            task_data = TaskResult(task_id="Compute Response", status="Finished", message="AC Response computed successfully!", data=rgt_obj)
             return True, task_data
         except ValueError as err:
             logging.exception("Task Aborted: %s", err, extra={'user': 'RGT Logs'})
             # Clean up listeners before exiting
-            ntwk_p.remove_listener(self._update_progress)
-            return False, ["Extract Graph Aborted", "Graph extraction aborted due to error! "
-                                                    "Change image filters and/or graph settings "
-                                                    "and try again. If error persists then close "
-                                                    "the app and try again."]
+            rgt_obj.remove_listener(self._update_progress)
+            return False, ["Computation Aborted", "Error occurred while computing ac-response. Re-upload the CSV files and try again. If error persists then close "
+                                                   "the app and try again."]
         except Exception as err:
             logging.exception("Error: %s", err, extra={'user': 'RGT Logs'})
-            self._update_progress(ProgressData(type="error", sender="GT", message=f"Error encountered! Try again."))
+            self._update_progress(ProgressData(type="error", sender="RGT", message=f"Error encountered! Try again."))
             # Clean up listeners before exiting
-            ntwk_p.remove_listener(self._update_progress)
+            rgt_obj.remove_listener(self._update_progress)
             # Emit failure signal (aborted)
-            return False, ["Extract Graph Failed", "Graph extraction aborted due to error! "
-                                                   "Change image filters and/or graph settings "
-                                                   "and try again. If error persists then close "
+            return False, ["Computation Failed", "Error occurred while computing ac-response. Re-upload the CSV files and try again. If error persists then close "
                                                    "the app and try again."]
 
     def task_upload_csv(self, file_path):

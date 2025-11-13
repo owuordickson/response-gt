@@ -203,7 +203,7 @@ class MainController(QObject):
     def reset_rgt_obj(self):
         self.rgt_obj.reset()
         self.network_ctrl._graph_loaded = False
-        self.load_graph_into_view()
+        self.network_ctrl.imageChangedSignal.emit()
 
     @Slot()
     def load_graph_into_view(self):
