@@ -52,6 +52,7 @@ ColumnLayout {
         Layout.alignment: Qt.AlignHCenter
     }
 
+
     RadioButton {
         id: rdoStatic
         text: "Static"
@@ -59,6 +60,7 @@ ColumnLayout {
         ButtonGroup.group: btnGrpType
         onClicked: btnGrpType.checkedButton = this
     }
+
 
     RadioButton {
         id: rdoDynamic
