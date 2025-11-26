@@ -5,7 +5,7 @@ import QtQuick.Layouts
 ColumnLayout {
     id: responseTypeWidget
     Layout.leftMargin: 10
-    Layout.preferredHeight: 75
+    Layout.preferredHeight: 48
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignTop
     enabled: networkController.graph_is_ready()
@@ -13,7 +13,7 @@ ColumnLayout {
 
     property int idRole: Qt.UserRole + 1
     property int valueRole: Qt.UserRole + 4
-    property int btnWidthSize: 100
+    property int btnWidthSize: 75
 
     ButtonGroup {
         id: btnGrpType
@@ -52,22 +52,25 @@ ColumnLayout {
         Layout.alignment: Qt.AlignHCenter
     }
 
+    RowLayout {
+        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-    RadioButton {
-        id: rdoStatic
-        text: "Static"
-        Layout.preferredWidth: btnWidthSize
-        ButtonGroup.group: btnGrpType
-        onClicked: btnGrpType.checkedButton = this
-    }
+        RadioButton {
+            id: rdoStatic
+            text: "Static"
+            Layout.preferredWidth: btnWidthSize
+            ButtonGroup.group: btnGrpType
+            onClicked: btnGrpType.checkedButton = this
+        }
 
 
-    RadioButton {
-        id: rdoDynamic
-        text: "Dynamic"
-        Layout.preferredWidth: btnWidthSize
-        ButtonGroup.group: btnGrpType
-        onClicked: btnGrpType.checkedButton = this
+        RadioButton {
+            id: rdoDynamic
+            text: "Dynamic"
+            Layout.preferredWidth: btnWidthSize
+            ButtonGroup.group: btnGrpType
+            onClicked: btnGrpType.checkedButton = this
+        }
     }
 
 

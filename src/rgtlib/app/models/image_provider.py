@@ -29,6 +29,7 @@ class ImageProvider(QQuickImageProvider):
         # Acknowledge the image load and send the signal to update QML
         self._main_ctrl.network_ctrl._graph_loaded = True
         self._main_ctrl.network_ctrl.imageChangedSignal.emit()
+        self._main_ctrl.network_ctrl._applying_changes = False
 
     def requestPixmap(self, img_id, requested_size, size):
         return self._pixmap

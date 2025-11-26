@@ -26,6 +26,7 @@ class NetworkController(QObject):
 
         # Create Models
         self.rgtACParams = CheckBoxModel([])
+        self.rgtDCParams = CheckBoxModel([])
 
         # Attach listener for syncing models
         self._ctrl.syncModelSignal.connect(self.synchronize_rgt_models)
@@ -55,12 +56,33 @@ class NetworkController(QObject):
 
             # Get data from object configs
             rgt_ac_params = [v for v in options_rgt.values() if v["type"] == "ac-metric"]
+            rgt_dc_params = [v for v in options_rgt.values() if v["type"] == "dc-metric"]
 
             # Update QML adapter-models with fetched data
             self.rgtACParams.reset_data(rgt_ac_params)
+            self.rgtDCParams.reset_data(rgt_dc_params)
         except Exception as err:
             logging.exception("Fatal Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.showAlertSignal.emit("Fatal Error", "Error re-loading RGT configurations! Close app and try again.")
+
+    def update_response_params(self, rgt_obj):
+        """Update the visible response parameters to based on the Response-type."""
+        if rgt_obj is None:
+            return
+
+        try:
+            options_rgt = rgt_obj.configs
+            res_type = options_rgt["response_type"]["value"]
+            rgt_dc_params = [v for v in options_rgt.values() if v["type"] == "dc-metric"]
+            for  param in rgt_dc_params:
+                if param["id"] == "resistivity":
+                    param["visible"] = 1
+                else:
+                    param["visible"] = res_type
+            self.rgtDCParams.reset_data(rgt_dc_params)
+        except Exception as err:
+            logging.exception("Fatal Error: %s", err, extra={'user': 'RGT Logs'})
+            self._ctrl.showAlertSignal.emit("Fatal Error", "Error updating RGT parameters!")
 
     @Slot(result=bool)
     def graph_is_ready(self):
@@ -100,6 +122,7 @@ class NetworkController(QObject):
         """Retrieve changes made by the user and apply to the response graph."""
         if not self._applying_changes:  # Disallow concurrent changes
             self._applying_changes = True
+            self.update_response_params(self._ctrl.rgt_obj)
             self.changeImageSignal.emit()
 
     @Slot(str)

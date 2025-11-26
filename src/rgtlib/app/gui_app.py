@@ -19,6 +19,7 @@ class PySideApp(QObject):
         """Initialize the models and providers used by the QML engine."""
         self._ui_engine.addImageProvider("imageProvider", self._image_provider)
         self._ui_engine.rootContext().setContextProperty("rgtACParams", self._ctrl.network_ctrl.rgtACParams)
+        self._ui_engine.rootContext().setContextProperty("rgtDCParams", self._ctrl.network_ctrl.rgtDCParams)
 
     def _initialize_controllers(self):
         """Initialize the controllers used by the QML engine."""

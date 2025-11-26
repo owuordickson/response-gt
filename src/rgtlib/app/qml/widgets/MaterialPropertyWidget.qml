@@ -18,6 +18,26 @@ ColumnLayout {
         Layout.alignment: Qt.AlignHCenter
     }
 
+    ColumnLayout {
+        id: colParams
+        spacing: 10
+
+        Repeater {
+            model: rgtDCParams
+            delegate: RowLayout {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignLeft
+                visible: model.visible
+
+                Label {
+                    text: model.text
+                }
+
+            }
+        }
+
+    }
+
 
 
     Connections {
@@ -25,7 +45,7 @@ ColumnLayout {
 
         function onImageChangedSignal() {
             // Force refresh
-            materialPropertyWidget.visible = false//networkController.graph_is_ready();
+            materialPropertyWidget.visible = networkController.graph_is_ready();
         }
     }
 
