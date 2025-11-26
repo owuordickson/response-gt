@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Signal, Slot, QObject
 from sgtlib.modules import ProgressData, TaskResult
 
+from .theme_manager import ThemeManager
 from .network_controller import NetworkController
 from ..workers.base_workers import BaseWorker
 from ..workers.persistent_worker import PersistentProcessWorker
@@ -39,6 +40,7 @@ class MainController(QObject):
         self._rgt_obj = ResponseAnalyzer(self._config_file)
 
         # Add Controllers
+        self.theme_ctrl = ThemeManager()
         self.network_ctrl = NetworkController(self)
 
         # Create Persistent Workers (Processes)

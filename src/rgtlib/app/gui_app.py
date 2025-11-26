@@ -23,17 +23,24 @@ class PySideApp(QObject):
     def _initialize_controllers(self):
         """Initialize the controllers used by the QML engine."""
         self._ui_engine.rootContext().setContextProperty("mainController", self._ctrl)
+        self._ui_engine.rootContext().setContextProperty("themeManager", self._ctrl.theme_ctrl)
         self._ui_engine.rootContext().setContextProperty("networkController", self._ctrl.network_ctrl)
 
     def __init__(self):
         super().__init__()
         self.app = QApplication(sys.argv)
         self._ui_engine = QQmlApplicationEngine()
+        self._qml_file = 'qml/MainWindow.qml'
+
+        # IMPORTANT: register the "qml" directory
+        qml_dir = os.path.dirname(os.path.abspath(__file__))
+        qml_path = os.path.join(qml_dir, self._qml_file)
+        self._ui_engine.addImportPath(os.path.join(qml_dir, "qml"))
+
         ## Register Controller for Dynamic Updates
         self._ctrl = MainController(qml_app=self.app)
         ## Register Image Provider
         self._image_provider = ImageProvider(self._ctrl)
-        self._qml_file = 'qml/MainWindow.qml'
 
         # Set Models in QML Context
         self._initialize_models()
@@ -42,10 +49,8 @@ class PySideApp(QObject):
         ## Cleanup when the app is closing
         self.app.aboutToQuit.connect(self._ctrl.cleanup_workers)
 
-        # Load UI
-        # Get the directory of the current script
-        qml_dir = os.path.dirname(os.path.abspath(__file__))
-        qml_path = os.path.join(qml_dir, self._qml_file)
+        # Set Theme for the entire application UI ('Basic', 'Fusion', 'Imagine', 'Material', 'Universal')
+        # QQuickStyle.setStyle("Basic")
 
         # Load the QML file and display it
         self._ui_engine.load(qml_path)
