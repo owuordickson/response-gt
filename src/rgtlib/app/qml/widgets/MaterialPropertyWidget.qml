@@ -11,6 +11,10 @@ ColumnLayout {
     enabled: false
     visible: networkController.graph_is_ready()
 
+    property int lblWidthSize: 50
+    property int cbWidthSize: 50
+    property int spbWidthSize: 170
+
     Text {
         text: "Material Properties"
         font.pixelSize: 12
@@ -31,13 +35,71 @@ ColumnLayout {
 
                 Label {
                     text: model.text
+                    font.pixelSize: 11
+                    color: "#000000"
+                }
+
+                Loader {
+                    id: controlLoader
+                    sourceComponent: (model.id === "resistivity" || model.id === "potential_magnitude") ? spinOnly : spinAndCombo
+                }
+
+
+                Component {
+                    id: spinOnly
+
+                    RowLayout {
+                        Layout.fillWidth: true
+
+                        SpinBox {
+                            id: spinbox
+                            objectName: model.id
+                            Layout.minimumWidth: spbWidthSize
+                            Layout.fillWidth: true
+                            from: model.minValue
+                            to: model.maxValue
+                            stepSize: model.stepSize
+                            property var currSBVal: 2//model.value
+                            value: currSBVal
+                            //onValueChanged: updateValue(currSBVal, value)
+                        }
+                    }
+
+                }
+
+
+                Component {
+                    id: spinAndCombo
+
+                    RowLayout {
+                        Layout.fillWidth: true
+
+                        SpinBox {
+                            id: spinbox
+                            objectName: model.id
+                            Layout.minimumWidth: spbWidthSize
+                            Layout.fillWidth: true
+                            from: model.minValue
+                            to: model.maxValue
+                            stepSize: model.stepSize
+                            property var currSBVal: 2//model.value
+                            value: currSBVal
+                            //onValueChanged: updateValue(currSBVal, value)
+                        }
+
+
+                        ComboBox {
+                            Layout.minimumWidth: cbWidthSize
+                        }
+
+                    }
+
                 }
 
             }
         }
 
     }
-
 
 
     Connections {
