@@ -39,6 +39,7 @@ ColumnLayout {
                     color: "#000000"
                 }
 
+
                 Loader {
                     id: controlLoader
                     sourceComponent: (model.id === "resistivity" || model.id === "potential_magnitude") ? spinOnly : spinAndCombo
@@ -86,7 +87,6 @@ ColumnLayout {
                             value: currSBVal
                             //onValueChanged: updateValue(currSBVal, value)
                         }
-
 
                         ComboBox {
                             Layout.minimumWidth: cbWidthSize
