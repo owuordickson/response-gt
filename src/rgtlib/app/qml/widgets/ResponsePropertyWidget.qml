@@ -5,7 +5,7 @@ import QtQuick.Layouts
 ColumnLayout {
     id: materialPropertyWidget
     Layout.leftMargin: 10
-    Layout.preferredHeight: 180
+    Layout.preferredHeight: 120
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignTop
     enabled: false
