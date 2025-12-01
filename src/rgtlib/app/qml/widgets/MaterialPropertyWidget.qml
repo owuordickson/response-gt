@@ -11,9 +11,9 @@ ColumnLayout {
     enabled: false
     visible: networkController.graph_is_ready()
 
-    property int lblWidthSize: 50
+    property int lblWidthSize: 75
     property int cbWidthSize: 50
-    property int spbWidthSize: 170
+    property int spbWidthSize: 75
 
     Text {
         text: "Material Properties"
