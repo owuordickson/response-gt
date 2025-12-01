@@ -84,6 +84,12 @@ Rectangle {
 
             btnAddNodes.enabled = networkController.enable_vertex_positions_upload();
             btnAddEdges.enabled = networkController.enable_edge_list_upload();
+
+            if (networkController.graph_data_uploaded()) {
+                lblQuick.text = "Graph data saved";
+            } else {
+                lblQuick.text = "Upload your graph network";
+            }
         }
 
     }

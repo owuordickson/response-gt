@@ -18,17 +18,20 @@ Rectangle {
             Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             text: "No graph network to show!\nUpload CSV files of vertex/node\n positions and edge list."
             color: "#808080"
-            visible: !networkController.graph_is_ready()
+            visible: !networkController.graph_data_uploaded()
         }
 
 
         ResponseTypeWidget{}
 
 
+        ResponsePropertyWidget{}
+
+
+        ListPropertyWidget{}
+
+
         ImposedNodesWidget{}
-
-
-        MaterialPropertyWidget{}
 
     }
 
@@ -38,13 +41,13 @@ Rectangle {
 
         function onImageChangedSignal() {
             // Force refresh
-            lblNoNetwork.visible = !networkController.graph_is_ready();
+            lblNoNetwork.visible = !networkController.graph_data_uploaded();
 
-            if (networkController.graph_data_uploaded()) {
+            /*if (networkController.graph_data_uploaded()) {
                 lblNoNetwork.text = "No graph network to show!\nRun 'Compute Response'.";
             } else {
                 lblNoNetwork.text = "No graph network to show!\nUpload CSV files of vertex/node\n positions and edge list.";
-            }
+            }*/
         }
     }
 

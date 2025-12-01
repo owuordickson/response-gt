@@ -9,14 +9,14 @@ ColumnLayout {
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignTop
     enabled: false
-    visible: networkController.graph_is_ready()
+    visible: networkController.graph_data_uploaded()
 
     property int lblWidthSize: 75
     property int cbWidthSize: 50
     property int spbWidthSize: 75
 
     Text {
-        text: "Material Properties"
+        text: "Response Parameters"
         font.pixelSize: 12
         font.bold: true
         Layout.alignment: Qt.AlignHCenter
@@ -107,7 +107,7 @@ ColumnLayout {
 
         function onImageChangedSignal() {
             // Force refresh
-            materialPropertyWidget.visible = networkController.graph_is_ready();
+            materialPropertyWidget.visible = networkController.graph_data_uploaded();
         }
     }
 

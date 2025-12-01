@@ -218,17 +218,19 @@ class ResponseAnalyzer(ProgressUpdate):
 
         self.update_status(ProgressData(percent=10, sender="RGT", message=f"Initializing parameters...")) if not silent else None
         num_selected = int(given_potential_fraction * num_vertices)
-        c_mat = incidence_matrix() # The incidence matrix of the network, where rows are directed edges and columns are vertices
-        res_list = resistivity * np.ones(len(edge_list)) # The array of resistance for each EDGE
-        ind_list = inductance * np.ones(len(edge_list))  # The array of inductance for each EDGE
-        cap_list = capacitance * np.ones(num_vertices - 2 * num_selected) # The array of capacitance for each NODE that is NOT given an applied potential. nodes are taken to be capacitors connected to a grounded potential (0).
-        leak_res_list = leak_resistivity * np.ones(num_vertices - 2 * num_selected) # The array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
-        omega = given_potential_frequency # The angular frequency of applied alternating potential
-        ua_list, va_list = imposed_potential_response() # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
+        c_mat = incidence_matrix()                          # The incidence matrix of the network, where rows are directed edges and columns are vertices
+        ua_list, va_list = imposed_potential_response()     # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
 
-        vertices_count = c_mat[0].shape[0]  # Number of vertices in the graph
+        cap_list = capacitance * np.ones(num_vertices - 2 * num_selected)           # The array of capacitance for each NODE that is NOT given an applied potential. nodes are taken to be capacitors connected to a grounded potential (0).
+        leak_res_list = leak_resistivity * np.ones(num_vertices - 2 * num_selected) # The array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
+
+        res_list = resistivity * np.ones(len(edge_list))    # The array of resistance for each EDGE
+        ind_list = inductance * np.ones(len(edge_list))     # The array of inductance for each EDGE
+        omega = given_potential_frequency                   # The angular frequency of applied alternating potential
+
+        vertices_count = c_mat[0].shape[0]      # Number of vertices in the graph
         va_list = np.array(va_list, dtype=int)  # numpy array of vertices that have a forced potential, casting to int in case given as float
-        va_vertices_count = int(len(va_list))  # number of vertices in va_list
+        va_vertices_count = int(len(va_list))   # number of vertices in va_list
         vb_vertices_count = int(vertices_count - va_vertices_count)  # number of vertices in vb_list
 
         self.update_status(ProgressData(percent=15, sender="RGT", message=f"Computing admittance, dynamical and auxiliary matrices...")) if not silent else None

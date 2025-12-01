@@ -5,44 +5,15 @@ import QtQuick.Layouts
 ColumnLayout {
     id: responseTypeWidget
     Layout.leftMargin: 10
-    Layout.preferredHeight: 48
+    Layout.preferredHeight: 56
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignTop
-    enabled: networkController.graph_is_ready()
-    visible: networkController.graph_is_ready()
+    enabled: networkController.graph_data_uploaded()
+    visible: networkController.graph_data_uploaded()
 
     property int idRole: Qt.UserRole + 1
     property int valueRole: Qt.UserRole + 4
-    property int btnWidthSize: 75
-
-    ButtonGroup {
-        id: btnGrpType
-        property bool currentCheckedButton: rdoStatic
-        property bool clickedChange: false
-        exclusive: true
-        onCheckedButtonChanged: {
-            if (clickedChange) {
-                clickedChange = false
-                return
-            }
-
-            if (currentCheckedButton !== checkedButton) {
-                currentCheckedButton = checkedButton;
-                var val = checkedButton === rdoStatic ? 0 : 1;
-                var index = rgtACParams.index(0, 0);
-                rgtACParams.setData(index, val, valueRole);
-                networkController.apply_changes();
-            }
-        }
-        onClicked: {
-            clickedChange = true;
-            currentCheckedButton = checkedButton;
-            var val = checkedButton === rdoStatic ? 0 : 1;
-            var index = rgtACParams.index(0, 0);
-            rgtACParams.setData(index, val, valueRole);
-            networkController.apply_changes();
-        }
-    }
+    property int rdoWidthSize: 75
 
 
     Text {
@@ -52,13 +23,31 @@ ColumnLayout {
         Layout.alignment: Qt.AlignHCenter
     }
 
+
     RowLayout {
         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+
+
+        ButtonGroup {
+            id: btnGrpType
+            property bool currentCheckedButton: rdoStatic
+            exclusive: true
+            onCheckedButtonChanged: {
+                if (currentCheckedButton !== checkedButton) {
+                    currentCheckedButton = checkedButton;
+                    var val = checkedButton === rdoStatic ? 0 : 1;
+                    var index = rgtACParams.index(0, 0);
+                    rgtACParams.setData(index, val, valueRole);
+                    networkController.apply_changes();
+                }
+            }
+        }
+
 
         RadioButton {
             id: rdoStatic
             text: "Static"
-            Layout.preferredWidth: btnWidthSize
+            Layout.preferredWidth: rdoWidthSize
             ButtonGroup.group: btnGrpType
             onClicked: btnGrpType.checkedButton = this
         }
@@ -67,7 +56,7 @@ ColumnLayout {
         RadioButton {
             id: rdoDynamic
             text: "Dynamic"
-            Layout.preferredWidth: btnWidthSize
+            Layout.preferredWidth: rdoWidthSize
             ButtonGroup.group: btnGrpType
             onClicked: btnGrpType.checkedButton = this
         }
@@ -92,8 +81,8 @@ ColumnLayout {
 
         function onImageChangedSignal() {
             // Force refresh
-            responseTypeWidget.visible = networkController.graph_is_ready();
-            responseTypeWidget.enabled = networkController.graph_is_ready();
+            responseTypeWidget.visible = networkController.graph_data_uploaded();
+            responseTypeWidget.enabled = networkController.graph_data_uploaded();
             initializeSelections();
         }
     }
