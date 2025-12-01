@@ -11,8 +11,8 @@ ColumnLayout {
     enabled: false
     visible: networkController.graph_data_uploaded()
 
-    property int lblWidthSize: 75
-    property int cbWidthSize: 50
+    property int lblWidthSize: 100
+    property int cbWidthSize: 64
     property int spbWidthSize: 75
 
     Text {
@@ -34,6 +34,7 @@ ColumnLayout {
                 visible: model.visible
 
                 Label {
+                    Layout.preferredWidth: lblWidthSize
                     text: model.text
                     font.pixelSize: 11
                     color: "#000000"
@@ -50,7 +51,7 @@ ColumnLayout {
                     id: spinOnly
 
                     RowLayout {
-                        Layout.fillWidth: true
+                        //Layout.fillWidth: true
 
                         SpinBox {
                             id: spinbox
@@ -73,7 +74,7 @@ ColumnLayout {
                     id: spinAndCombo
 
                     RowLayout {
-                        Layout.fillWidth: true
+                        //Layout.fillWidth: true
 
                         SpinBox {
                             id: spinbox
@@ -89,7 +90,7 @@ ColumnLayout {
                         }
 
                         ComboBox {
-                            Layout.minimumWidth: cbWidthSize
+                            Layout.preferredWidth: cbWidthSize
                         }
 
                     }

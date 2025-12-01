@@ -11,7 +11,7 @@ ColumnLayout {
     visible: networkController.graph_data_uploaded()
 
     property int rdoWidthSize: 75
-    property int cbWidthSize: 75
+    property int cbWidthSize: 180
 
     Text {
         text: "Imposed Vertices"
@@ -64,8 +64,19 @@ ColumnLayout {
                 onClicked: btnGrpType.checkedButton = this
             }
 
-            TextArea {
-                text: "add vertex positions separated by commas..."
+            Rectangle {
+                //width: cbWidthSize
+                Layout.minimumWidth: cbWidthSize
+                height: 48
+
+
+                TextArea {
+                    id: txtVerts
+                    anchors.fill: parent
+                    wrapMode: TextArea.Wrap
+                    font.pixelSize: 9
+                    placeholderText: "vertex positions separated by comma..."
+                }
             }
         }
 
@@ -74,14 +85,14 @@ ColumnLayout {
 
             RadioButton {
                 id: rdoFile
-                text: "File"
+                text: "File: "
                 Layout.preferredWidth: rdoWidthSize
                 ButtonGroup.group: btnGrpType
                 onClicked: btnGrpType.checkedButton = this
             }
 
             Button {
-                text: "Upload Vertices"
+                text: "Upload"
             }
         }
 

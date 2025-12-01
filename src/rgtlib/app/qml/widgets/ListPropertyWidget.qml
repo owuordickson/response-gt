@@ -10,7 +10,8 @@ ColumnLayout {
     Layout.alignment: Qt.AlignTop
     visible: networkController.graph_data_uploaded()
 
-    property int cbWidthSize: 75
+    property int lblWidthSize: 75
+    property int cbWidthSize: 125
 
     Text {
         text: "Response Properties"
@@ -24,7 +25,8 @@ ColumnLayout {
         Layout.alignment: Qt.AlignVCenter
 
         Label {
-            text: "Select"
+            Layout.preferredWidth: lblWidthSize
+            text: "File: "
         }
 
         ComboBox {
@@ -33,7 +35,7 @@ ColumnLayout {
 
         Button {
             id: btnListUpload
-            text: "Upload List"
+            text: "Upload"
         }
 
     }
