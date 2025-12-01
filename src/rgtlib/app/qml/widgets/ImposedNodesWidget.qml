@@ -96,7 +96,7 @@ ColumnLayout {
                     anchors.margins: 2
                     wrapMode: TextArea.Wrap
                     font.pixelSize: 9
-                    placeholderText: "vertex positions separated by comma..."
+                    placeholderText: "vertex positions separated by comma"
                     //enabled: false
                 }
             }
