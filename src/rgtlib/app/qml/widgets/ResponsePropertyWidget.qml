@@ -5,9 +5,9 @@ import QtQuick.Layouts
 ColumnLayout {
     id: materialPropertyWidget
     Layout.leftMargin: 10
-    Layout.preferredHeight: 120
+    Layout.preferredHeight: 210
     Layout.preferredWidth: parent.width
-    Layout.alignment: Qt.AlignTop
+    Layout.alignment: Qt.AlignVCenter
     enabled: false
     visible: networkController.graph_data_uploaded()
 
@@ -24,14 +24,14 @@ ColumnLayout {
 
     ColumnLayout {
         id: colParams
-        spacing: 10
+        //spacing: 10
 
         Repeater {
             model: rgtDCParams
             delegate: RowLayout {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignLeft
-                visible: model.visible
+                enabled: model.visible
 
                 Label {
                     Layout.preferredWidth: lblWidthSize
@@ -41,7 +41,25 @@ ColumnLayout {
                 }
 
 
-                Loader {
+                SpinBox {
+                    id: spinbox
+                    objectName: model.id
+                    Layout.minimumWidth: spbWidthSize
+                    //Layout.fillWidth: true
+                    from: model.minValue
+                    to: model.maxValue
+                    stepSize: model.stepSize
+                    property var currSBVal: 2//model.value
+                    value: currSBVal
+                    //onValueChanged: updateValue(currSBVal, value)
+                }
+
+                ComboBox {
+                    Layout.preferredWidth: cbWidthSize
+                }
+
+
+                /*Loader {
                     id: controlLoader
                     sourceComponent: (model.id === "resistivity" || model.id === "potential_magnitude") ? spinOnly : spinAndCombo
                 }
@@ -95,7 +113,7 @@ ColumnLayout {
 
                     }
 
-                }
+                }*/
 
             }
         }

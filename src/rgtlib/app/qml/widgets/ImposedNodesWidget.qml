@@ -5,9 +5,9 @@ import QtQuick.Layouts
 ColumnLayout {
     id: imposedNodesWidget
     Layout.leftMargin: 10
-    Layout.preferredHeight: 100
+    Layout.preferredHeight: 120
     Layout.preferredWidth: parent.width
-    Layout.alignment: Qt.AlignTop
+    Layout.alignment: Qt.AlignVCenter
     visible: networkController.graph_data_uploaded()
 
     property int rdoWidthSize: 75
@@ -32,7 +32,22 @@ ColumnLayout {
             onCheckedButtonChanged: {
                 if (currentCheckedButton !== checkedButton) {
                     currentCheckedButton = checkedButton;
-                    //var val = checkedButton === rdoDefault ? 0 : 1;
+                    if (checkedButton === rdoDefault) {
+                        cbDirection.enabled = true;
+                        txtVerts.enabled = false;
+                        rectVerts.border.width = 0;
+                        btnUpload.enabled = false;
+                    } else if (checkedButton === rdoCustom) {
+                        cbDirection.enabled = false;
+                        txtVerts.enabled = true;
+                        rectVerts.border.width = 1;
+                        btnUpload.enabled = false;
+                    } else if (checkedButton === rdoFile) {
+                        cbDirection.enabled = false;
+                        txtVerts.enabled = false;
+                        rectVerts.border.width = 0;
+                        btnUpload.enabled = true;
+                    }
                 }
             }
         }
@@ -49,12 +64,13 @@ ColumnLayout {
             }
 
             ComboBox {
+                id: cbDirection
                 Layout.minimumWidth: cbWidthSize
             }
         }
 
-        RowLayout {
 
+        RowLayout {
 
             RadioButton {
                 id: rdoCustom
@@ -65,17 +81,23 @@ ColumnLayout {
             }
 
             Rectangle {
+                id: rectVerts
                 //width: cbWidthSize
                 Layout.minimumWidth: cbWidthSize
                 height: 48
-
+                color: "transparent"
+                border.width: 1
+                border.color: "#808080"
+                radius: 4
 
                 TextArea {
                     id: txtVerts
                     anchors.fill: parent
+                    anchors.margins: 2
                     wrapMode: TextArea.Wrap
                     font.pixelSize: 9
                     placeholderText: "vertex positions separated by comma..."
+                    //enabled: false
                 }
             }
         }
@@ -92,7 +114,9 @@ ColumnLayout {
             }
 
             Button {
+                id: btnUpload
                 text: "Upload"
+                enabled: false
             }
         }
 

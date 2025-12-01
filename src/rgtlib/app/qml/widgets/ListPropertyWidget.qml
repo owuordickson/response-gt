@@ -7,7 +7,7 @@ ColumnLayout {
     Layout.leftMargin: 10
     Layout.preferredHeight: 56
     Layout.preferredWidth: parent.width
-    Layout.alignment: Qt.AlignTop
+    Layout.alignment: Qt.AlignVCenter
     visible: networkController.graph_data_uploaded()
 
     property int lblWidthSize: 75
