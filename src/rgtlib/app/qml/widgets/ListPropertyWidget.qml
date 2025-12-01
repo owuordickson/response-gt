@@ -8,10 +8,9 @@ ColumnLayout {
     Layout.preferredHeight: 56
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignTop
-    enabled: false
     visible: networkController.graph_data_uploaded()
 
-    property int cbWidthSize: 50
+    property int cbWidthSize: 75
 
     Text {
         text: "Response Properties"

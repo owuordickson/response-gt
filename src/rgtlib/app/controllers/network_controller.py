@@ -123,7 +123,7 @@ class NetworkController(QObject):
         if not self._applying_changes:  # Disallow concurrent changes
             self._applying_changes = True
             self.update_response_params(self._ctrl.rgt_obj)
-            self.changeImageSignal.emit()
+        self.changeImageSignal.emit()
 
     @Slot(str)
     def upload_edge_list(self, file_path: str):

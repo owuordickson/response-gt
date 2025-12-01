@@ -143,6 +143,7 @@ class MainController(QObject):
                         if edges is not None:
                             self.rgt_obj.edge_list = edges
                     self.handle_progress_update(ProgressData(percent=100, sender="RGT", message=f"File Uploaded!"))
+                    self.syncModelSignal.emit(self.rgt_obj)  # Sync models and refresh image
                     self.network_ctrl.imageChangedSignal.emit()  # trigger QML UI update
                     self.taskTerminatedSignal.emit(success_val, [])  # Hide Alert-Dialog
                 if result.task_id == "Save Results":

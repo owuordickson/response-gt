@@ -11,6 +11,7 @@ ColumnLayout {
     visible: networkController.graph_data_uploaded()
 
     property int rdoWidthSize: 75
+    property int cbWidthSize: 75
 
     Text {
         text: "Imposed Vertices"
@@ -27,6 +28,7 @@ ColumnLayout {
             id: btnGrpType
             property bool currentCheckedButton: rdoDefault
             exclusive: true
+            checkedButton: rdoDefault
             onCheckedButtonChanged: {
                 if (currentCheckedButton !== checkedButton) {
                     currentCheckedButton = checkedButton;
@@ -35,33 +37,55 @@ ColumnLayout {
             }
         }
 
-        RadioButton {
-            id: rdoDefault
-            text: "Default"
-            Layout.preferredWidth: rdoWidthSize
-            ButtonGroup.group: btnGrpType
-            onClicked: btnGrpType.checkedButton = this
+
+        RowLayout {
+
+            RadioButton {
+                id: rdoDefault
+                text: "Default"
+                Layout.preferredWidth: rdoWidthSize
+                ButtonGroup.group: btnGrpType
+                onClicked: btnGrpType.checkedButton = this
+            }
+
+            ComboBox {
+                Layout.minimumWidth: cbWidthSize
+            }
         }
 
-        RadioButton {
-            id: rdoCustom
-            text: "Custom"
-            Layout.preferredWidth: rdoWidthSize
-            ButtonGroup.group: btnGrpType
-            onClicked: btnGrpType.checkedButton = this
+        RowLayout {
+
+
+            RadioButton {
+                id: rdoCustom
+                text: "Custom"
+                Layout.preferredWidth: rdoWidthSize
+                ButtonGroup.group: btnGrpType
+                onClicked: btnGrpType.checkedButton = this
+            }
+
+            TextArea {
+                text: "add vertex positions separated by commas..."
+            }
         }
 
 
-        RadioButton {
-            id: rdoFile
-            text: "File"
-            Layout.preferredWidth: rdoWidthSize
-            ButtonGroup.group: btnGrpType
-            onClicked: btnGrpType.checkedButton = this
+        RowLayout {
+
+            RadioButton {
+                id: rdoFile
+                text: "File"
+                Layout.preferredWidth: rdoWidthSize
+                ButtonGroup.group: btnGrpType
+                onClicked: btnGrpType.checkedButton = this
+            }
+
+            Button {
+                text: "Upload Vertices"
+            }
         }
 
     }
-
 
 
     Connections {

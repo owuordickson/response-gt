@@ -14,11 +14,13 @@ class ImageProvider(QQuickImageProvider):
     def handle_change_image(self):
         if self._main_ctrl.rgt_obj is None:
             self._main_ctrl.network_ctrl._graph_loaded = False
+            self._main_ctrl.network_ctrl._applying_changes = False
             self._main_ctrl.network_ctrl.imageChangedSignal.emit()
             return
 
         if self._main_ctrl.rgt_obj.network_img is None:
             self._main_ctrl.network_ctrl._graph_loaded = False
+            self._main_ctrl.network_ctrl._applying_changes = False
             self._main_ctrl.network_ctrl.imageChangedSignal.emit()
             return
 
@@ -28,8 +30,8 @@ class ImageProvider(QQuickImageProvider):
 
         # Acknowledge the image load and send the signal to update QML
         self._main_ctrl.network_ctrl._graph_loaded = True
-        self._main_ctrl.network_ctrl.imageChangedSignal.emit()
         self._main_ctrl.network_ctrl._applying_changes = False
+        self._main_ctrl.network_ctrl.imageChangedSignal.emit()
 
     def requestPixmap(self, img_id, requested_size, size):
         return self._pixmap
