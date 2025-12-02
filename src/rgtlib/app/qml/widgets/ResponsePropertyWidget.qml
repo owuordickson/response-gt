@@ -40,7 +40,6 @@ ColumnLayout {
                     //enabled: model.visible === 1
                 }
 
-
                 SpinBox {
                     id: spinbox
                     objectName: model.id
