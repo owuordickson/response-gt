@@ -34,12 +34,12 @@ def read_config_file(config_path):
 def initialize_list_params():
     """Initialize the list of parameters for the ResponseGT computation."""
 
-    response_file_options: list[dict[str, str | int | None | np.ndarray]] = [
-        {"id": "resistivity", "text": "Resistivity List", "visible": 1, "value": 0, "data": None},
-        {"id": "inductance", "text": "Inductance List", "visible": 1, "value": 0, "data": None},
-        {"id": "capacitance", "text": "Capacitance List", "visible": 1, "value": 0, "data": None},
-        {"id": "leak_resistivity", "text": "Leak Resistivity List", "visible": 1, "value": 0, "data": None}
-    ]
+    response_file_options: dict[str, dict[str, str | int | None | np.ndarray]] = {
+        "resistivity_list": {"id": "resistivity_list", "text": "Resistivity List", "visible": 1, "value": 0, "data": None},
+        "inductance_list": {"id": "inductance_list", "text": "Inductance List", "visible": 1, "value": 0, "data": None},
+        "capacitance_list": {"id": "capacitance_list", "text": "Capacitance List", "visible": 1, "value": 0, "data": None},
+        "leak_resistivity_list": {"id": "leak_resistivity_list", "text": "Leak Resistivity List", "visible": 1, "value": 0, "data": None}
+    }
     return response_file_options
 
 

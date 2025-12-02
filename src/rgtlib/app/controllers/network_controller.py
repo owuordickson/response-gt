@@ -54,11 +54,12 @@ class NetworkController(QObject):
         try:
             # Models Auto-update with saved sgt_obj configs. No need to re-assign!
             options_rgt = rgt_obj.configs
-            response_file_options = rgt_obj.list_params
+            lst_params = rgt_obj.list_params
 
             # Get data from object configs
             rgt_ac_params = [v for v in options_rgt.values() if v["type"] == "ac-metric"]
             rgt_dc_params = [v for v in options_rgt.values() if v["type"] == "dc-metric"]
+            response_file_options = [v for v in lst_params.values()]
 
             # Update QML adapter-models with fetched data
             self.rgtACParams.reset_data(rgt_ac_params)

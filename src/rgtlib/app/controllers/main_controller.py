@@ -152,7 +152,7 @@ class MainController(QObject):
                     self.taskTerminatedSignal.emit(success_val, ["Files Saved", result.message])
                 if result.task_id == "Compute Response":
                     new_rgt_obj = result.data
-                    self.rgt_obj.copy_computations(new_rgt_obj)
+                    self.rgt_obj.copy_rgt_obj(new_rgt_obj)
                     self.handle_progress_update(ProgressData(percent=100, sender="RGT", message=result.message))
 
                     self.syncModelSignal.emit(self.rgt_obj) # Sync models and refresh image

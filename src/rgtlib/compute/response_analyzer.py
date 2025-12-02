@@ -23,7 +23,7 @@ class ResponseAnalyzer(ProgressUpdate):
         """"""
         super(ResponseAnalyzer, self).__init__()
         self._configs: dict = load_rgt_configs(config_file)
-        self._list_params: list = initialize_list_params()
+        self._list_params: dict = initialize_list_params()
         self._network_img: None | np.ndarray = None
         self._save_path: str = ""
         self._props: list = []
@@ -92,7 +92,7 @@ class ResponseAnalyzer(ProgressUpdate):
         self._edge_list = None
         self._edge_currents = None
 
-    def copy_computations(self, other):
+    def copy_rgt_obj(self, other):
         """Copy attributes from another ResponseAnalyzer object"""
         try:
             self._network_img = other.network_img
@@ -117,6 +117,36 @@ class ResponseAnalyzer(ProgressUpdate):
             pattern = re.escape(ext) + r'$'
             filename = re.sub(pattern, '', filename)
         return filename, output_dir
+
+    def init_list_params(self):
+        """Compute the list parameters for the response analyzer (if they were not uploaded by the user)"""
+        opt_rgt = self._configs
+        list_params = self._list_params
+
+        edge_list = self.edge_list
+        num_vertices = len(self.vertex_coordinates)
+        given_potential_fraction = opt_rgt["potential_fraction"]["value"]
+        resistivity = opt_rgt["resistivity"]["value"]
+        capacitance = opt_rgt["capacitance"]["value"]
+        inductance = opt_rgt["inductance"]["value"]
+        leak_resistivity = opt_rgt["leak_resistivity"]["value"]
+        num_selected = int(given_potential_fraction * num_vertices)
+
+        if list_params["resistivity_list"]["value"] == 0 or list_params["resistivity_list"]["data"] is None:
+            # The array of resistance for each EDGE
+            list_params["resistivity_list"]["data"] = resistivity * np.ones(len(edge_list))
+
+        if list_params["inductance_list"]["value"] == 0 or list_params["inductance_list"]["data"] is None:
+            # The array of inductance for each EDGE
+            list_params["inductance_list"]["data"] = inductance * np.ones(len(edge_list))
+
+        if list_params["capacitance_list"]["value"] == 0 or list_params["capacitance_list"]["data"] is None:
+            # The array of capacitance for each NODE that is NOT given an applied potential. nodes are taken to be capacitors connected to a grounded potential (0).
+            list_params["capacitance_list"]["data"] = capacitance * np.ones(num_vertices - 2 * num_selected)
+
+        if list_params["leak_resistivity_list"]["value"] == 0 or list_params["leak_resistivity_list"]["data"] is None:
+            # The array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
+            list_params["leak_resistivity_list"]["data"] = leak_resistivity * np.ones(num_vertices - 2 * num_selected)
 
     def run_analyzer(self) -> None:
         """Executes functions that will compute AC Response and draw the response graph"""
@@ -176,10 +206,9 @@ class ResponseAnalyzer(ProgressUpdate):
             :returns: ua_list--array applied potentials, va_list--array of nodes with the corresponding applied potential
             """
 
-            given_potential_list = np.zeros(
-                int(2 * num_selected))  # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
-            vertex_list = np.zeros(
-                int(2 * num_selected))  # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
+            num_selected = int(given_potential_fraction * num_vertices)
+            given_potential_list = np.zeros(int(2 * num_selected))  # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
+            vertex_list = np.zeros(int(2 * num_selected))           # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
 
             # Sort vertices by y-position
             sorted_vertices = sorted(enumerate(vert_pos), key=lambda x_pos: x_pos[-1][-1])  # Sort by y-coordinate
@@ -200,6 +229,9 @@ class ResponseAnalyzer(ProgressUpdate):
 
             return given_potential_list, vertex_list
 
+        opt_rgt = self._configs
+        list_params = self._list_params
+
         if self.vertex_coordinates is None:
             self.update_status(ProgressData(type="error", sender="RGT", message=f"Vertex positions are missing! Please upload them via a CSV file.")) if not silent else None
             return None, None
@@ -207,33 +239,28 @@ class ResponseAnalyzer(ProgressUpdate):
             self.update_status(ProgressData(type="error", sender="RGT", message=f"Edge list is missing! Please upload them via a CSV file.")) if not silent else None
             return None, None
 
-        self.update_status(ProgressData(percent=1, sender="RGT", message=f"Computing AC response...")) if not silent else None
+        self.update_status(ProgressData(percent=1, sender="RGT", message=f"Initializing list parameters...")) if not silent else None
+        self.init_list_params()
+        cap_list = list_params["capacitance_list"]["data"]
+        leak_res_list = list_params["leak_resistivity_list"]["data"]
+        res_list = list_params["resistivity_list"]["data"]
+        ind_list = list_params["inductance_list"]["data"]
+
+        self.update_status(ProgressData(percent=5, sender="RGT", message=f"Computing AC response...")) if not silent else None
         # num_edges = len(self.edge_list)
         num_vertices = len(self.vertex_coordinates)
         num_edges = len(self.edge_list)
         edge_list = self.edge_list
         vert_pos = self.vertex_coordinates
-        opt_rgt = self._configs
 
         # example parameters, set to very large/small numbers for DC response
         given_potential_frequency = opt_rgt["potential_frequency"]["value"]
         given_potential_fraction = opt_rgt["potential_fraction"]["value"]
         given_potential_magnitude = opt_rgt["potential_magnitude"]["value"]
-        resistivity = opt_rgt["resistivity"]["value"]
-        capacitance = opt_rgt["capacitance"]["value"]
-        inductance = opt_rgt["inductance"]["value"]
-        leak_resistivity = opt_rgt["leak_resistivity"]["value"]
 
-        self.update_status(ProgressData(percent=10, sender="RGT", message=f"Initializing parameters...")) if not silent else None
-        num_selected = int(given_potential_fraction * num_vertices)
+        self.update_status(ProgressData(percent=10, sender="RGT", message=f"Computing response parameters...")) if not silent else None
         c_mat = incidence_matrix()                          # The incidence matrix of the network, where rows are directed edges and columns are vertices
         ua_list, va_list = imposed_potential_response()     # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
-
-        cap_list = capacitance * np.ones(num_vertices - 2 * num_selected)           # The array of capacitance for each NODE that is NOT given an applied potential. nodes are taken to be capacitors connected to a grounded potential (0).
-        leak_res_list = leak_resistivity * np.ones(num_vertices - 2 * num_selected) # The array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
-
-        res_list = resistivity * np.ones(len(edge_list))    # The array of resistance for each EDGE
-        ind_list = inductance * np.ones(len(edge_list))     # The array of inductance for each EDGE
 
         omega = given_potential_frequency                   # The angular frequency of applied alternating potential
         vertices_count = c_mat[0].shape[0]      # Number of vertices in the graph
