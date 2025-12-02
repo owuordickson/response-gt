@@ -11,7 +11,7 @@ ColumnLayout {
     visible: networkController.graph_data_uploaded()
 
     property int rdoWidthSize: 75
-    property int cbWidthSize: 180
+    property int cmbWidthSize: 180
 
     Text {
         text: "Imposed Vertices"
@@ -33,17 +33,17 @@ ColumnLayout {
                 if (currentCheckedButton !== checkedButton) {
                     currentCheckedButton = checkedButton;
                     if (checkedButton === rdoDefault) {
-                        cbDirection.enabled = true;
+                        cmbDirection.enabled = true;
                         txtVerts.enabled = false;
                         rectVerts.border.width = 0;
                         btnUpload.enabled = false;
                     } else if (checkedButton === rdoCustom) {
-                        cbDirection.enabled = false;
+                        cmbDirection.enabled = false;
                         txtVerts.enabled = true;
                         rectVerts.border.width = 1;
                         btnUpload.enabled = false;
                     } else if (checkedButton === rdoFile) {
-                        cbDirection.enabled = false;
+                        cmbDirection.enabled = false;
                         txtVerts.enabled = false;
                         rectVerts.border.width = 0;
                         btnUpload.enabled = true;
@@ -64,8 +64,13 @@ ColumnLayout {
             }
 
             ComboBox {
-                id: cbDirection
-                Layout.minimumWidth: cbWidthSize
+                id: cmbDirection
+                Layout.minimumWidth: cmbWidthSize
+                model: [
+                    "Top-Bottom",
+                    "Left-Right"
+                ]
+                currentIndex: 0
             }
         }
 
@@ -82,8 +87,8 @@ ColumnLayout {
 
             Rectangle {
                 id: rectVerts
-                //width: cbWidthSize
-                Layout.minimumWidth: cbWidthSize
+                //width: cmbWidthSize
+                Layout.minimumWidth: cmbWidthSize
                 height: 48
                 color: "transparent"
                 border.width: 1

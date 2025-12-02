@@ -8,11 +8,10 @@ ColumnLayout {
     Layout.preferredHeight: 210
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignVCenter
-    enabled: false
     visible: networkController.graph_data_uploaded()
 
     property int lblWidthSize: 100
-    property int cbWidthSize: 64
+    property int cmbWidthSize: 64
     property int spbWidthSize: 75
 
     Text {
@@ -31,13 +30,14 @@ ColumnLayout {
             delegate: RowLayout {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignLeft
-                enabled: model.visible
+                enabled: model.visible === 1
 
                 Label {
                     Layout.preferredWidth: lblWidthSize
                     text: model.text
                     font.pixelSize: 11
                     color: "#000000"
+                    //enabled: model.visible === 1
                 }
 
 
@@ -51,11 +51,20 @@ ColumnLayout {
                     stepSize: model.stepSize
                     property var currSBVal: 2//model.value
                     value: currSBVal
+                    //enabled: model.visible === 1
                     //onValueChanged: updateValue(currSBVal, value)
                 }
 
                 ComboBox {
-                    Layout.preferredWidth: cbWidthSize
+                    id: cmbMetric
+                    Layout.preferredWidth: cmbWidthSize
+                    model: [
+                        "\u03BCm",   // μm
+                        "mm",
+                        "cm",
+                    ]
+                    currentIndex: 0   // optional: default to "cm"
+                    //enabled: model.visible === 1
                 }
 
 
@@ -108,7 +117,7 @@ ColumnLayout {
                         }
 
                         ComboBox {
-                            Layout.preferredWidth: cbWidthSize
+                            Layout.preferredWidth: cmbWidthSize
                         }
 
                     }

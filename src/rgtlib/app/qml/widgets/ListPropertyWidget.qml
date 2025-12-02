@@ -10,8 +10,8 @@ ColumnLayout {
     Layout.alignment: Qt.AlignVCenter
     visible: networkController.graph_data_uploaded()
 
-    property int lblWidthSize: 75
-    property int cbWidthSize: 125
+    property int lblWidthSize: 50
+    property int cmbWidthSize: 125
 
     Text {
         text: "Response Properties"
@@ -22,7 +22,7 @@ ColumnLayout {
 
 
     RowLayout {
-        Layout.alignment: Qt.AlignVCenter
+        Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
 
         Label {
             Layout.preferredWidth: lblWidthSize
@@ -30,7 +30,15 @@ ColumnLayout {
         }
 
         ComboBox {
-            Layout.minimumWidth: cbWidthSize
+            id: cmbResponseList
+            Layout.minimumWidth: cmbWidthSize
+            model: [
+                "Resistivity List",
+                "Inductance List",
+                "Capacitance List",
+                "Leak Resistance List"
+            ]
+            currentIndex: 0
         }
 
         Button {
