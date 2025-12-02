@@ -14,8 +14,7 @@ from scipy.sparse.linalg import spsolve
 from scipy.sparse import diags, csc_array
 from matplotlib.collections import LineCollection
 
-from ..utils.config_loader import load_rgt_configs
-
+from ..utils.config_loader import load_rgt_configs, initialize_list_params
 
 ALLOWED_GRAPH_FILE_EXTENSIONS = ['*.csv']
 class ResponseAnalyzer(ProgressUpdate):
@@ -24,6 +23,7 @@ class ResponseAnalyzer(ProgressUpdate):
         """"""
         super(ResponseAnalyzer, self).__init__()
         self._configs: dict = load_rgt_configs(config_file)
+        self._list_params: list = initialize_list_params()
         self._network_img: None | np.ndarray = None
         self._save_path: str = ""
         self._props: list = []
@@ -43,6 +43,14 @@ class ResponseAnalyzer(ProgressUpdate):
     @configs.setter
     def configs(self, configs):
         self._configs = configs
+
+    @property
+    def list_params(self):
+        return self._list_params
+
+    @list_params.setter
+    def list_params(self, list_params):
+        self._list_params = list_params
 
     @property
     def props(self):
@@ -226,8 +234,8 @@ class ResponseAnalyzer(ProgressUpdate):
 
         res_list = resistivity * np.ones(len(edge_list))    # The array of resistance for each EDGE
         ind_list = inductance * np.ones(len(edge_list))     # The array of inductance for each EDGE
-        omega = given_potential_frequency                   # The angular frequency of applied alternating potential
 
+        omega = given_potential_frequency                   # The angular frequency of applied alternating potential
         vertices_count = c_mat[0].shape[0]      # Number of vertices in the graph
         va_list = np.array(va_list, dtype=int)  # numpy array of vertices that have a forced potential, casting to int in case given as float
         va_vertices_count = int(len(va_list))   # number of vertices in va_list

@@ -27,6 +27,7 @@ class NetworkController(QObject):
         # Create Models
         self.rgtACParams = CheckBoxModel([])
         self.rgtDCParams = CheckBoxModel([])
+        self.listParams = CheckBoxModel([])
 
         # Attach listener for syncing models
         self._ctrl.syncModelSignal.connect(self.synchronize_rgt_models)
@@ -53,6 +54,7 @@ class NetworkController(QObject):
         try:
             # Models Auto-update with saved sgt_obj configs. No need to re-assign!
             options_rgt = rgt_obj.configs
+            response_file_options = rgt_obj.list_params
 
             # Get data from object configs
             rgt_ac_params = [v for v in options_rgt.values() if v["type"] == "ac-metric"]
@@ -61,6 +63,7 @@ class NetworkController(QObject):
             # Update QML adapter-models with fetched data
             self.rgtACParams.reset_data(rgt_ac_params)
             self.rgtDCParams.reset_data(rgt_dc_params)
+            self.listParams.reset_data(response_file_options)
         except Exception as err:
             logging.exception("Fatal Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.showAlertSignal.emit("Fatal Error", "Error re-loading RGT configurations! Close app and try again.")

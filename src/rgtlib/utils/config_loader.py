@@ -6,6 +6,7 @@ Loads default configurations from 'configs.ini' file
 
 import os
 import configparser
+import numpy as np
 from typing import Union
 from sgtlib.modules import verify_path
 
@@ -30,9 +31,23 @@ def read_config_file(config_path):
         return None
 
 
+def initialize_list_params():
+    """Initialize the list of parameters for the ResponseGT computation."""
+
+    response_file_options: list[dict[str, str | int | None | np.ndarray]] = [
+        {"id": "resistivity", "text": "Resistivity List", "visible": 1, "value": 0, "data": None},
+        {"id": "inductance", "text": "Inductance List", "visible": 1, "value": 0, "data": None},
+        {"id": "capacitance", "text": "Capacitance List", "visible": 1, "value": 0, "data": None},
+        {"id": "leak_resistivity", "text": "Leak Resistivity List", "visible": 1, "value": 0, "data": None}
+    ]
+    return response_file_options
+
+
 def load_rgt_configs(cfg_path: str = ""):
     """ResponseGT computation configuration loader."""
 
+    # add distance metrics
+    # add the imposed direction (selected)
     options_rgt: dict[str, dict[str, Union[int, float]]]  = {
         "response_type": {"id": "response_type", "type": "ac-metric", "text": "Response Type", "visible": 1, "value": 0},
         "potential_frequency": {"id": "potential_frequency", "type": "dc-metric", "text": "Potential Frequency", "visible": 1, "value": 0.000000000001, "minValue": 1, "maxValue": 7, "stepSize": 2},
