@@ -56,18 +56,27 @@ def load_rgt_configs(cfg_path: str = ""):
         Example:
             0.005 → (5, -3)
             123 → (1.23, 2)
+
+        Special rule:
+            If the multiplier is -1, 1, or 2 → force it to 0
         """
+
         if value == 0:
             return 0, 0
 
+        # Determine scientific exponent
         multiplier = int(math.floor(math.log10(abs(value))))
         coefficient = value / (10 ** multiplier)
 
-        # Additional formatting for cases like 0.005 → 5 * 10^-3
+        # Ensure coefficient is in [1, 10)
         if abs(coefficient) < 1:
-            # i.e., when coefficient becomes 1 < c < 10 but the user wants integer coefficient
             coefficient *= 10
             multiplier -= 1
+
+        # Force multiplier -1, 1, or 2 back to 0
+        if multiplier in {-1, 1, 2}:
+            coefficient = value  # collapse scaling into coefficient
+            multiplier = 0
         return coefficient, multiplier
 
 

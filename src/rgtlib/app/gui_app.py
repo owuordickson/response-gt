@@ -13,11 +13,13 @@ from PySide6.QtQml import QQmlApplicationEngine
 from .controllers.main_controller import MainController
 from .models.image_provider import ImageProvider
 
+
 class PySideApp(QObject):
 
     def _initialize_models(self):
         """Initialize the models and providers used by the QML engine."""
         self._ui_engine.addImageProvider("imageProvider", self._image_provider)
+        self._ui_engine.rootContext().setContextProperty("metricsModel", self._ctrl.network_ctrl.metricsModel)
         self._ui_engine.rootContext().setContextProperty("rgtACParams", self._ctrl.network_ctrl.rgtACParams)
         self._ui_engine.rootContext().setContextProperty("rgtDCParams", self._ctrl.network_ctrl.rgtDCParams)
 

@@ -37,7 +37,6 @@ ColumnLayout {
                     text: model.text
                     font.pixelSize: 11
                     color: "#000000"
-                    //enabled: model.visible === 1
                 }
 
                 SpinBox {
@@ -50,20 +49,15 @@ ColumnLayout {
                     stepSize: 1
                     property var currSBVal: model.value
                     value: currSBVal
-                    //enabled: model.visible === 1
                     //onValueChanged: updateValue(currSBVal, value)
                 }
 
                 ComboBox {
                     id: cmbMetric
                     Layout.preferredWidth: cmbWidthSize
-                    model: [
-                        "\u03BCm",   // μm
-                        "mm",
-                        "cm",
-                    ]
-                    currentIndex: 0   // optional: default to "cm"
-                    //enabled: model.visible === 1
+                    model: metricsModel
+                    textRole: "text"
+                    currentIndex: 0
                 }
 
 
