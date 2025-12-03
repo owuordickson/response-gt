@@ -44,6 +44,11 @@ ColumnLayout {
         Button {
             id: btnListUpload
             text: "Upload"
+            onClicked: {
+                let file_desc = cmbResponseList.model[cmbResponseList.currentIndex];
+                dlgFileData.file_type = file_desc;
+                dlgFileData.open();
+            }
         }
 
     }

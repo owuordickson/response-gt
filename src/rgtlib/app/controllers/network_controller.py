@@ -136,9 +136,9 @@ class NetworkController(QObject):
             self.update_response_params(self._ctrl.rgt_obj)
         self.changeImageSignal.emit()
 
-    @Slot(str)
-    def upload_edge_list(self, file_path: str):
-        """Upload an edge list file and return True if successful."""
+    @Slot(str, str)
+    def upload_file_data(self, file_path: str, param_type: str):
+        """Upload a CSV file and return True if successful."""
         if self._ctrl.wait_flag:
             logging.info("Please Wait: Another task is running!", extra={'user': 'RGT Logs'})
             self._ctrl.showAlertSignal.emit("Please Wait", "Another task is running!")
@@ -146,29 +146,12 @@ class NetworkController(QObject):
 
         try:
             self.start_task()
-            self._ctrl.submit_job(1, "Upload CSV", (file_path, 2), True)
+            self._ctrl.submit_job(1, "Upload CSV", (file_path, param_type,), True)
         except Exception as err:
             self.stop_task()
             logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Error occurred!"))
-            self._ctrl.handle_finished(1, False, ["Upload Error",  "Fatal error while trying to upload edge list."])
-
-    @Slot(str)
-    def upload_vertex_positions(self, file_path: str):
-        """Upload a vertex position file and return True if successful."""
-        if self._ctrl.wait_flag:
-            logging.info("Please Wait: Another task is running!", extra={'user': 'RGT Logs'})
-            self._ctrl.showAlertSignal.emit("Please Wait", "Another task is running!")
-            return
-
-        try:
-            self.start_task()
-            self._ctrl.submit_job(1, "Upload CSV", (file_path, 1,), True)
-        except Exception as err:
-            self.stop_task()
-            logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
-            self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Error occurred!"))
-            self._ctrl.handle_finished(1, False, ["Upload Error", "Fatal error while trying to upload vertex positions."])
+            self._ctrl.handle_finished(1, False, ["Upload Error", f"Fatal error while trying to upload {param_type}."])
 
     @Slot()
     def run_response_analyzer(self):

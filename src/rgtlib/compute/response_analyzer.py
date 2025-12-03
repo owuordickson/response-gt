@@ -91,6 +91,7 @@ class ResponseAnalyzer(ProgressUpdate):
         self._vertex_potentials = None
         self._edge_list = None
         self._edge_currents = None
+        self._list_params: dict = initialize_list_params()
 
     def copy_rgt_obj(self, other):
         """Copy attributes from another ResponseAnalyzer object"""
@@ -240,9 +241,6 @@ class ResponseAnalyzer(ProgressUpdate):
 
             return given_potential_list, vertex_list
 
-        opt_rgt = self._configs
-        list_params = self._list_params
-
         if self.vertex_coordinates is None:
             self.update_status(ProgressData(type="error", sender="RGT", message=f"Vertex positions are missing! Please upload them via a CSV file.")) if not silent else None
             return None, None
@@ -252,6 +250,7 @@ class ResponseAnalyzer(ProgressUpdate):
 
         self.update_status(ProgressData(percent=1, sender="RGT", message=f"Initializing list parameters...")) if not silent else None
         self.init_list_params()
+        list_params = self._list_params
         cap_list = list_params["capacitance_list"]["data"]
         leak_res_list = list_params["leak_resistivity_list"]["data"]
         res_list = list_params["resistivity_list"]["data"]

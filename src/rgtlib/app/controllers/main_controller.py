@@ -131,17 +131,37 @@ class MainController(QObject):
                     if type(file_path) is str:
                         self.rgt_obj._save_path = file_path
 
-                    if upload_type == 1:
+                    if upload_type == "vertices":
                         node_positions = graph_data
                         if node_positions is not None:
                             # flips vertically to have same orientation as initial image
                             y_coords, x_coords = zip(*node_positions)
                             neg_y_coords = [y * -1 for y in y_coords]
                             self.rgt_obj.vertex_coordinates = np.array(list(zip(x_coords, neg_y_coords)))
-                    elif upload_type == 2:
+                    elif upload_type == "edges":
                         edges = graph_data
                         if edges is not None:
                             self.rgt_obj.edge_list = edges
+                    elif upload_type == "Resistivity List":
+                        res_list = graph_data
+                        if res_list is not None:
+                            self.rgt_obj.list_params["resistivity_list"]["data"] = res_list
+                            self.rgt_obj.list_params["resistivity_list"]["value"] = 1
+                    elif upload_type == "Inductance List":
+                        ind_list = graph_data
+                        if ind_list is not None:
+                            self.rgt_obj.list_params["inductance_list"]["data"] = ind_list
+                            self.rgt_obj.list_params["inductance_list"]["value"] = 1
+                    elif upload_type == "Capacitance List":
+                        cap_list = graph_data
+                        if cap_list is not None:
+                            self.rgt_obj.list_params["capacitance_list"]["data"] = cap_list
+                            self.rgt_obj.list_params["capacitance_list"]["value"] = 1
+                    elif upload_type == "Leak Resistivity List":
+                        leak_list = graph_data
+                        if leak_list is not None:
+                            self.rgt_obj.list_params["leak_resistivity_list"]["data"] = leak_list
+                            self.rgt_obj.list_params["leak_resistivity_list"]["value"] = 1
                     self.handle_progress_update(ProgressData(percent=100, sender="RGT", message=f"File Uploaded!"))
                     self.syncModelSignal.emit(self.rgt_obj)  # Sync models and refresh image
                     self.network_ctrl.imageChangedSignal.emit()  # trigger QML UI update

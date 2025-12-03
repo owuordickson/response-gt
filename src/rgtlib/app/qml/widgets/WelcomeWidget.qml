@@ -44,7 +44,10 @@ Rectangle {
                 //Layout.preferredHeight: 32
                 text: "Vertex positions"
                 enabled: networkController.enable_vertex_positions_upload()
-                onClicked: dlgFileVertices.open()
+                onClicked: {
+                    dlgFileData.file_type = "vertices";
+                    dlgFileData.open();
+                }
             }
 
             Material.Button {
@@ -53,7 +56,10 @@ Rectangle {
                 //Layout.preferredHeight: 32
                 text: "Edge list"
                 enabled: networkController.enable_edge_list_upload()
-                onClicked: dlgFileEdges.open()
+                onClicked: {
+                    dlgFileData.file_type = "edges";
+                    dlgFileData.open();
+                }
             }
         }
 

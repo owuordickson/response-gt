@@ -79,7 +79,7 @@ class BaseWorker:
             return False, ["Computation Failed", "Error occurred while computing ac-response. Re-upload the CSV files and try again. If error persists then close "
                                                    "the app and try again."]
 
-    def task_upload_csv(self, file_path: str, upload_type: int):
+    def task_upload_csv(self, file_path: str, upload_type: str):
         """"""
         try:
             # 1. Verify if the file exists
