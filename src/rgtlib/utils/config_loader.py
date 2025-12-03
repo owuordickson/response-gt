@@ -83,13 +83,13 @@ def load_rgt_configs(cfg_path: str = ""):
     # add the imposed direction (selected)
     options_rgt: dict[str, dict[str, Union[int, float]]]  = {
         "response_type": {"id": "response_type", "type": "ac-param", "text": "Response Type", "visible": 1, "value": 0},
-        "potential_frequency": {"id": "potential_frequency", "type": "dc-param", "text": "Potential Frequency", "visible": 1, "value": 1, "multiplier": -6, "minValue": 0, "maxValue": 1000},
-        "potential_fraction": {"id": "potential_fraction", "type": "dc-param", "text": "Potential Fraction", "visible": 1, "value": 5, "multiplier": -2, "minValue": 0, "maxValue": 1000},
-        "potential_magnitude": {"id": "potential_magnitude", "type": "dc-param", "text": "Potential Magnitude", "visible": 1, "value": 100.0, "multiplier": 0, "minValue": 0, "maxValue": 1000},
-        "resistivity": {"id": "resistivity", "type": "dc-param", "text": "Resistivity", "visible": 1, "value": 1.0, "multiplier": 0, "minValue": 0, "maxValue": 1000},
-        "capacitance": {"id": "capacitance", "type": "dc-param", "text": "Capacitance", "visible": 1, "value": 1, "multiplier": -6, "minValue": 0, "maxValue": 1000},
-        "inductance": {"id": "inductance", "type": "dc-param", "text": "Inductance", "visible": 1, "value": 1, "multiplier": -9, "minValue": 0, "maxValue": 1000},
-        "leak_resistivity": {"id": "leak_resistivity", "type": "dc-param", "text": "Leak Resistivity", "visible": 1, "value": 1, "multiplier": 6, "minValue": 0, "maxValue": 1000}
+        "potential_frequency": {"id": "potential_frequency", "type": "dc-param", "text": "Potential Frequency", "visible": 1, "value": 1, "multiplier": -6, "minValue": -1000, "maxValue": 1000},
+        "potential_fraction": {"id": "potential_fraction", "type": "dc-param", "text": "Potential Fraction", "visible": 1, "value": 5, "multiplier": -2, "minValue": -1000, "maxValue": 1000},
+        "potential_magnitude": {"id": "potential_magnitude", "type": "dc-param", "text": "Potential Magnitude", "visible": 1, "value": 100.0, "multiplier": 0, "minValue": -1000, "maxValue": 1000},
+        "resistivity": {"id": "resistivity", "type": "dc-param", "text": "Resistivity", "visible": 1, "value": 1.0, "multiplier": 0, "minValue": -1000, "maxValue": 1000},
+        "capacitance": {"id": "capacitance", "type": "dc-param", "text": "Capacitance", "visible": 1, "value": 1, "multiplier": -6, "minValue": -1000, "maxValue": 1000},
+        "inductance": {"id": "inductance", "type": "dc-param", "text": "Inductance", "visible": 1, "value": 1, "multiplier": -9, "minValue": -1000, "maxValue": 1000},
+        "leak_resistivity": {"id": "leak_resistivity", "type": "dc-param", "text": "Leak Resistivity", "visible": 1, "value": 1, "multiplier": 6, "minValue": -1000, "maxValue": 1000}
     }
 
     # Load configuration from the file

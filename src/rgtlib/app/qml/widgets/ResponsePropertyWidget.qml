@@ -10,6 +10,9 @@ ColumnLayout {
     Layout.alignment: Qt.AlignVCenter
     visible: networkController.graph_data_uploaded()
 
+    property int valueRole: Qt.UserRole + 4
+    property int multiplierRole: Qt.UserRole + 12
+
     property int lblWidthSize: 100
     property int cmbWidthSize: 64
     property int spbWidthSize: 75
@@ -49,15 +52,41 @@ ColumnLayout {
                     stepSize: 1
                     property var currSBVal: model.value
                     value: currSBVal
-                    //onValueChanged: updateValue(currSBVal, value)
+                    onValueChanged: updateValue(value)
                 }
 
                 ComboBox {
                     id: cmbMetric
+                    objectName: model.id
                     Layout.preferredWidth: cmbWidthSize
                     model: metricsModel
                     textRole: "text"
-                    currentIndex: 0
+                    currentIndex: 5
+
+                    // Fires only when the user selects a new option
+                    onActivated: (index) => {
+                        // Get the selected multiplier
+                        const idx = metricsModel.index(index, 0);
+                        let multi_val = metricsModel.data(idx, multiplierRole); // MultiplierRole
+                        updateMultiplier(multi_val);
+                    }
+                }
+
+                function updateValue(val) {
+                    if (model.value !== val) {
+                        var index = rgtDCParams.index(model.index, 0);
+                        rgtDCParams.setData(index, val, valueRole);
+                        //networkController.;
+                    }
+                }
+
+
+                function updateMultiplier(val) {
+                    if (model.multiplier !== val) {
+                        var index = rgtDCParams.index(model.index, 0);
+                        rgtDCParams.setData(index, val, multiplierRole);
+                        //networkController.;
+                    }
                 }
 
 

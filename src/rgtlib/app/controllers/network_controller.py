@@ -90,6 +90,10 @@ class NetworkController(QObject):
             logging.exception("Fatal Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.showAlertSignal.emit("Fatal Error", "Error updating RGT parameters!")
 
+    @Slot()
+    def test_method(self):
+        print("Test method called!")
+
     @Slot(result=bool)
     def graph_is_ready(self):
         return self._graph_loaded
@@ -206,23 +210,3 @@ class NetworkController(QObject):
             logging.exception("Download Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Fatal error occurred!"))
             self._ctrl.handle_finished(1, False, ["Download Error", "Fatal error while trying to save results to file."])
-
-    @staticmethod
-    def get_metric_options():
-        """Return a list of metric options to the dropdown menu."""
-        metric_prefix = {
-           -12: {"name": "picometer (pm)", "symbol": "p"},
-           -9:  {"name": "nanometer (nm)", "symbol": "n"},
-           -6:  {"name": "micrometer (\u03BCm)", "symbol": "\u03BC"},
-           -3:  {"name": "millimeter (mm)", "symbol": "m"},
-           -2:  {"name": "centimeter (cm)", "symbol": "c"},
-           # -1:  {"name": "decimeter (dm)", "symbol": "d"},
-           0:   {"name": "meter (m)", "symbol": ""},
-           # 1:   {"name": "dekameter (dam)", "symbol": "da"},
-           # 2:   {"name": "hectometer (hm)", "symbol": "h"},
-           3:   {"name": "kilometer (km)", "symbol": "k"},
-           6:   {"name": "megameter (Mm)", "symbol": "M"},
-           9:   {"name": "gigameter (Gm)", "symbol": "G"},
-           12:  {"name": "terameter (Tm)", "symbol": "T"}
-        }
-        return metric_prefix
