@@ -34,6 +34,7 @@ ColumnLayout {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignLeft
                 enabled: model.visible === 1
+                property int mainIndex: index
 
                 Label {
                     Layout.preferredWidth: lblWidthSize
@@ -61,7 +62,7 @@ ColumnLayout {
                     Layout.preferredWidth: cmbWidthSize
                     model: metricsModel
                     textRole: "text"
-                    currentIndex: 5
+                    currentIndex: getCurrentIndex()
 
                     // Fires only when the user selects a new option
                     onActivated: (index) => {
@@ -70,11 +71,23 @@ ColumnLayout {
                         let multi_val = metricsModel.data(idx, multiplierRole); // MultiplierRole
                         updateMultiplier(multi_val);
                     }
+
+                    function getCurrentIndex() {
+                        const main_idx = rgtDCParams.index(mainIndex, 0);
+                        let sel_multi_val = rgtDCParams.data(main_idx, multiplierRole);
+
+                        for (let row = 0; row < metricsModel.rowCount(); row++) {
+                            const idx = metricsModel.index(row, 0);
+                            let multi_val = metricsModel.data(idx, multiplierRole);
+                            if (sel_multi_val === multi_val) return row;
+                        }
+                        return 5;
+                    }
                 }
 
                 function updateValue(val) {
                     if (model.value !== val) {
-                        var index = rgtDCParams.index(model.index, 0);
+                        const index = rgtDCParams.index(mainIndex, 0);
                         rgtDCParams.setData(index, val, valueRole);
                         //networkController.;
                     }
@@ -83,7 +96,7 @@ ColumnLayout {
 
                 function updateMultiplier(val) {
                     if (model.multiplier !== val) {
-                        var index = rgtDCParams.index(model.index, 0);
+                        const index = rgtDCParams.index(mainIndex, 0);
                         rgtDCParams.setData(index, val, multiplierRole);
                         //networkController.;
                     }

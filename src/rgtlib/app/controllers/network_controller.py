@@ -10,6 +10,7 @@ from PySide6.QtCore import Signal, Slot, QObject
 
 from ..models.metrics_model import MetricsModel
 from ..models.checkbox_model import CheckBoxModel
+from ...utils.config_loader import get_metric_options
 from ...compute.response_analyzer import ALLOWED_GRAPH_FILE_EXTENSIONS
 
 
@@ -29,7 +30,7 @@ class NetworkController(QObject):
         self.rgtACParams = CheckBoxModel([])
         self.rgtDCParams = CheckBoxModel([])
         self.listParams = CheckBoxModel([])
-        self.metricsModel = MetricsModel()
+        self.metricsModel = MetricsModel(get_metric_options())
 
         # Attach listener for syncing models
         self._ctrl.syncModelSignal.connect(self.synchronize_rgt_models)
