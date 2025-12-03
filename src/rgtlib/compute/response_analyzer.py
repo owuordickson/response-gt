@@ -123,7 +123,7 @@ class ResponseAnalyzer(ProgressUpdate):
         opt_rgt = self._configs
         coefficient = opt_rgt[key]["value"]
         multiplier = opt_rgt[key]["multiplier"]
-        print(f"{key}: {coefficient} * 10^{multiplier} = {coefficient * 10 ** multiplier}")
+        # print(f"{key}: {coefficient} * 10^{multiplier} = {coefficient * 10 ** multiplier}")
         return coefficient * 10 ** multiplier
 
     def init_list_params(self):

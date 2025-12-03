@@ -46,15 +46,37 @@ ColumnLayout {
                 SpinBox {
                     id: spinbox
                     objectName: model.id
+
                     Layout.minimumWidth: spbWidthSize
-                    //Layout.fillWidth: true
-                    from: model.minValue
-                    to: model.maxValue
-                    stepSize: 1
-                    property var currSBVal: model.value
-                    value: currSBVal
-                    onValueChanged: updateValue(value)
+
+                    // Model values are floats (e.g., 0.00123)
+                    property real realMin: model.minValue
+                    property real realMax: model.maxValue
+                    property real realStep: 0.1             // or 1
+                    property real realValue: model.value    // actual decimal
+
+                    // SpinBox INTERNAL integer range
+                    from: 0
+                    to: Math.round((realMax - realMin) / realStep)
+                    // Map realValue → SpinBox integer
+                    value: Math.round((realValue - realMin) / realStep)
+                    // Convert SpinBox integer → real value (displayed)
+                    textFromValue: function (v) {
+                        return Number(realMin + v * realStep).toFixed(3)   // format as 3 decimals
+                    }
+
+                    // Convert text → integer value
+                    valueFromText: function (txt) {
+                        let r = Number(txt)
+                        return Math.round((r - realMin) / realStep)
+                    }
+
+                    onValueChanged: {
+                        realValue = realMin + value * realStep
+                        updateValue(realValue)      // ← your real update method
+                    }
                 }
+
 
                 ComboBox {
                     id: cmbMetric

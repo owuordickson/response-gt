@@ -94,7 +94,7 @@ def load_rgt_configs(cfg_path: str = ""):
 
         # Determine scientific exponent
         multiplier = int(math.floor(math.log10(abs(value))))
-        coefficient = value / (10 ** multiplier)
+        coefficient = float(value / (10 ** multiplier))
 
         # Ensure coefficient is in [1, 10)
         if abs(coefficient) < 1:
@@ -102,22 +102,18 @@ def load_rgt_configs(cfg_path: str = ""):
             multiplier -= 1
 
         # Force multiplier -1, 1, or 2 back to 0
-        #if multiplier in {-1, 1, 2}:
-        #    coefficient = value  # collapse scaling into coefficient
-        #    multiplier = 0
+        if multiplier in {-1, 1, 2}:
+            coefficient = value  # collapse scaling into coefficient
+            multiplier = 0
 
         lst_mult_data = get_metric_options()
         mult_range = {x["multiplier"] for x in lst_mult_data}
         if multiplier not in mult_range:
             # Find the closest multiplier in the list
             nearest_multiplier = min(mult_range, key=lambda x: abs(x - multiplier))
-            if multiplier < nearest_multiplier:
-                coefficient *= 10 ** (multiplier + nearest_multiplier)
-                multiplier = nearest_multiplier
-            elif multiplier > nearest_multiplier:
-                coefficient *= 10 ** (multiplier - nearest_multiplier)
-                multiplier = nearest_multiplier
-
+            # Update the coefficient and multiplier
+            coefficient *= 10 ** (multiplier - nearest_multiplier)
+            multiplier = nearest_multiplier
         return coefficient, multiplier
 
     # add the imposed direction (selected)
