@@ -57,8 +57,8 @@ class NetworkController(QObject):
             lst_params = rgt_obj.list_params
 
             # Get data from object configs
-            rgt_ac_params = [v for v in options_rgt.values() if v["type"] == "ac-metric"]
-            rgt_dc_params = [v for v in options_rgt.values() if v["type"] == "dc-metric"]
+            rgt_ac_params = [v for v in options_rgt.values() if v["type"] == "ac-param"]
+            rgt_dc_params = [v for v in options_rgt.values() if v["type"] == "dc-param"]
             response_file_options = [v for v in lst_params.values()]
 
             # Update QML adapter-models with fetched data
@@ -77,7 +77,7 @@ class NetworkController(QObject):
         try:
             options_rgt = rgt_obj.configs
             res_type = options_rgt["response_type"]["value"]
-            rgt_dc_params = [v for v in options_rgt.values() if v["type"] == "dc-metric"]
+            rgt_dc_params = [v for v in options_rgt.values() if v["type"] == "dc-param"]
             for  param in rgt_dc_params:
                 if param["id"] == "resistivity":
                     param["visible"] = 1

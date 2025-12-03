@@ -118,6 +118,14 @@ class ResponseAnalyzer(ProgressUpdate):
             filename = re.sub(pattern, '', filename)
         return filename, output_dir
 
+    def get_parameter_value(self, key: str):
+        """Returns the value of a parameter from the RGT configuration"""
+        opt_rgt = self._configs
+        coefficient = opt_rgt[key]["value"]
+        multiplier = opt_rgt[key]["multiplier"]
+        print(f"{key}: {coefficient} * 10^{multiplier} = {coefficient * 10 ** multiplier}")
+        return coefficient * 10 ** multiplier
+
     def init_list_params(self):
         """Compute the list parameters for the response analyzer (if they were not uploaded by the user)"""
         opt_rgt = self._configs
@@ -125,11 +133,11 @@ class ResponseAnalyzer(ProgressUpdate):
 
         edge_list = self.edge_list
         num_vertices = len(self.vertex_coordinates)
-        given_potential_fraction = opt_rgt["potential_fraction"]["value"]
-        resistivity = opt_rgt["resistivity"]["value"]
-        capacitance = opt_rgt["capacitance"]["value"]
-        inductance = opt_rgt["inductance"]["value"]
-        leak_resistivity = opt_rgt["leak_resistivity"]["value"]
+        given_potential_fraction = self.get_parameter_value("potential_fraction")
+        resistivity = self.get_parameter_value("resistivity")
+        capacitance = self.get_parameter_value("capacitance")
+        inductance = self.get_parameter_value("inductance")
+        leak_resistivity = self.get_parameter_value("leak_resistivity")
         num_selected = int(given_potential_fraction * num_vertices)
 
         if list_params["resistivity_list"]["value"] == 0 or list_params["resistivity_list"]["data"] is None:
@@ -206,6 +214,9 @@ class ResponseAnalyzer(ProgressUpdate):
             :returns: ua_list--array applied potentials, va_list--array of nodes with the corresponding applied potential
             """
 
+            given_potential_fraction = self.get_parameter_value("potential_fraction")
+            given_potential_magnitude = self.get_parameter_value("potential_magnitude")
+
             num_selected = int(given_potential_fraction * num_vertices)
             given_potential_list = np.zeros(int(2 * num_selected))  # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
             vertex_list = np.zeros(int(2 * num_selected))           # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
@@ -254,14 +265,11 @@ class ResponseAnalyzer(ProgressUpdate):
         vert_pos = self.vertex_coordinates
 
         # example parameters, set to very large/small numbers for DC response
-        given_potential_frequency = opt_rgt["potential_frequency"]["value"]
-        given_potential_fraction = opt_rgt["potential_fraction"]["value"]
-        given_potential_magnitude = opt_rgt["potential_magnitude"]["value"]
-
         self.update_status(ProgressData(percent=10, sender="RGT", message=f"Computing response parameters...")) if not silent else None
         c_mat = incidence_matrix()                          # The incidence matrix of the network, where rows are directed edges and columns are vertices
         ua_list, va_list = imposed_potential_response()     # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
 
+        given_potential_frequency = self.get_parameter_value("potential_frequency")
         omega = given_potential_frequency                   # The angular frequency of applied alternating potential
         vertices_count = c_mat[0].shape[0]      # Number of vertices in the graph
         va_list = np.array(va_list, dtype=int)  # numpy array of vertices that have a forced potential, casting to int in case given as float

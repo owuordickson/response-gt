@@ -47,8 +47,8 @@ ColumnLayout {
                     //Layout.fillWidth: true
                     from: model.minValue
                     to: model.maxValue
-                    stepSize: model.stepSize
-                    property var currSBVal: 2//model.value
+                    stepSize: 1
+                    property var currSBVal: model.value
                     value: currSBVal
                     //enabled: model.visible === 1
                     //onValueChanged: updateValue(currSBVal, value)
