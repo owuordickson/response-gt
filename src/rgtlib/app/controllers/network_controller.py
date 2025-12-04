@@ -31,7 +31,7 @@ class NetworkController(QObject):
         self.rgtDCParams = CheckBoxModel([])
         self.rgtPotentialOptions = CheckBoxModel([])
         self.rgtPotentialDirections = CheckBoxModel([])
-        self.metricsModel = MetricsModel(get_metric_options())
+        self.metricsModel = CheckBoxModel([])
 
         # Attach listener for syncing models
         self._ctrl.syncModelSignal.connect(self.synchronize_rgt_models)
@@ -58,6 +58,7 @@ class NetworkController(QObject):
         try:
             # Models Auto-update with saved sgt_obj configs. No need to re-assign!
             options_rgt = rgt_obj.configs
+            metric_options = get_metric_options()
 
             # Get data from object configs
             rgt_settings = [v for v in options_rgt.values() if v["type"] == "rgt-settings"]
@@ -66,6 +67,7 @@ class NetworkController(QObject):
             rgt_pot_dir = options_rgt["potential_direction"]["items"]
 
             # Update QML adapter-models with fetched data
+            self.metricsModel.reset_data(metric_options)
             self.rgtOptions.reset_data(rgt_settings)
             self.rgtDCParams.reset_data(rgt_dc_params)
             self.rgtPotentialOptions.reset_data(rgt_potentials)
