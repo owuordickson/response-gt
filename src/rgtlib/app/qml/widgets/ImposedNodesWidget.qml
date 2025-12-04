@@ -34,17 +34,17 @@ ColumnLayout {
                     currentCheckedButton = checkedButton;
                     if (checkedButton === rdoDefault) {
                         cmbDirection.enabled = true;
-                        txtVerts.enabled = false;
+                        taVerts.enabled = false;
                         rectVerts.border.width = 0;
                         btnUpload.enabled = false;
                     } else if (checkedButton === rdoCustom) {
                         cmbDirection.enabled = false;
-                        txtVerts.enabled = true;
+                        taVerts.enabled = true;
                         rectVerts.border.width = 1;
                         btnUpload.enabled = false;
                     } else if (checkedButton === rdoFile) {
                         cmbDirection.enabled = false;
-                        txtVerts.enabled = false;
+                        taVerts.enabled = false;
                         rectVerts.border.width = 0;
                         btnUpload.enabled = true;
                     }
@@ -75,6 +75,7 @@ ColumnLayout {
                 // Fires only when the user selects a new option
                 onActivated: (index) => {
                     let resp_direction = cmbDirection.model[index];
+                    networkController.apply_imposed_vertices("default", resp_direction);
                 }
             }
         }
@@ -100,13 +101,41 @@ ColumnLayout {
                 border.color: "#808080"
                 radius: 4
 
-                TextArea {
-                    id: txtVerts
+                Flickable {
+                    id: flickable
                     anchors.fill: parent
                     anchors.margins: 2
-                    wrapMode: TextArea.Wrap
-                    font.pixelSize: 9
-                    placeholderText: "vertex positions separated by comma"
+                    contentWidth: parent.width // Important for vertical-only scrolling
+                    contentHeight: taVerts.implicitHeight
+
+                    TextArea.flickable: TextArea {
+                        id: taVerts
+                        width: flickable.width // Ensure TextArea fills Flickable's width
+                        wrapMode: TextArea.Wrap
+                        font.pixelSize: 9
+                        placeholderText: "enter vertex positions or copy/paste..."
+
+                        // When focus leaves the TextArea
+                        onEditingFinished: {
+                            // Add your custom logic here
+                            networkController.apply_imposed_vertices("custom", taVerts.text);
+                        }
+
+                        // Trigger when Enter is pressed
+                        Keys.onReturnPressed: (event) => {
+                            // Prevent new line
+                            event.accepted = true
+
+                            // Manually trigger the finish event
+                            taVerts.editingFinished()  // Requires Qt 6.6+
+                        }
+                    }
+
+                    ScrollBar.vertical: ScrollBar { // Attach vertical scrollbar
+                        parent: flickable
+                        policy: ScrollBar.AsNeeded // Show scrollbar only when needed
+                    }
+
                 }
             }
         }

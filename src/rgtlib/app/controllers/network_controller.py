@@ -137,6 +137,11 @@ class NetworkController(QObject):
         self.changeImageSignal.emit()
 
     @Slot(str, str)
+    def apply_imposed_vertices(self, source: str, data: str):
+        """Apply imposed vertices to the response graph."""
+        print(f"Applying {source} with data: {data}")
+
+    @Slot(str, str)
     def upload_file_data(self, file_path: str, param_type: str):
         """Upload a CSV file and return True if successful."""
         if self._ctrl.wait_flag:

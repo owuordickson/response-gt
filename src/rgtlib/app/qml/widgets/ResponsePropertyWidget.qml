@@ -124,63 +124,6 @@ ColumnLayout {
                     }
                 }
 
-
-                /*Loader {
-                    id: controlLoader
-                    sourceComponent: (model.id === "resistivity" || model.id === "potential_magnitude") ? spinOnly : spinAndCombo
-                }
-
-
-                Component {
-                    id: spinOnly
-
-                    RowLayout {
-                        //Layout.fillWidth: true
-
-                        SpinBox {
-                            id: spinbox
-                            objectName: model.id
-                            Layout.minimumWidth: spbWidthSize
-                            Layout.fillWidth: true
-                            from: model.minValue
-                            to: model.maxValue
-                            stepSize: model.stepSize
-                            property var currSBVal: 2//model.value
-                            value: currSBVal
-                            //onValueChanged: updateValue(currSBVal, value)
-                        }
-                    }
-
-                }
-
-
-                Component {
-                    id: spinAndCombo
-
-                    RowLayout {
-                        //Layout.fillWidth: true
-
-                        SpinBox {
-                            id: spinbox
-                            objectName: model.id
-                            Layout.minimumWidth: spbWidthSize
-                            Layout.fillWidth: true
-                            from: model.minValue
-                            to: model.maxValue
-                            stepSize: model.stepSize
-                            property var currSBVal: 2//model.value
-                            value: currSBVal
-                            //onValueChanged: updateValue(currSBVal, value)
-                        }
-
-                        ComboBox {
-                            Layout.preferredWidth: cmbWidthSize
-                        }
-
-                    }
-
-                }*/
-
             }
         }
 
