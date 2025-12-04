@@ -30,7 +30,7 @@ class NetworkController(QObject):
         self.rgtOptions = CheckBoxModel([])
         self.rgtDCParams = CheckBoxModel([])
         self.rgtPotentialOptions = CheckBoxModel([])
-        self.rgtPotentialDirections = MetricsModel([])
+        self.rgtPotentialDirections = CheckBoxModel([])
         self.metricsModel = MetricsModel(get_metric_options())
 
         # Attach listener for syncing models
