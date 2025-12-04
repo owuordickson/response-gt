@@ -140,7 +140,17 @@ class NetworkController(QObject):
     @Slot(str, str)
     def apply_imposed_vertices(self, source: str, data: str):
         """Apply imposed vertices to the response graph."""
-        print(f"Applying {source} with data: {data}")
+        try:
+            print(f"Applying {source} with data: {data}")
+            if data != "":
+                # Convert to a numpy array
+                arr_data = np.array(data.split(","), dtype=float)
+                print(arr_data)
+                self._ctrl.rgt_obj.list_params["selected_potential_list"]["data"] = arr_data
+                self._ctrl.rgt_obj.list_params["selected_potential_list"]["value"] = 1
+        except Exception as err:
+            logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
+            self._ctrl.handle_finished(1, False, ["Upload Error", f"Unable to parse imposed vertices data: Separate values with commas ONLY."])
 
     @Slot(str, str)
     def upload_file_data(self, file_path: str, param_type: str):

@@ -236,17 +236,21 @@ class ResponseAnalyzer(ProgressUpdate):
                     - va_list: Array of node indices corresponding to the applied potentials.
             """
             opt_rgt = self._configs
+            vert_pos = self.vertex_coordinates
             potential_direction = self.get_response_direction()
 
+            # 1. if default
             given_potential_fraction = float(opt_rgt["potential_fraction"]["value"])
             given_potential_magnitude = float(opt_rgt["potential_magnitude"]["value"])
-            vert_pos = self.vertex_coordinates
             num_vertices = len(vert_pos)
             num_selected = int(given_potential_fraction * num_vertices)
 
             # Output arrays
             given_potential_list = np.zeros(int(2 * num_selected))  # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
             vertex_list = np.zeros_like(given_potential_list, dtype=int)
+
+            # 2. if string
+            # 3. if 'file'
 
             if potential_direction == "LR" or potential_direction == "RL":
                 # Sort vertices by x-position (Left-Right or Right-Left)
