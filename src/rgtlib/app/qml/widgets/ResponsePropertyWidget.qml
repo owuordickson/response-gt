@@ -80,7 +80,6 @@ ColumnLayout {
 
                 ComboBox {
                     id: cmbMetric
-                    objectName: model.id
                     Layout.preferredWidth: cmbWidthSize
                     model: metricsModel
                     textRole: "text"

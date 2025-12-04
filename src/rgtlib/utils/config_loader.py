@@ -119,7 +119,7 @@ def load_rgt_configs(cfg_path: str = ""):
     # add the imposed direction (selected)
     options_rgt: dict[str, dict[str, Union[int, float, list]]] = {
         "response_type": {"id": "response_type", "type": "rgt-settings", "text": "Response Type", "visible": 1, "value": 0},
-        "potential_direction": {"id": "potential_direction", "type": "potential-settings", "text": "Potential Direction", "visible": 0, "value": 1,
+        "potential_direction": {"id": "potential_direction", "type": "potential-setting", "text": "Potential Direction", "visible": 0, "value": 1,
                                 "items": [
                                     {"id": "TB", "text": "Top-Bottom", "value": 1},
                                     {"id": "BT", "text": "Bottom-Top", "value": 0},
