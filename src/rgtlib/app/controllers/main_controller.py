@@ -142,6 +142,10 @@ class MainController(QObject):
                         edges = graph_data
                         if edges is not None:
                             self.rgt_obj.edge_list = edges
+                    elif upload_type == "imposed_vertices":
+                        imposed_vertices = graph_data
+                        if imposed_vertices is not None:
+                            pass
                     elif upload_type == "Resistivity List":
                         res_list = graph_data
                         if res_list is not None:

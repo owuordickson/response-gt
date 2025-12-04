@@ -71,6 +71,11 @@ ColumnLayout {
                     "Left-Right"
                 ]
                 currentIndex: 0
+
+                // Fires only when the user selects a new option
+                onActivated: (index) => {
+                    let resp_direction = cmbDirection.model[index];
+                }
             }
         }
 
@@ -102,7 +107,6 @@ ColumnLayout {
                     wrapMode: TextArea.Wrap
                     font.pixelSize: 9
                     placeholderText: "vertex positions separated by comma"
-                    //enabled: false
                 }
             }
         }
@@ -122,6 +126,10 @@ ColumnLayout {
                 id: btnUpload
                 text: "Upload"
                 enabled: false
+                onClicked: {
+                    dlgFileData.file_type = "imposed_vertices";
+                    dlgFileData.open();
+                }
             }
         }
 
