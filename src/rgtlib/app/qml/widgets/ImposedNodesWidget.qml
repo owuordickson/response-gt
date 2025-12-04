@@ -14,7 +14,7 @@ ColumnLayout {
     property int cmbWidthSize: 180
 
     Text {
-        text: "Imposed Vertices"
+        text: "Impose Potential"
         font.pixelSize: 12
         font.bold: true
         Layout.alignment: Qt.AlignHCenter

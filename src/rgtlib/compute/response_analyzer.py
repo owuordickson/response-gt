@@ -133,13 +133,10 @@ class ResponseAnalyzer(ProgressUpdate):
         list_params = self._list_params
 
         edge_list = self.edge_list
-        num_vertices = len(self.vertex_coordinates)
-        given_potential_fraction = self.get_parameter_value("potential_fraction")
         resistivity = self.get_parameter_value("resistivity")
         capacitance = self.get_parameter_value("capacitance")
         inductance = self.get_parameter_value("inductance")
         leak_resistivity = self.get_parameter_value("leak_resistivity")
-        num_selected = int(given_potential_fraction * num_vertices)
 
         if list_params["resistivity_list"]["value"] == 0 or list_params["resistivity_list"]["data"] is None:
             # The array of resistance for each EDGE
@@ -149,13 +146,18 @@ class ResponseAnalyzer(ProgressUpdate):
             # The array of inductance for each EDGE
             list_params["inductance_list"]["data"] = inductance * np.ones(len(edge_list))
 
+        num_vertices = len(self.vertex_coordinates)
+        given_potential_fraction = float(opt_rgt["potential_fraction"]["value"])
+        num_selected = int(given_potential_fraction * num_vertices)
+        vertex_list = np.ones(num_vertices - 2 * num_selected)
+
         if list_params["capacitance_list"]["value"] == 0 or list_params["capacitance_list"]["data"] is None:
             # The array of capacitance for each NODE that is NOT given an applied potential. nodes are taken to be capacitors connected to a grounded potential (0).
-            list_params["capacitance_list"]["data"] = capacitance * np.ones(num_vertices - 2 * num_selected)
+            list_params["capacitance_list"]["data"] = capacitance * vertex_list
 
         if list_params["leak_resistivity_list"]["value"] == 0 or list_params["leak_resistivity_list"]["data"] is None:
             # The array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
-            list_params["leak_resistivity_list"]["data"] = leak_resistivity * np.ones(num_vertices - 2 * num_selected)
+            list_params["leak_resistivity_list"]["data"] = leak_resistivity * vertex_list
 
     def run_analyzer(self) -> None:
         """Executes functions that will compute AC Response and draw the response graph"""
@@ -224,9 +226,10 @@ class ResponseAnalyzer(ProgressUpdate):
                     - ua_list: Array of potential values applied to boundary nodes.
                     - va_list: Array of node indices corresponding to the applied potentials.
             """
+            opt_rgt = self._configs
 
-            given_potential_fraction = self.get_parameter_value("potential_fraction")
-            given_potential_magnitude = self.get_parameter_value("potential_magnitude")
+            given_potential_fraction = float(opt_rgt["potential_fraction"]["value"])
+            given_potential_magnitude = float(opt_rgt["potential_magnitude"]["value"])
             vert_pos = self.vertex_coordinates
             num_vertices = len(vert_pos)
             num_selected = int(given_potential_fraction * num_vertices)
@@ -238,7 +241,7 @@ class ResponseAnalyzer(ProgressUpdate):
             # Sort vertices by y-position
             sorted_vertices = sorted(enumerate(vert_pos), key=lambda x_pos: x_pos[-1][-1])  # Sort by y-coordinate
 
-            # Select the top and bottom vertices
+            # Select the potential direction: 'top-down' or 'bottom-up' or 'left-right' or 'right-left'
             top_vertices = sorted_vertices[-num_selected:]      # Top f% (highest y-values)
             bottom_vertices = sorted_vertices[:num_selected]    # Bottom f% (lowest y-values)
             top_list = [idx for idx, _ in top_vertices]
@@ -265,16 +268,8 @@ class ResponseAnalyzer(ProgressUpdate):
             self.update_status(ProgressData(type="error", sender="RGT", message=f"Edge list is missing! Please upload them via a CSV file.")) if not silent else None
             return None, None
 
-        self.update_status(ProgressData(percent=5, sender="RGT", message=f"Initializing response parameters...")) if not silent else None
-        self.init_list_params()
-        list_params = self._list_params
-        cap_list = list_params["capacitance_list"]["data"]
-        leak_res_list = list_params["leak_resistivity_list"]["data"]
-        res_list = list_params["resistivity_list"]["data"]
-        ind_list = list_params["inductance_list"]["data"]
-
-        # example parameters, set to very large/small numbers for DC response
-        self.update_status(ProgressData(percent=10, sender="RGT", message=f"Imposing response potential...")) if not silent else None
+        # Apply imposing potentials by direction
+        self.update_status(ProgressData(percent=5, sender="RGT", message=f"Imposing response potential...")) if not silent else None
         c_mat = incidence_matrix()                          # The incidence matrix of the network, where rows are directed edges and columns are vertices
         ua_list, va_list = make_potential_top_down()        # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
 
@@ -284,6 +279,16 @@ class ResponseAnalyzer(ProgressUpdate):
         va_vertices_count = int(len(va_list))               # number of vertices in va_list
         vb_vertices_count = int(vertices_count - va_vertices_count)  # number of vertices in vb_list
 
+        # Initialize response parameters and parameter lists
+        self.update_status(ProgressData(percent=10, sender="RGT", message=f"Initializing response parameters...")) if not silent else None
+        self.init_list_params()
+        list_params = self._list_params
+        cap_list = list_params["capacitance_list"]["data"]
+        leak_res_list = list_params["leak_resistivity_list"]["data"]
+        res_list = list_params["resistivity_list"]["data"]
+        ind_list = list_params["inductance_list"]["data"]
+
+        # Compute admittance, dynamical and auxiliary matrices
         self.update_status(ProgressData(percent=15, sender="RGT", message=f"Computing admittance, dynamical and auxiliary matrices...")) if not silent else None
         admittance_mat = diags(1 / (res_list + 1j * omega * ind_list))  # diags(1/(rho+1j*omega*inductance)*np.ones(len(edges))) #Y=(R+iwL)^-1, admittance matrix
         c_mat_transposed = c_mat.T                          # transpose of incidence matrix

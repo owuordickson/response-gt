@@ -118,10 +118,10 @@ def load_rgt_configs(cfg_path: str = ""):
 
     # add the imposed direction (selected)
     options_rgt: dict[str, dict[str, Union[int, float]]] = {
-        "response_type": {"id": "response_type", "type": "ac-param", "text": "Response Type", "visible": 1, "value": 0},
+        "response_type": {"id": "response_type", "type": "rgt-settings", "text": "Response Type", "visible": 1, "value": 0},
+        "potential_fraction": {"id": "potential_fraction", "type": "potential-settings", "text": "Potential Fraction", "visible": 1, "value": 0.05, "minValue": 0, "maxValue": 1},
+        "potential_magnitude": {"id": "potential_magnitude", "type": "potential-settings", "text": "Potential Magnitude", "visible": 1, "value": 100.0, "minValue": -100, "maxValue": 100},
         "potential_frequency": {"id": "potential_frequency", "type": "dc-param", "text": "Potential Frequency", "visible": 1, "value": 1, "multiplier": -6, "minValue": -1000, "maxValue": 1000},
-        "potential_fraction": {"id": "potential_fraction", "type": "dc-param", "text": "Potential Fraction", "visible": 1, "value": 5, "multiplier": -2, "minValue": -1000, "maxValue": 1000},
-        "potential_magnitude": {"id": "potential_magnitude", "type": "dc-param", "text": "Potential Magnitude", "visible": 1, "value": 100.0, "multiplier": 0, "minValue": -1000, "maxValue": 1000},
         "resistivity": {"id": "resistivity", "type": "dc-param", "text": "Resistivity", "visible": 1, "value": 1.0, "multiplier": 0, "minValue": -1000, "maxValue": 1000},
         "capacitance": {"id": "capacitance", "type": "dc-param", "text": "Capacitance", "visible": 1, "value": 1, "multiplier": -6, "minValue": -1000, "maxValue": 1000},
         "inductance": {"id": "inductance", "type": "dc-param", "text": "Inductance", "visible": 1, "value": 1, "multiplier": -9, "minValue": -1000, "maxValue": 1000},
@@ -134,7 +134,8 @@ def load_rgt_configs(cfg_path: str = ""):
         return options_rgt
 
     try:
-        options_rgt["response_type"]["value"] = int(config.get('ac-response', 'response_type'))
+        options_rgt["response_type"]["value"] = int(config.get('rgt-settings', 'response_type'))
+
         freq_val = float(config.get('dc-response', 'potential_frequency'))
         frac_val = float(config.get('dc-response', 'potential_fraction'))
         mag_val = float(config.get('dc-response', 'potential_magnitude'))
@@ -143,9 +144,10 @@ def load_rgt_configs(cfg_path: str = ""):
         ind_val = float(config.get('dc-response', 'inductance'))
         leak_val = float(config.get('dc-response', 'leak_resistivity'))
 
+        options_rgt["potential_fraction"]["value"], options_rgt["potential_fraction"]["multiplier"] = frac_val
+        options_rgt["potential_magnitude"]["value"], options_rgt["potential_magnitude"]["multiplier"] = mag_val
+
         options_rgt["potential_frequency"]["value"], options_rgt["potential_frequency"]["multiplier"] = number_to_scientific_parts(freq_val)
-        options_rgt["potential_fraction"]["value"], options_rgt["potential_fraction"]["multiplier"] = number_to_scientific_parts(frac_val)
-        options_rgt["potential_magnitude"]["value"], options_rgt["potential_magnitude"]["multiplier"] = number_to_scientific_parts(mag_val)
         options_rgt["resistivity"]["value"], options_rgt["resistivity"]["multiplier"] = number_to_scientific_parts(res_val)
         options_rgt["capacitance"]["value"], options_rgt["capacitance"]["multiplier"] = number_to_scientific_parts(cap_val)
         options_rgt["inductance"]["value"], options_rgt["inductance"]["multiplier"] = number_to_scientific_parts(ind_val)

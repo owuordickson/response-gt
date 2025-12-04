@@ -107,6 +107,7 @@ ColumnLayout {
                     }
                 }
 
+
                 function updateValue(val) {
                     if (model.value !== val) {
                         const index = rgtDCParams.index(mainIndex, 0);
