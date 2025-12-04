@@ -117,8 +117,15 @@ def load_rgt_configs(cfg_path: str = ""):
         return coefficient, multiplier
 
     # add the imposed direction (selected)
-    options_rgt: dict[str, dict[str, Union[int, float]]] = {
+    options_rgt: dict[str, dict[str, Union[int, float, list]]] = {
         "response_type": {"id": "response_type", "type": "rgt-settings", "text": "Response Type", "visible": 1, "value": 0},
+        "potential_direction": {"id": "potential_direction", "type": "potential-settings", "text": "Potential Direction", "visible": 0, "value": 1,
+                                "items": [
+                                    {"id": "TB", "text": "Top-Bottom", "value": 1},
+                                    {"id": "BT", "text": "Bottom-Top", "value": 0},
+                                    {"id": "LR", "text": "Left-Right", "value": 0},
+                                    {"id": "RL", "text": "Right-Left", "value": 0}
+                                ]},
         "potential_magnitude": {"id": "potential_magnitude", "type": "potential-settings", "text": "Potential Magnitude", "visible": 1, "value": 100.0, "minValue": -100, "maxValue": 100},
         "potential_fraction": {"id": "potential_fraction", "type": "potential-settings", "text": "Fraction of Vertices", "visible": 1, "value": 0.05, "minValue": 0, "maxValue": 1},
         "potential_frequency": {"id": "potential_frequency", "type": "dc-param", "text": "Potential Frequency", "visible": 1, "value": 1, "multiplier": -6, "minValue": -1000, "maxValue": 1000},
@@ -136,6 +143,7 @@ def load_rgt_configs(cfg_path: str = ""):
     try:
         options_rgt["response_type"]["value"] = int(config.get('rgt-settings', 'response_type'))
 
+        pot_dir = str(config.get('dc-response', 'potential_direction'))
         freq_val = float(config.get('dc-response', 'potential_frequency'))
         frac_val = float(config.get('dc-response', 'potential_fraction'))
         mag_val = float(config.get('dc-response', 'potential_magnitude'))
@@ -146,6 +154,8 @@ def load_rgt_configs(cfg_path: str = ""):
 
         options_rgt["potential_fraction"]["value"] = frac_val
         options_rgt["potential_magnitude"]["value"] = mag_val
+        for i in range(len(options_rgt["potential_direction"]["items"])):
+            options_rgt["potential_direction"]["items"][i]["value"] = 1 if options_rgt["potential_direction"]["items"][i]["id"] == pot_dir else 0
 
         options_rgt["potential_frequency"]["value"], options_rgt["potential_frequency"]["multiplier"] = number_to_scientific_parts(freq_val)
         options_rgt["resistivity"]["value"], options_rgt["resistivity"]["multiplier"] = number_to_scientific_parts(res_val)

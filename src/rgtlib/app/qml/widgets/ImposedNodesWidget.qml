@@ -104,6 +104,7 @@ ColumnLayout {
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignLeft
                         property int mainIndex: index
+                        visible: model.visible === 1
 
                         Label {
                             Layout.preferredWidth: lblWidthSize

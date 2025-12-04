@@ -127,6 +127,17 @@ class ResponseAnalyzer(ProgressUpdate):
         # print(f"{key}: {coefficient} * 10^{multiplier} = {coefficient * 10 ** multiplier}")
         return coefficient * 10 ** multiplier
 
+    def get_response_direction(self) -> str | None:
+        opt_rgt = self._configs
+        wt_type = None  # Default direction
+        if opt_rgt["potential_direction"]["value"] == 0:
+            return wt_type
+
+        for i in range(len(opt_rgt["potential_direction"]["items"])):
+            if opt_rgt["potential_direction"]["items"][i]["value"]:
+                wt_type = opt_rgt["potential_direction"]["items"][i]["id"]
+        return wt_type
+
     def init_list_params(self):
         """Compute the list parameters for the response analyzer (if they were not uploaded by the user)"""
         opt_rgt = self._configs
@@ -227,6 +238,8 @@ class ResponseAnalyzer(ProgressUpdate):
                     - va_list: Array of node indices corresponding to the applied potentials.
             """
             opt_rgt = self._configs
+            potential_direction = self.get_response_direction()
+            print(f"Potential Direction: {potential_direction}")
 
             given_potential_fraction = float(opt_rgt["potential_fraction"]["value"])
             given_potential_magnitude = float(opt_rgt["potential_magnitude"]["value"])
@@ -238,24 +251,45 @@ class ResponseAnalyzer(ProgressUpdate):
             given_potential_list = np.zeros(int(2 * num_selected))  # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
             vertex_list = np.zeros_like(given_potential_list, dtype=int)
 
-            # Sort vertices by y-position
-            sorted_vertices = sorted(enumerate(vert_pos), key=lambda x_pos: x_pos[-1][-1])  # Sort by y-coordinate
+            if potential_direction == "LR" or potential_direction == "RL":
+                # Sort vertices by x-position (Left-Right or Right-Left)
+                sorted_vertices = sorted(enumerate(vert_pos), key=lambda v: v[1][0])  # Sort by x-coordinate
+                top_vertices = []
+                bottom_vertices = []
+                left_vertices = sorted_vertices[:num_selected]  # Lowest x-values
+                right_vertices = sorted_vertices[-num_selected:]  # Highest x-values
+            else:
+                # Sort vertices by y-position (Top-Bottom or Bottom-Top)
+                sorted_vertices = sorted(enumerate(vert_pos), key=lambda x_pos: x_pos[-1][-1])  # Sort by y-coordinate
+                top_vertices = sorted_vertices[-num_selected:]                                  # Top f% (highest y-values)
+                bottom_vertices = sorted_vertices[:num_selected]                                # Bottom f% (lowest y-values)
+                left_vertices = []
+                right_vertices = []
 
             # Select the potential direction: 'top-down' or 'bottom-up' or 'left-right' or 'right-left'
-            top_vertices = sorted_vertices[-num_selected:]      # Top f% (highest y-values)
-            bottom_vertices = sorted_vertices[:num_selected]    # Bottom f% (lowest y-values)
-            top_list = [idx for idx, _ in top_vertices]
-            bottom_list = [idx for idx, _ in bottom_vertices]
+            if potential_direction == "LR":
+                pos_list = [idx for idx, _ in left_vertices]
+                neg_list = [idx for idx, _ in right_vertices]
+            elif potential_direction == "RL":
+                pos_list = [idx for idx, _ in right_vertices]
+                neg_list = [idx for idx, _ in left_vertices]
+            elif potential_direction == "BT":
+                pos_list = [idx for idx, _ in bottom_vertices]
+                neg_list = [idx for idx, _ in top_vertices]
+            else:
+                # Top-Bottom
+                pos_list = [idx for idx, _ in top_vertices]
+                neg_list = [idx for idx, _ in bottom_vertices]
 
             # Assign potentials: +V to top
-            for idx in range(len(top_list)):
+            for idx in range(len(pos_list)):
                 given_potential_list[idx] = given_potential_magnitude
-                vertex_list[idx] = top_list[idx]
+                vertex_list[idx] = pos_list[idx]
 
             # Assign potentials: -V to bottom
-            for idx in range(len(bottom_list)):
-                given_potential_list[len(top_list) + idx] = -given_potential_magnitude
-                vertex_list[len(top_list) + idx] = bottom_list[idx]
+            for idx in range(len(neg_list)):
+                given_potential_list[len(pos_list) + idx] = -given_potential_magnitude
+                vertex_list[len(pos_list) + idx] = neg_list[idx]
 
             # vertex_list = np.array(vertex_list, dtype=int) # numpy array of vertices that have a forced potential casting to int in case given as float
             return given_potential_list, vertex_list
