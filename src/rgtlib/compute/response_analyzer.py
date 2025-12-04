@@ -124,7 +124,7 @@ class ResponseAnalyzer(ProgressUpdate):
         opt_rgt = self._configs
         coefficient = opt_rgt[key]["value"]
         multiplier = opt_rgt[key]["multiplier"]
-        print(f"{key}: {coefficient} * 10^{multiplier} = {coefficient * 10 ** multiplier}")
+        # print(f"{key}: {coefficient} * 10^{multiplier} = {coefficient * 10 ** multiplier}")
         return coefficient * 10 ** multiplier
 
     def get_response_direction(self) -> str | None:
@@ -134,7 +134,6 @@ class ResponseAnalyzer(ProgressUpdate):
         for i in range(len(opt_rgt["potential_direction"]["items"])):
             if int(opt_rgt["potential_direction"]["items"][i]["value"]) == 1:
                 res_dir = opt_rgt["potential_direction"]["items"][i]["id"]
-        print(opt_rgt["potential_direction"]["items"])
         return res_dir
 
     def init_list_params(self):
@@ -238,14 +237,12 @@ class ResponseAnalyzer(ProgressUpdate):
             """
             opt_rgt = self._configs
             potential_direction = self.get_response_direction()
-            print(f"Potential Direction: {potential_direction}")
 
             given_potential_fraction = float(opt_rgt["potential_fraction"]["value"])
             given_potential_magnitude = float(opt_rgt["potential_magnitude"]["value"])
             vert_pos = self.vertex_coordinates
             num_vertices = len(vert_pos)
             num_selected = int(given_potential_fraction * num_vertices)
-            print(f"Fraction: {given_potential_fraction}, Magnitude: {given_potential_magnitude}")
 
             # Output arrays
             given_potential_list = np.zeros(int(2 * num_selected))  # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
