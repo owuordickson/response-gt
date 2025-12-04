@@ -67,19 +67,19 @@ ColumnLayout {
             ComboBox {
                 id: cmbDirection
                 Layout.minimumWidth: cmbWidthSize
-                //model: rgtPotentialDirections
-                //textRole: "text"
-                //currentIndex: 0
+                model: rgtPotentialDirections
+                textRole: "text"
+                currentIndex: 0
 
                 // Fires only when the user selects a new option
-                /*onActivated: (index) => {
+                onActivated: (index) => {
                     // Update all to 0, only current to 1
                     for (let i = 0; i < rgtPotentialDirections.rowCount(); ++i) {
                         let val = i === index ? 1 : 0;
                         let idx = rgtPotentialDirections.index(i, 0)
                         rgtPotentialDirections.setData(idx, val, valueRole);
                     }
-                }*/
+                }
             }
 
         }

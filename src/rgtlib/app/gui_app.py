@@ -23,7 +23,7 @@ class PySideApp(QObject):
         self._ui_engine.rootContext().setContextProperty("rgtOptions", self._ctrl.network_ctrl.rgtOptions)
         self._ui_engine.rootContext().setContextProperty("rgtDCParams", self._ctrl.network_ctrl.rgtDCParams)
         self._ui_engine.rootContext().setContextProperty("rgtPotentialOptions", self._ctrl.network_ctrl.rgtPotentialOptions)
-        #self._ui_engine.rootContext().setContextProperty("rgtPotentialDirections", self._ctrl.network_ctrl.rgtPotentialDirections)
+        self._ui_engine.rootContext().setContextProperty("rgtPotentialDirections", self._ctrl.network_ctrl.rgtPotentialDirections)
 
     def _initialize_controllers(self):
         """Initialize the controllers used by the QML engine."""

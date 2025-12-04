@@ -91,7 +91,7 @@ class ResponseAnalyzer(ProgressUpdate):
         self._vertex_potentials = None
         self._edge_list = None
         self._edge_currents = None
-        self._list_params: dict = initialize_list_params()
+        self.list_params: dict = initialize_list_params()
 
     def copy_rgt_obj(self, other):
         """Copy attributes from another ResponseAnalyzer object"""

@@ -2,7 +2,7 @@ from PySide6.QtCore import QAbstractListModel, Qt, QModelIndex
 
 
 class MetricsModel(QAbstractListModel):
-    IdRole = Qt.ItemDataRole.UserRole + 1
+    #IdRole = Qt.ItemDataRole.UserRole + 1
     TextRole = Qt.ItemDataRole.UserRole + 3
     ValueRole = Qt.ItemDataRole.UserRole + 4
     MultiplierRole = Qt.ItemDataRole.UserRole + 12
@@ -20,9 +20,9 @@ class MetricsModel(QAbstractListModel):
 
         item = self._items[index.row()]
 
-        if role == MetricsModel.IdRole:
-            return item["id"]
-        elif role == MetricsModel.TextRole:
+        #if role == MetricsModel.IdRole:
+        #    return item["id"]
+        if role == MetricsModel.TextRole:
             return item["text"]
         elif role == MetricsModel.ValueRole:
             return item["value"]
@@ -35,11 +35,11 @@ class MetricsModel(QAbstractListModel):
         self._items = new_data
         self.endResetModel()
         self.dataChanged.emit(self.index(0,0), self.index(len(new_data), 0),
-                              [self.IdRole, self.TextRole, self.ValueRole, self.MultiplierRole])"""
+                              [MetricsModel.TextRole, MetricsModel.ValueRole, MetricsModel.MultiplierRole])"""
 
     def roleNames(self):
         return {
-            MetricsModel.IdRole: b"id",
+            #MetricsModel.IdRole: b"id",
             MetricsModel.TextRole: b"text",
             MetricsModel.ValueRole: b"value",
             MetricsModel.MultiplierRole: b"multiplier",
