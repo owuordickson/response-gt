@@ -194,6 +194,9 @@ class ResponseAnalyzer(ProgressUpdate):
             c_vals = []
 
             # Appending non-zero entries and their row/col data for each edge in the list. Edges are considered directed (+1/-1), but the direction does not matter
+            edge_list = self.edge_list
+            num_edges = len(edge_list)
+            num_vertices = len(self.vertex_coordinates)
             for idx in range(len(edge_list)):
                 c_rows.append(idx)
                 c_cols.append(int(edge_list[idx, 0]))
@@ -206,21 +209,31 @@ class ResponseAnalyzer(ProgressUpdate):
             incidence_mat = csc_array((c_vals, (c_rows, c_cols)), shape=(num_edges, num_vertices), dtype="complex")
             return incidence_mat
 
-        def imposed_potential_response():
+        def make_potential_top_down() -> tuple[np.ndarray, np.ndarray]:
             """
-            Makes the imposed potential -- THIS IS WHAT YOU NEED TO CHANGE TO GET DIFFERENT RESPONSES ON THE SAME SYSTEM
+            Generate an externally imposed potential field for the system.
 
-            Here we just apply a top-bottom potential
+            This function constructs a *top-down* potential configuration, where a
+            prescribed potential is applied across the system from the top boundary
+            to the bottom boundary. Adjusting this function allows you to impose
+            different boundary conditions or potential patterns on the same physical
+            system, enabling various types of experiments or simulations.
 
-            :returns: ua_list--array applied potentials, va_list--array of nodes with the corresponding applied potential
+            Returns:
+                tuple[np.ndarray, np.ndarray]:
+                    - ua_list: Array of potential values applied to boundary nodes.
+                    - va_list: Array of node indices corresponding to the applied potentials.
             """
 
             given_potential_fraction = self.get_parameter_value("potential_fraction")
             given_potential_magnitude = self.get_parameter_value("potential_magnitude")
-
+            vert_pos = self.vertex_coordinates
+            num_vertices = len(vert_pos)
             num_selected = int(given_potential_fraction * num_vertices)
+
+            # Output arrays
             given_potential_list = np.zeros(int(2 * num_selected))  # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
-            vertex_list = np.zeros(int(2 * num_selected))           # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
+            vertex_list = np.zeros_like(given_potential_list, dtype=int)
 
             # Sort vertices by y-position
             sorted_vertices = sorted(enumerate(vert_pos), key=lambda x_pos: x_pos[-1][-1])  # Sort by y-coordinate
@@ -231,16 +244,20 @@ class ResponseAnalyzer(ProgressUpdate):
             top_list = [idx for idx, _ in top_vertices]
             bottom_list = [idx for idx, _ in bottom_vertices]
 
+            # Assign potentials: +V to top
             for idx in range(len(top_list)):
                 given_potential_list[idx] = given_potential_magnitude
                 vertex_list[idx] = top_list[idx]
 
+            # Assign potentials: -V to bottom
             for idx in range(len(bottom_list)):
                 given_potential_list[len(top_list) + idx] = -given_potential_magnitude
                 vertex_list[len(top_list) + idx] = bottom_list[idx]
 
+            # vertex_list = np.array(vertex_list, dtype=int) # numpy array of vertices that have a forced potential casting to int in case given as float
             return given_potential_list, vertex_list
 
+        self.update_status(ProgressData(percent=1, sender="RGT", message=f"Computing AC response...")) if not silent else None
         if self.vertex_coordinates is None:
             self.update_status(ProgressData(type="error", sender="RGT", message=f"Vertex positions are missing! Please upload them via a CSV file.")) if not silent else None
             return None, None
@@ -248,7 +265,7 @@ class ResponseAnalyzer(ProgressUpdate):
             self.update_status(ProgressData(type="error", sender="RGT", message=f"Edge list is missing! Please upload them via a CSV file.")) if not silent else None
             return None, None
 
-        self.update_status(ProgressData(percent=1, sender="RGT", message=f"Initializing list parameters...")) if not silent else None
+        self.update_status(ProgressData(percent=5, sender="RGT", message=f"Initializing response parameters...")) if not silent else None
         self.init_list_params()
         list_params = self._list_params
         cap_list = list_params["capacitance_list"]["data"]
@@ -256,31 +273,23 @@ class ResponseAnalyzer(ProgressUpdate):
         res_list = list_params["resistivity_list"]["data"]
         ind_list = list_params["inductance_list"]["data"]
 
-        self.update_status(ProgressData(percent=5, sender="RGT", message=f"Computing AC response...")) if not silent else None
-        # num_edges = len(self.edge_list)
-        num_vertices = len(self.vertex_coordinates)
-        num_edges = len(self.edge_list)
-        edge_list = self.edge_list
-        vert_pos = self.vertex_coordinates
-
         # example parameters, set to very large/small numbers for DC response
-        self.update_status(ProgressData(percent=10, sender="RGT", message=f"Computing response parameters...")) if not silent else None
+        self.update_status(ProgressData(percent=10, sender="RGT", message=f"Imposing response potential...")) if not silent else None
         c_mat = incidence_matrix()                          # The incidence matrix of the network, where rows are directed edges and columns are vertices
-        ua_list, va_list = imposed_potential_response()     # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
+        ua_list, va_list = make_potential_top_down()        # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
 
         given_potential_frequency = self.get_parameter_value("potential_frequency")
         omega = given_potential_frequency                   # The angular frequency of applied alternating potential
-        vertices_count = c_mat[0].shape[0]      # Number of vertices in the graph
-        va_list = np.array(va_list, dtype=int)  # numpy array of vertices that have a forced potential, casting to int in case given as float
-        va_vertices_count = int(len(va_list))   # number of vertices in va_list
+        vertices_count = c_mat[0].shape[0]                  # Number of vertices in the graph
+        va_vertices_count = int(len(va_list))               # number of vertices in va_list
         vb_vertices_count = int(vertices_count - va_vertices_count)  # number of vertices in vb_list
 
         self.update_status(ProgressData(percent=15, sender="RGT", message=f"Computing admittance, dynamical and auxiliary matrices...")) if not silent else None
         admittance_mat = diags(1 / (res_list + 1j * omega * ind_list))  # diags(1/(rho+1j*omega*inductance)*np.ones(len(edges))) #Y=(R+iwL)^-1, admittance matrix
-        c_mat_transposed = c_mat.T  # transpose of incidence matrix
+        c_mat_transposed = c_mat.T                          # transpose of incidence matrix
         dynamical_mat = c_mat_transposed @ admittance_mat @ c_mat  # sparse version of the dynamical matrix
 
-        auxiliary_mat = np.zeros(vertices_count)  # auxiliary array where the value stored at an index is 1 if that index is in va_list
+        auxiliary_mat = np.zeros(vertices_count)            # auxiliary array where the value stored at an index is 1 if that index is in va_list
         for vert in va_list:
             auxiliary_mat[vert] = 1
         vb_list = []
