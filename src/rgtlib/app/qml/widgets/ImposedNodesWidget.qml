@@ -10,7 +10,7 @@ ColumnLayout {
     Layout.alignment: Qt.AlignVCenter
     visible: networkController.graph_data_uploaded()
 
-    //property int valueRole: Qt.UserRole + 4
+    property int valueRole: Qt.UserRole + 4
     property int lblWidthSize: 100
     property int rdoWidthSize: 75
     property int spbWidthSize: 75
@@ -73,12 +73,16 @@ ColumnLayout {
 
                 // Fires only when the user selects a new option
                 onActivated: (index) => {
-                    // Update all to 0, only current to 1
-                    for (let i = 0; i < rgtPotentialDirections.rowCount(); ++i) {
-                        let val = i === index ? 1 : 0;
-                        let idx = rgtPotentialDirections.index(i, 0)
-                        rgtPotentialDirections.setData(idx, val, valueRole);
-                    }
+                    updateSelected(index);
+                }
+            }
+
+            function updateSelected(sel_idx) {
+                // Update all to 0, only current to 1
+                for (let i = 0; i < rgtPotentialDirections.rowCount(); ++i) {
+                    let val = i === sel_idx ? 1 : 0;
+                    let idx = rgtPotentialDirections.index(i, 0)
+                    rgtPotentialDirections.setData(idx, val, valueRole);
                 }
             }
 

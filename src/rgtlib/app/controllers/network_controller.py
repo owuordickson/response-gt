@@ -69,7 +69,7 @@ class NetworkController(QObject):
             self.rgtOptions.reset_data(rgt_settings)
             self.rgtDCParams.reset_data(rgt_dc_params)
             self.rgtPotentialOptions.reset_data(rgt_potentials)
-            #self.rgtPotentialDirections.reset_data(rgt_pot_dir)
+            self.rgtPotentialDirections.reset_data(rgt_pot_dir)
         except Exception as err:
             logging.exception("Fatal Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.showAlertSignal.emit("Fatal Error", "Error re-loading RGT configurations! Close app and try again.")

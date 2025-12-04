@@ -12,7 +12,6 @@ ColumnLayout {
 
     property int valueRole: Qt.UserRole + 4
     property int multiplierRole: Qt.UserRole + 12
-    property int mainMultiplierRole: Qt.UserRole + 12
 
     property int lblWidthSize: 100
     property int cmbWidthSize: 64
@@ -94,7 +93,7 @@ ColumnLayout {
 
                     function getCurrentIndex() {
                         const main_idx = rgtDCParams.index(mainIndex, 0);
-                        let sel_multi_val = rgtDCParams.data(main_idx, mainMultiplierRole);
+                        let sel_multi_val = rgtDCParams.data(main_idx, multiplierRole);
 
                         for (let row = 0; row < metricsModel.rowCount(); row++) {
                             const idx = metricsModel.index(row, 0);
@@ -118,7 +117,7 @@ ColumnLayout {
                 function updateMultiplier(val) {
                     if (model.multiplier !== val) {
                         const index = rgtDCParams.index(mainIndex, 0);
-                        rgtDCParams.setData(index, val, mainMultiplierRole);
+                        rgtDCParams.setData(index, val, multiplierRole);
                         //networkController.;
                     }
                 }

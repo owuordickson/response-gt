@@ -65,7 +65,7 @@ ColumnLayout {
 
     function initializeSelections() {
         for (let row = 0; row < rgtOptions.rowCount(); row++) {
-            var index = rgtOptions.index(row, 0);
+            let index = rgtOptions.index(row, 0);
             let item_id = rgtOptions.data(index, idRole);  // IdRole
             let item_val = rgtOptions.data(index, valueRole); // ValueRole
 
