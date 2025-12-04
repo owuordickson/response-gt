@@ -45,7 +45,7 @@ def initialize_list_params():
     return response_file_options
 
 
-def get_metric_options():
+def get_metric_options() -> list[dict[str, Union[str, int]]]:
     """Return a list of metric options for the QML adapter."""
     metric_options = [
         {"text": "10⁻²⁴", "value": 1e-24, "multiplier": -24},

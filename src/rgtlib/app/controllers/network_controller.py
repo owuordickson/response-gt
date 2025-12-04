@@ -30,6 +30,7 @@ class NetworkController(QObject):
         self.rgtOptions = CheckBoxModel([])
         self.rgtDCParams = CheckBoxModel([])
         self.rgtPotentialOptions = CheckBoxModel([])
+        self.rgtPotentialDirections = MetricsModel([])
         self.metricsModel = MetricsModel(get_metric_options())
 
         # Attach listener for syncing models
@@ -62,11 +63,13 @@ class NetworkController(QObject):
             rgt_settings = [v for v in options_rgt.values() if v["type"] == "rgt-settings"]
             rgt_dc_params = [v for v in options_rgt.values() if v["type"] == "dc-param"]
             rgt_potentials = [v for v in options_rgt.values() if v["type"] == "potential-settings"]
+            rgt_pot_dir = options_rgt["potential_direction"]["items"]
 
             # Update QML adapter-models with fetched data
             self.rgtOptions.reset_data(rgt_settings)
             self.rgtDCParams.reset_data(rgt_dc_params)
             self.rgtPotentialOptions.reset_data(rgt_potentials)
+            self.rgtPotentialDirections.reset_data(rgt_pot_dir)
         except Exception as err:
             logging.exception("Fatal Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.showAlertSignal.emit("Fatal Error", "Error re-loading RGT configurations! Close app and try again.")
