@@ -239,8 +239,8 @@ class ResponseAnalyzer(ProgressUpdate):
             sorted_vertices = sorted(enumerate(vert_pos), key=lambda x_pos: x_pos[-1][-1])  # Sort by y-coordinate
 
             # Select the top and bottom vertices
-            top_vertices = sorted_vertices[-num_selected:]  # Top f% (highest y-values)
-            bottom_vertices = sorted_vertices[:num_selected]  # Bottom f% (lowest y-values)
+            top_vertices = sorted_vertices[-num_selected:]      # Top f% (highest y-values)
+            bottom_vertices = sorted_vertices[:num_selected]    # Bottom f% (lowest y-values)
             top_list = [idx for idx, _ in top_vertices]
             bottom_list = [idx for idx, _ in bottom_vertices]
 
