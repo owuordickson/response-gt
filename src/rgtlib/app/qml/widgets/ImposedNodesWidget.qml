@@ -151,7 +151,7 @@ ColumnLayout {
                             function updateValue(val) {
                                 if (model.value !== val) {
                                     const index = rgtPotentialOptions.index(mainIndex, 0);
-                                    rgtPotentialOptions.setData(index, val, valueRole);
+                                    rgtPotentialOptions.setData(index, val, dirValueRole);
                                     //networkController.;
                                 }
                             }

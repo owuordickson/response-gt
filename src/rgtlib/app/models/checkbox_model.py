@@ -58,14 +58,13 @@ class CheckBoxModel(QAbstractListModel):
             value (int|float):
             role (int):
         """
-        print(f"index: {index}, value: {value}, role: {role} == {self.ValueRole}")
+
         if not index.isValid() or index.row() >= len(self.list_data):
             return False
 
         if role == self.ValueRole:
             self.list_data[index.row()]["value"] = value
             self.dataChanged.emit(index, index, [role])
-            print(f"ValueRole changed to {value}")
             return True
         if role == self.DataValueRole:
             self.list_data[index.row()]["dataValue"] = value

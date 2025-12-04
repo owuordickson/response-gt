@@ -10,7 +10,7 @@ ColumnLayout {
     Layout.alignment: Qt.AlignVCenter
     visible: networkController.graph_data_uploaded()
 
-    property int valueRole: Qt.UserRole + 4
+    property int propsValueRole: Qt.UserRole + 4
     property int multiplierRole: Qt.UserRole + 12
 
     property int lblWidthSize: 100
@@ -108,7 +108,7 @@ ColumnLayout {
                 function updateValue(val) {
                     if (model.value !== val) {
                         const index = rgtDCParams.index(mainIndex, 0);
-                        rgtDCParams.setData(index, val, valueRole);
+                        rgtDCParams.setData(index, val, propsValueRole);
                         //networkController.;
                     }
                 }
