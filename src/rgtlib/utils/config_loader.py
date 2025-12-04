@@ -48,27 +48,27 @@ def initialize_list_params():
 def get_metric_options() -> list[dict[str, Union[str, int]]]:
     """Return a list of metric options for the QML adapter."""
     metric_options = [
-        {"text": "10⁻²⁴", "value": 1e-24, "multiplier": -24},
-        {"text": "10⁻²¹", "value": 1e-21, "multiplier": -21},
-        {"text": "10⁻¹⁸", "value": 1e-18, "multiplier": -18},
-        {"text": "10⁻¹⁵", "value": 1e-15, "multiplier": -15},
-        {"text": "10⁻¹²", "value": 1e-12, "multiplier": -12},  # picometer
-        {"text": "10⁻⁹", "value": 1e-9, "multiplier": -9},  # nanometer
-        {"text": "10⁻⁶", "value": 1e-6, "multiplier": -6},  # micrometer
-        {"text": "10⁻³", "value": 1e-3, "multiplier": -3},  # millimeter
-        {"text": "10⁻²", "value": 1e-2, "multiplier": -2},  # centimeter
-        # {"text": "10⁻¹", "value": 1e-1, "multiplier": -1},    # decimeter
-        {"text": "10⁰", "value": 1.0, "multiplier": 0},  # meter
-        # {"text": "10¹", "value": 1e1, "multiplier": 1},       # dekameter
-        # {"text": "10²", "value": 1e2, "multiplier": 2},       # hectometer
-        {"text": "10³", "value": 1e3, "multiplier": 3},  # kilometer
-        {"text": "10⁶", "value": 1e6, "multiplier": 6},  # megameter
-        {"text": "10⁹", "value": 1e9, "multiplier": 9},  # gigameter
-        {"text": "10¹²", "value": 1e12, "multiplier": 12},  # terameter
-        {"text": "10¹⁵", "value": 1e15, "multiplier": 15},
-        {"text": "10¹⁸", "value": 1e18, "multiplier": 18},
-        {"text": "10²¹", "value": 1e21, "multiplier": 21},
-        {"text": "10²⁴", "value": 1e24, "multiplier": 24},
+        {"text": "10⁻²⁴", "multiplier": -24},
+        {"text": "10⁻²¹", "multiplier": -21},
+        {"text": "10⁻¹⁸", "multiplier": -18},
+        {"text": "10⁻¹⁵", "multiplier": -15},
+        {"text": "10⁻¹²", "multiplier": -12},  # picometer
+        {"text": "10⁻⁹", "multiplier": -9},  # nanometer
+        {"text": "10⁻⁶", "multiplier": -6},  # micrometer
+        {"text": "10⁻³", "multiplier": -3},  # millimeter
+        {"text": "10⁻²", "multiplier": -2},  # centimeter
+        # {"text": "10⁻¹", "multiplier": -1},    # decimeter
+        {"text": "10⁰", "multiplier": 0},  # meter
+        # {"text": "10¹", "multiplier": 1},       # dekameter
+        # {"text": "10²", "multiplier": 2},       # hectometer
+        {"text": "10³", "multiplier": 3},  # kilometer
+        {"text": "10⁶", "multiplier": 6},  # megameter
+        {"text": "10⁹", "multiplier": 9},  # gigameter
+        {"text": "10¹²", "multiplier": 12},  # terameter
+        {"text": "10¹⁵", "multiplier": 15},
+        {"text": "10¹⁸", "multiplier": 18},
+        {"text": "10²¹", "multiplier": 21},
+        {"text": "10²⁴", "multiplier": 24},
     ]
     return metric_options
 

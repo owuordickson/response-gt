@@ -24,8 +24,8 @@ class MetricsModel(QAbstractListModel):
         #    return item["id"]
         if role == MetricsModel.TextRole:
             return item["text"]
-        elif role == MetricsModel.ValueRole:
-            return item["value"]
+        #elif role == MetricsModel.ValueRole:
+        #    return item["value"]
         elif role == MetricsModel.MultiplierRole:
             return item["multiplier"]
         return None
