@@ -58,7 +58,7 @@ class CheckBoxModel(QAbstractListModel):
             value (int|float):
             role (int):
         """
-        print(f"index: {index}, value: {value}, role: {role}")
+        print(f"index: {index}, value: {value}, role: {role} == {self.ValueRole}")
         if not index.isValid() or index.row() >= len(self.list_data):
             return False
 
