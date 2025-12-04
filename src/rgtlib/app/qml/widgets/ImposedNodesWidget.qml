@@ -10,7 +10,7 @@ ColumnLayout {
     Layout.alignment: Qt.AlignVCenter
     visible: networkController.graph_data_uploaded()
 
-
+    property int valueRole: Qt.UserRole + 4
     property int lblWidthSize: 100
     property int rdoWidthSize: 75
     property int spbWidthSize: 75
@@ -70,7 +70,6 @@ ColumnLayout {
                 model: rgtPotentialDirections
                 textRole: "text"
                 currentIndex: 0
-                property int valueRole: Qt.UserRole + 4
 
                 // Fires only when the user selects a new option
                 onActivated: (index) => {

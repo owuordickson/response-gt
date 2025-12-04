@@ -8,7 +8,6 @@ import numpy as np
 from sgtlib.modules import ProgressData
 from PySide6.QtCore import Signal, Slot, QObject
 
-from ..models.metrics_model import MetricsModel
 from ..models.checkbox_model import CheckBoxModel
 from ...utils.config_loader import get_metric_options
 from ...compute.response_analyzer import ALLOWED_GRAPH_FILE_EXTENSIONS
