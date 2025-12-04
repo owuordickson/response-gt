@@ -5,7 +5,7 @@ import QtQuick.Layouts
 ColumnLayout {
     id: materialPropertyWidget
     Layout.leftMargin: 10
-    Layout.preferredHeight: 210
+    Layout.preferredHeight: 150
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignVCenter
     visible: networkController.graph_data_uploaded()

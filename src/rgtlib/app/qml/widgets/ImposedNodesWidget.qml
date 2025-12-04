@@ -5,12 +5,15 @@ import QtQuick.Layouts
 ColumnLayout {
     id: imposedNodesWidget
     Layout.leftMargin: 10
-    Layout.preferredHeight: 120
+    Layout.preferredHeight: 210
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignVCenter
     visible: networkController.graph_data_uploaded()
 
+    property int valueRole: Qt.UserRole + 4
+    property int lblWidthSize: 100
     property int rdoWidthSize: 75
+    property int spbWidthSize: 75
     property int cmbWidthSize: 180
 
     Text {
@@ -23,6 +26,7 @@ ColumnLayout {
 
     ColumnLayout {
         Layout.alignment: Qt.AlignVCenter
+        spacing: 10
 
         ButtonGroup {
             id: btnGrpType
@@ -33,23 +37,51 @@ ColumnLayout {
                 if (currentCheckedButton !== checkedButton) {
                     currentCheckedButton = checkedButton;
                     if (checkedButton === rdoDefault) {
-                        cmbDirection.enabled = true;
+                        colDefault.enabled = true;
                         taVerts.enabled = false;
                         rectVerts.border.width = 0;
                         btnUpload.enabled = false;
                     } else if (checkedButton === rdoCustom) {
-                        cmbDirection.enabled = false;
+                        colDefault.enabled = false;
                         taVerts.enabled = true;
                         rectVerts.border.width = 1;
                         btnUpload.enabled = false;
                     } else if (checkedButton === rdoFile) {
-                        cmbDirection.enabled = false;
+                        colDefault.enabled = false;
                         taVerts.enabled = false;
                         rectVerts.border.width = 0;
                         btnUpload.enabled = true;
                     }
                 }
             }
+        }
+
+
+        RowLayout {
+
+            Label {
+                text: "Direction:"
+                Layout.preferredWidth: rdoWidthSize
+            }
+
+            ComboBox {
+                id: cmbDirection
+                Layout.minimumWidth: cmbWidthSize
+                model: [
+                    "Top-Bottom",
+                    "Bottom-Top",
+                    "Left-Right",
+                    "Right-Left"
+                ]
+                currentIndex: 0
+
+                // Fires only when the user selects a new option
+                onActivated: (index) => {
+                    let resp_direction = cmbDirection.model[index];
+                    networkController.apply_imposed_vertices("default", resp_direction);
+                }
+            }
+
         }
 
 
@@ -63,21 +95,68 @@ ColumnLayout {
                 onClicked: btnGrpType.checkedButton = this
             }
 
-            ComboBox {
-                id: cmbDirection
-                Layout.minimumWidth: cmbWidthSize
-                model: [
-                    "Top-Bottom",
-                    "Left-Right"
-                ]
-                currentIndex: 0
+            ColumnLayout {
+                id: colDefault
 
-                // Fires only when the user selects a new option
-                onActivated: (index) => {
-                    let resp_direction = cmbDirection.model[index];
-                    networkController.apply_imposed_vertices("default", resp_direction);
+                Repeater {
+                    model: rgtPotentialOptions
+                    delegate: RowLayout {
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignLeft
+                        property int mainIndex: index
+
+                        Label {
+                            Layout.preferredWidth: lblWidthSize
+                            text: model.text
+                            font.pixelSize: 10
+                            color: "#2266ff"
+                        }
+
+                        SpinBox {
+                            id: spinbox
+                            Layout.preferredWidth: spbWidthSize
+
+                            // Model values are floats (e.g., 0.00123)
+                            property real realMin: model.minValue
+                            property real realMax: model.maxValue
+                            property real realStep: 0.01             // or 1
+                            property real realValue: model.value    // actual decimal
+
+                            // SpinBox INTERNAL integer range
+                            from: 0
+                            to: Math.round((realMax - realMin) / realStep)
+                            // Map realValue → SpinBox integer
+                            value: Math.round((realValue - realMin) / realStep)
+                            // Convert SpinBox integer → real value (displayed)
+                            textFromValue: function (v) {
+                                return Number(realMin + v * realStep).toFixed(2)   // format as 2 decimals
+                            }
+
+                            // Convert text → integer value
+                            valueFromText: function (txt) {
+                                let r = Number(txt)
+                                return Math.round((r - realMin) / realStep)
+                            }
+
+                            onValueChanged: {
+                                realValue = realMin + value * realStep
+                                updateValue(realValue)      // ← your real update method
+                            }
+                        }
+
+                        function updateValue(val) {
+                            if (model.value !== val) {
+                                const index = rgtPotentialOptions.index(mainIndex, 0);
+                                rgtPotentialOptions.setData(index, val, valueRole);
+                                //networkController.;
+                            }
+                        }
+
+                    }
                 }
+
             }
+
         }
 
 
@@ -113,7 +192,7 @@ ColumnLayout {
                         width: flickable.width // Ensure TextArea fills Flickable's width
                         wrapMode: TextArea.Wrap
                         font.pixelSize: 9
-                        placeholderText: "enter vertex positions or copy/paste..."
+                        placeholderText: "enter/paste potentials and positions"
 
                         // When focus leaves the TextArea
                         onEditingFinished: {
