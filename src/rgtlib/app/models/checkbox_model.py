@@ -15,7 +15,7 @@ class CheckBoxModel(QAbstractListModel):
     ToolTipRole = Qt.ItemDataRole.ToolTipRole + 11
     MultiplierRole = Qt.ItemDataRole.UserRole + 12
 
-    def __init__(self, data, parent=None):
+    def __init__(self, data: list, parent=None):
         super().__init__(parent)
         self.list_data = data
 
@@ -77,7 +77,7 @@ class CheckBoxModel(QAbstractListModel):
             return True
         return False
 
-    def reset_data(self, new_data):
+    def reset_data(self, new_data: list):
         self.beginResetModel()
         self.list_data = new_data
         self.endResetModel()

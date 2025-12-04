@@ -28,15 +28,14 @@ class MetricsModel(QAbstractListModel):
             return item["value"]
         elif role == MetricsModel.MultiplierRole:
             return item["multiplier"]
-
         return None
 
-    def reset_data(self, new_data):
+    """def reset_data(self, new_data):
         self.beginResetModel()
         self._items = new_data
         self.endResetModel()
         self.dataChanged.emit(self.index(0,0), self.index(len(new_data), 0),
-                              [self.IdRole, self.TextRole, self.ValueRole, self.MultiplierRole])
+                              [self.IdRole, self.TextRole, self.ValueRole, self.MultiplierRole])"""
 
     def roleNames(self):
         return {

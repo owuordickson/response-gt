@@ -45,8 +45,6 @@ ColumnLayout {
 
                 SpinBox {
                     id: spinbox
-                    objectName: model.id
-
                     Layout.minimumWidth: spbWidthSize
 
                     // Model values are floats (e.g., 0.00123)
