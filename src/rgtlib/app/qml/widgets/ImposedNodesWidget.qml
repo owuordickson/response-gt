@@ -197,7 +197,7 @@ ColumnLayout {
                         width: flickable.width // Ensure TextArea fills Flickable's width
                         wrapMode: TextArea.Wrap
                         font.pixelSize: 9
-                        placeholderText: "enter/paste potentials and positions"
+                        placeholderText: "enter/paste vertex potentials"
 
                         // When focus leaves the TextArea
                         onEditingFinished: {

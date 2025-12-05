@@ -142,6 +142,7 @@ class ResponseAnalyzer(ProgressUpdate):
         list_params = self._list_params
 
         edge_list = self.edge_list
+        vert_pos = self.vertex_coordinates
         resistivity = self.get_parameter_value("resistivity")
         capacitance = self.get_parameter_value("capacitance")
         inductance = self.get_parameter_value("inductance")
@@ -155,11 +156,15 @@ class ResponseAnalyzer(ProgressUpdate):
             # The array of inductance for each EDGE
             list_params["inductance_list"]["data"] = inductance * np.ones(len(edge_list))
 
-        num_vertices = len(self.vertex_coordinates)
-        given_potential_fraction = float(opt_rgt["potential_fraction"]["value"])
-        num_selected = int(given_potential_fraction * num_vertices)
-        vertex_list = np.ones(num_vertices - 2 * num_selected)
+        if list_params["given_potential_list"]["value"] == 0 or list_params["given_potential_list"]["data"] is None:
+            given_potential_fraction = float(opt_rgt["potential_fraction"]["value"])
+            num_vertices = len(vert_pos)
+            num_selected = int(given_potential_fraction * num_vertices)
+            list_params["given_potential_list"]["data"] = np.zeros(int(2 * num_selected))
 
+        num_vertices = len(vert_pos)
+        num_selected = len(list_params["given_potential_list"]["data"])
+        vertex_list = np.ones(num_vertices - num_selected)
         if list_params["capacitance_list"]["value"] == 0 or list_params["capacitance_list"]["data"] is None:
             # The array of capacitance for each NODE that is NOT given an applied potential. nodes are taken to be capacitors connected to a grounded potential (0).
             list_params["capacitance_list"]["data"] = capacitance * vertex_list
@@ -237,20 +242,13 @@ class ResponseAnalyzer(ProgressUpdate):
             """
             opt_rgt = self._configs
             vert_pos = self.vertex_coordinates
+            given_potential_magnitude = float(opt_rgt["potential_magnitude"]["value"])
             potential_direction = self.get_response_direction()
 
-            # 1. if default
-            given_potential_fraction = float(opt_rgt["potential_fraction"]["value"])
-            given_potential_magnitude = float(opt_rgt["potential_magnitude"]["value"])
-            num_vertices = len(vert_pos)
-            num_selected = int(given_potential_fraction * num_vertices)
-
-            # Output arrays
-            given_potential_list = np.zeros(int(2 * num_selected))  # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
+            # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
+            given_potential_list = list_params["given_potential_list"]["data"]
             vertex_list = np.zeros_like(given_potential_list, dtype=int)
-
-            # 2. if string
-            # 3. if 'file'
+            num_selected = int(len(given_potential_list) / 2)
 
             if potential_direction == "LR" or potential_direction == "RL":
                 # Sort vertices by x-position (Left-Right or Right-Left)
@@ -303,6 +301,15 @@ class ResponseAnalyzer(ProgressUpdate):
             self.update_status(ProgressData(type="error", sender="RGT", message=f"Edge list is missing! Please upload them via a CSV file.")) if not silent else None
             return None, None
 
+        # Initialize response parameters and parameter lists
+        self.update_status(ProgressData(percent=10, sender="RGT", message=f"Initializing response parameters...")) if not silent else None
+        self.init_list_params()
+        list_params = self._list_params
+        cap_list = list_params["capacitance_list"]["data"]
+        leak_res_list = list_params["leak_resistivity_list"]["data"]
+        res_list = list_params["resistivity_list"]["data"]
+        ind_list = list_params["inductance_list"]["data"]
+
         # Apply imposing potentials by direction
         self.update_status(ProgressData(percent=5, sender="RGT", message=f"Imposing response potential...")) if not silent else None
         c_mat = incidence_matrix()                          # The incidence matrix of the network, where rows are directed edges and columns are vertices
@@ -313,15 +320,6 @@ class ResponseAnalyzer(ProgressUpdate):
         vertices_count = c_mat[0].shape[0]                  # Number of vertices in the graph
         va_vertices_count = int(len(va_list))               # number of vertices in va_list
         vb_vertices_count = int(vertices_count - va_vertices_count)  # number of vertices in vb_list
-
-        # Initialize response parameters and parameter lists
-        self.update_status(ProgressData(percent=10, sender="RGT", message=f"Initializing response parameters...")) if not silent else None
-        self.init_list_params()
-        list_params = self._list_params
-        cap_list = list_params["capacitance_list"]["data"]
-        leak_res_list = list_params["leak_resistivity_list"]["data"]
-        res_list = list_params["resistivity_list"]["data"]
-        ind_list = list_params["inductance_list"]["data"]
 
         # Compute admittance, dynamical and auxiliary matrices
         self.update_status(ProgressData(percent=15, sender="RGT", message=f"Computing admittance, dynamical and auxiliary matrices...")) if not silent else None

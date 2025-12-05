@@ -146,8 +146,8 @@ class NetworkController(QObject):
                 # Convert to a numpy array
                 arr_data = np.array(data.split(","), dtype=float)
                 print(arr_data)
-                self._ctrl.rgt_obj.list_params["selected_potential_list"]["data"] = arr_data
-                self._ctrl.rgt_obj.list_params["selected_potential_list"]["value"] = 1
+                self._ctrl.rgt_obj.list_params["given_potential_list"]["data"] = arr_data
+                self._ctrl.rgt_obj.list_params["given_potential_list"]["value"] = 1
         except Exception as err:
             logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_finished(1, False, ["Upload Error", f"Unable to parse imposed vertices data: Separate values with commas ONLY."])

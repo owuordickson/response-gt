@@ -41,8 +41,7 @@ def initialize_list_params():
         "inductance_list": {"value": 0, "data": None},
         "capacitance_list": {"value": 0, "data": None},
         "leak_resistivity_list": {"value": 0, "data": None},
-        "selected_potential_list": {"value": 0, "data": None},
-        "selected_vertices_list": {"value": 0, "data": None}
+        "given_potential_list": {"value": 0, "data": None},
     }
     return response_file_options
 

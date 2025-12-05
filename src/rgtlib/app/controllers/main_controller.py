@@ -145,8 +145,8 @@ class MainController(QObject):
                     elif upload_type == "imposed_vertices":
                         imposed_vertices = graph_data
                         if imposed_vertices is not None:
-                            self.rgt_obj.list_params["selected_potential_list"]["data"] = imposed_vertices
-                            self.rgt_obj.list_params["selected_potential_list"]["value"] = 1
+                            self.rgt_obj.list_params["given_potential_list"]["data"] = imposed_vertices
+                            self.rgt_obj.list_params["given_potential_list"]["value"] = 1
                     elif upload_type == "Resistivity List":
                         res_list = graph_data
                         if res_list is not None:
