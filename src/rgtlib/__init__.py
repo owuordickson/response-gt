@@ -1,9 +1,10 @@
 """
 **ResponseGT**
 
-A software package for
+A software package for computing electrical response properties of graph networks.
 
 """
+
 
 # Project Details
 __version__ = "1.0.7"
