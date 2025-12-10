@@ -74,7 +74,7 @@ class NetworkController(QObject):
             self._ctrl.showAlertSignal.emit("Fatal Error", "Error re-loading RGT configurations! Close app and try again.")
 
     def update_response_params(self, rgt_obj):
-        """Update the visible response parameters to based on the Response-type."""
+        """Update the visible response parameters based on the Response-type."""
         if rgt_obj is None:
             return
 
