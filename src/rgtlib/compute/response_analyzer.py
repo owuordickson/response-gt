@@ -403,7 +403,7 @@ class ResponseAnalyzer(ProgressUpdate):
         # calculating potential response
         potential_response = np.zeros(vertices_count, dtype="complex")
 
-        # splicing the a and b components of the response back into a single list
+        # splicing the 'a' and 'b' components of the response back into a single list
         for i in range(len(va_list)):
             potential_response[va_list[i]] = ua_list[i]
 
