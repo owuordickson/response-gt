@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Controls.Imagine as Imagine
 import Theme 1.0
 
 ColumnLayout {
@@ -96,6 +97,32 @@ ColumnLayout {
                 Layout.preferredWidth: rdoWidthSize
                 ButtonGroup.group: btnGrpType
                 onClicked: btnGrpType.checkedButton = this
+
+                indicator: Rectangle {
+                    width: 14
+                    height: 14
+                    radius: 7
+                    y: (rdoDefault.height - height) / 2   // center vertically
+                    border.color: rdoDefault.checked ? Theme.dodgerBlue : Theme.text
+                    border.width: 2
+                    color: "transparent"
+
+                    Rectangle {
+                        visible: rdoDefault.checked
+                        width: 8
+                        height: 8
+                        radius: 4
+                        anchors.centerIn: parent
+                        color: Theme.darkGray
+                    }
+                }
+                contentItem: Label {
+                    text: rdoDefault.text
+                    font: rdoDefault.font
+                    color: Theme.text
+                    verticalAlignment: Text.AlignVCenter
+                    leftPadding: rdoDefault.indicator.width + 6
+                }
             }
 
             ColumnLayout {
@@ -176,6 +203,32 @@ ColumnLayout {
                 Layout.preferredWidth: rdoWidthSize
                 ButtonGroup.group: btnGrpType
                 onClicked: btnGrpType.checkedButton = this
+
+                indicator: Rectangle {
+                    width: 14
+                    height: 14
+                    radius: 7
+                    y: (rdoCustom.height - height) / 2   // center vertically
+                    border.color: rdoCustom.checked ? Theme.dodgerBlue : Theme.text
+                    border.width: 2
+                    color: "transparent"
+
+                    Rectangle {
+                        visible: rdoCustom.checked
+                        width: 8
+                        height: 8
+                        radius: 4
+                        anchors.centerIn: parent
+                        color: Theme.darkGray
+                    }
+                }
+                contentItem: Label {
+                    text: rdoCustom.text
+                    font: rdoCustom.font
+                    color: Theme.text
+                    verticalAlignment: Text.AlignVCenter
+                    leftPadding: rdoCustom.indicator.width + 6
+                }
             }
 
             Rectangle {
@@ -236,9 +289,35 @@ ColumnLayout {
                 Layout.preferredWidth: rdoWidthSize
                 ButtonGroup.group: btnGrpType
                 onClicked: btnGrpType.checkedButton = this
+
+                indicator: Rectangle {
+                    width: 14
+                    height: 14
+                    radius: 7
+                    y: (rdoFile.height - height) / 2   // center vertically
+                    border.color: rdoFile.checked ? Theme.dodgerBlue : Theme.text
+                    border.width: 2
+                    color: "transparent"
+
+                    Rectangle {
+                        visible: rdoFile.checked
+                        width: 8
+                        height: 8
+                        radius: 4
+                        anchors.centerIn: parent
+                        color: Theme.darkGray
+                    }
+                }
+                contentItem: Label {
+                    text: rdoFile.text
+                    font: rdoFile.font
+                    color: Theme.text
+                    verticalAlignment: Text.AlignVCenter
+                    leftPadding: rdoFile.indicator.width + 6
+                }
             }
 
-            Button {
+            Imagine.Button {
                 id: btnUpload
                 text: "Upload"
                 enabled: false

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Controls.Imagine as Imagine
 import Theme 1.0
 
 ColumnLayout {
@@ -44,7 +45,7 @@ ColumnLayout {
             currentIndex: 0
         }
 
-        Button {
+        Imagine.Button {
             id: btnListUpload
             text: "Upload"
             onClicked: {

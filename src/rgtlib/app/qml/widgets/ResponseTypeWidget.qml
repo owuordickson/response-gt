@@ -53,6 +53,32 @@ ColumnLayout {
             Layout.preferredWidth: rdoWidthSize
             ButtonGroup.group: btnGrpType
             onClicked: btnGrpType.checkedButton = this
+
+            indicator: Rectangle {
+                width: 14
+                height: 14
+                radius: 7
+                y: (rdoStatic.height - height) / 2   // center vertically
+                border.color: rdoStatic.checked ? Theme.dodgerBlue : Theme.text
+                border.width: 2
+                color: "transparent"
+
+                Rectangle {
+                    visible: rdoStatic.checked
+                    width: 8
+                    height: 8
+                    radius: 4
+                    anchors.centerIn: parent
+                    color: Theme.darkGray
+                }
+            }
+            contentItem: Label {
+                text: rdoStatic.text
+                font: rdoStatic.font
+                color: Theme.text
+                verticalAlignment: Text.AlignVCenter
+                leftPadding: rdoStatic.indicator.width + 6
+            }
         }
 
 
@@ -62,6 +88,32 @@ ColumnLayout {
             Layout.preferredWidth: rdoWidthSize
             ButtonGroup.group: btnGrpType
             onClicked: btnGrpType.checkedButton = this
+
+            indicator: Rectangle {
+                width: 14
+                height: 14
+                radius: 7
+                y: (rdoDynamic.height - height) / 2   // center vertically
+                border.color: rdoDynamic.checked ? Theme.dodgerBlue : Theme.text
+                border.width: 2
+                color: "transparent"
+
+                Rectangle {
+                    visible: rdoDynamic.checked
+                    width: 8
+                    height: 8
+                    radius: 4
+                    anchors.centerIn: parent
+                    color: Theme.darkGray
+                }
+            }
+            contentItem: Label {
+                text: rdoDynamic.text
+                font: rdoDynamic.font
+                color: Theme.text
+                verticalAlignment: Text.AlignVCenter
+                leftPadding: rdoDynamic.indicator.width + 6
+            }
         }
     }
 
