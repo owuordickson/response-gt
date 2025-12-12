@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Controls.Basic as Basic
 import QtQuick.Controls.Imagine as Imagine
 import Theme 1.0
 
@@ -91,7 +92,7 @@ ColumnLayout {
 
         RowLayout {
 
-            RadioButton {
+            Basic.RadioButton {
                 id: rdoDefault
                 text: "Default"
                 Layout.preferredWidth: rdoWidthSize
@@ -197,7 +198,7 @@ ColumnLayout {
 
         RowLayout {
 
-            RadioButton {
+            Basic.RadioButton {
                 id: rdoCustom
                 text: "Custom"
                 Layout.preferredWidth: rdoWidthSize
@@ -283,7 +284,7 @@ ColumnLayout {
 
         RowLayout {
 
-            RadioButton {
+            Basic.RadioButton {
                 id: rdoFile
                 text: "File: "
                 Layout.preferredWidth: rdoWidthSize

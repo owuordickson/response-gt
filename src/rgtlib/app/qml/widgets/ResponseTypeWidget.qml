@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Controls.Basic as Basic
 import Theme 1.0
 
 
@@ -47,7 +48,7 @@ ColumnLayout {
         }
 
 
-        RadioButton {
+        Basic.RadioButton {
             id: rdoStatic
             text: "Static"
             Layout.preferredWidth: rdoWidthSize
@@ -82,7 +83,7 @@ ColumnLayout {
         }
 
 
-        RadioButton {
+        Basic.RadioButton {
             id: rdoDynamic
             text: "Dynamic"
             Layout.preferredWidth: rdoWidthSize
