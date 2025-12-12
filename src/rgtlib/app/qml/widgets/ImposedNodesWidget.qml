@@ -17,8 +17,9 @@ ColumnLayout {
     property int spbWidthSize: 75
     property int cmbWidthSize: 180
 
-    Text {
+    Label {
         text: "Impose Potential"
+        color: Theme.text
         font.pixelSize: 12
         font.bold: true
         Layout.alignment: Qt.AlignHCenter

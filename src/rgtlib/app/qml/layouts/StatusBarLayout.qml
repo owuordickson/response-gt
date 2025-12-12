@@ -12,7 +12,7 @@ Rectangle {
     id: statusBar
     width: parent.width
     height: 64
-    color: Theme.darkGray
+    color: Theme.lightGray
 
     ColumnLayout {
         anchors.fill: parent

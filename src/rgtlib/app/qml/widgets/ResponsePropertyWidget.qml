@@ -19,8 +19,9 @@ ColumnLayout {
     property int cmbWidthSize: 64
     property int spbWidthSize: 75
 
-    Text {
+    Label {
         text: "Response Parameters"
+        color: Theme.text
         font.pixelSize: 12
         font.bold: true
         Layout.alignment: Qt.AlignHCenter

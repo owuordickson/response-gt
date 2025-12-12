@@ -14,8 +14,9 @@ ColumnLayout {
     property int lblWidthSize: 50
     property int cmbWidthSize: 125
 
-    Text {
+    Label {
         text: "Response Properties"
+        color: Theme.text
         font.pixelSize: 12
         font.bold: true
         Layout.alignment: Qt.AlignHCenter

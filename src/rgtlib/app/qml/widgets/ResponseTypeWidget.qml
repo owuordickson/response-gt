@@ -18,8 +18,9 @@ ColumnLayout {
     property int rdoWidthSize: 75
 
 
-    Text {
+    Label {
         text: "Response Types"
+        color: Theme.text
         font.pixelSize: 12
         font.bold: true
         Layout.alignment: Qt.AlignHCenter
