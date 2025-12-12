@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs as QuickDialogs
+import Theme 1.0
 
 QuickDialogs.FileDialog {
     id: fileDialog

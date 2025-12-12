@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Theme 1.0
+
 
 ColumnLayout {
     id: materialPropertyWidget
@@ -42,6 +44,7 @@ ColumnLayout {
                     font.pixelSize: 11
                     color: "#000000"
                 }
+
 
                 SpinBox {
                     id: spinbox

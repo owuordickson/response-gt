@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Controls.Material as Material
+import Theme 1.0
 
 Rectangle {
     id: welcomeContainer
