@@ -43,7 +43,6 @@ ColumnLayout {
                     color: Theme.text
                     text: model.text
                     font.pixelSize: 11
-                    color: Theme.black
                 }
 
 
