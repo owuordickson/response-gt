@@ -7,7 +7,7 @@ import "../widgets"
 Rectangle {
     width: parent.width - 20
     height: parent.height - 10
-    color: "#f0f0f0"
+    color: Theme.background
 
     GridLayout {
         anchors.fill: parent

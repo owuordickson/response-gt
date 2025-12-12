@@ -12,9 +12,10 @@ Dialog {
     anchors.centerIn: parent
     width: 300
     height: 150
+    background: Rectangle {color: Theme.background}
 
     property string alertMsg: ""
-    property string alertColor: "#bc2222"
+    property string alertColor: Theme.red
 
     Label {
         width: parent.width
@@ -33,7 +34,7 @@ Dialog {
         function onShowAlertSignal(title, msg) {
             dialogAlert.title = title;
             dialogAlert.alertMsg = msg;
-            dialogAlert.alertColor = "#2255bc";
+            dialogAlert.alertColor = Theme.blue;
             dialogAlert.open();
         }
     }

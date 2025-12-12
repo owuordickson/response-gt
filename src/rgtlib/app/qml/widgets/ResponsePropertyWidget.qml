@@ -40,9 +40,10 @@ ColumnLayout {
 
                 Label {
                     Layout.preferredWidth: lblWidthSize
+                    color: Theme.text
                     text: model.text
                     font.pixelSize: 11
-                    color: "#000000"
+                    color: Theme.black
                 }
 
 

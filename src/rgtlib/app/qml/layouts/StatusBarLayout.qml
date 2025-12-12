@@ -12,8 +12,7 @@ Rectangle {
     id: statusBar
     width: parent.width
     height: 64
-    color: "#e0e0e0"
-    //border.color: "#d0d0d0"
+    color: Theme.darkGray
 
     ColumnLayout {
         anchors.fill: parent
@@ -71,7 +70,7 @@ Rectangle {
                 text: mainController.get_app_version()
                 visible: !mainController.is_task_running()
                 Layout.fillWidth: true
-                color: "#2266ff"
+                color: Theme.blue
             }
 
             Label {
@@ -80,7 +79,7 @@ Rectangle {
                 text: "Please wait..."
                 visible: mainController.is_task_running()
                 Layout.fillWidth: true
-                color: "#2266ff"
+                color: Theme.blue
             }
 
         }
@@ -97,7 +96,7 @@ Rectangle {
                 progressBar.value = 50;
             }
             lblStatusMsg.text = msg;
-            lblStatusMsg.color = "#008b00";
+            lblStatusMsg.color = Theme.darkGreen;
 
             lblVersion.visible = !mainController.is_task_running();
             lblStatusMsg.visible = mainController.is_task_running();
@@ -109,7 +108,7 @@ Rectangle {
         function onErrorSignal(msg) {
             progressBar.value = 0;
             lblStatusMsg.text = msg;
-            lblStatusMsg.color = "#bc2222";
+            lblStatusMsg.color = Theme.red;
 
             lblVersion.visible = !mainController.is_task_running();
             lblStatusMsg.visible = mainController.is_task_running();
@@ -120,17 +119,17 @@ Rectangle {
 
         function onTaskTerminatedSignal(success_val, msg_data) {
             if (success_val) {
-                lblStatusMsg.color = "#2266ff";
+                lblStatusMsg.color = Theme.blue;
                 //lblStatusMsg.text = "Please wait...";
             } else {
-                lblStatusMsg.color = "#bc2222";
+                lblStatusMsg.color = Theme.red;
                 lblStatusMsg.text = "Task terminated due to an error. Try again.";
             }
 
             if (msg_data.length > 0) {
                 dialogAlert.title = msg_data[0];
                 dialogAlert.alertMsg = msg_data[1];
-                dialogAlert.alertColor = success_val ? "#2266ff" : "#bc2222";
+                dialogAlert.alertColor = success_val ? Theme.blue : Theme.red;
                 dialogAlert.open();
             }
 

@@ -13,7 +13,7 @@ ApplicationWindow {
     visible: true
     title: mainController.get_app_title();
     font.family: "Arial"  // or Qt.application.font.family
-    color: "#f0f0f0"
+    color: Theme.background
 
     // Top Menu Bar
     menuBar: MenuBar {}
@@ -37,7 +37,7 @@ ApplicationWindow {
             Layout.rightMargin: 5
             Layout.preferredHeight: parent.height - 10
             Layout.preferredWidth: 300
-            color: "#f0f0f0"
+            color: Theme.background
             LeftLayout {}
         }
 
@@ -50,7 +50,7 @@ ApplicationWindow {
             Layout.preferredHeight: parent.height - 10
             Layout.preferredWidth: parent.width - 300
             Layout.fillWidth: true
-            color: "#f0f0f0"
+            color: Theme.background
             MainLayout {}
         }
 

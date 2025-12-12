@@ -19,7 +19,7 @@ Rectangle {
             id: lblWelcome
             Layout.alignment: Qt.AlignHCenter
             text: "ResponseGT"
-            color: "#2266ff"
+            color: Theme.blue
             //font.bold: true
             font.pixelSize: 19
         }
@@ -29,7 +29,7 @@ Rectangle {
             //Layout.leftMargin: 5
             Layout.alignment: Qt.AlignHCenter
             text: "Upload your graph network"
-            color: "#808080"
+            color: Theme.darkGrey
             font.bold: true
             font.pixelSize: 14
         }

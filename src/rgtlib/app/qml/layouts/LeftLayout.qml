@@ -8,8 +8,8 @@ Rectangle {
     width: parent.width
     height: parent.height
     radius: 10
-    color: "#f0f0f0"
-    border.color: "#c0c0c0"
+    color: Theme.background
+    border.color: Theme.gray
 
     ColumnLayout {
         anchors.fill: parent
@@ -18,7 +18,7 @@ Rectangle {
             id: lblNoNetwork
             Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             text: "No graph network to show!\nUpload CSV files of vertex/node\n positions and edge list."
-            color: "#808080"
+            color: Theme.darkGrey
             visible: !networkController.graph_data_uploaded()
         }
 

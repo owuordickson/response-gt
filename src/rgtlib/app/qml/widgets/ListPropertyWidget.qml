@@ -26,6 +26,7 @@ ColumnLayout {
         Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
 
         Label {
+            color: Theme.text
             Layout.preferredWidth: lblWidthSize
             text: "File: "
         }

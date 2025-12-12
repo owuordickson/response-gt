@@ -62,6 +62,7 @@ ColumnLayout {
 
             Label {
                 text: "Direction:"
+                color: Theme.text
                 Layout.preferredWidth: rdoWidthSize
             }
 
@@ -114,7 +115,7 @@ ColumnLayout {
                                 Layout.preferredWidth: lblWidthSize
                                 text: model.text
                                 font.pixelSize: 10
-                                color: "#2266ff"
+                                color: Theme.blue
                             }
 
                             SpinBox {
@@ -183,7 +184,7 @@ ColumnLayout {
                 height: 48
                 color: "transparent"
                 border.width: 1
-                border.color: "#808080"
+                border.color: Theme.darkGrey
                 radius: 4
 
                 Flickable {
