@@ -148,7 +148,11 @@ class NetworkController(QObject):
                 print(arr_data)
                 self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = arr_data
                 self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = 1
+            self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = None
+            self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = 0
         except Exception as err:
+            self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = None
+            self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = -1
             logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_finished(1, False, ["Upload Error", f"Unable to read your data. Try this format for vertex position and its potential: [position-1, potential-1], [position-2, potential-2], ..."])
 
@@ -180,6 +184,11 @@ class NetworkController(QObject):
 
         try:
             if (not self._ctrl.rgt_obj.edges_uploaded) or (not self._ctrl.rgt_obj.vertices_uploaded):
+                return
+
+            upload_errors = self._ctrl.rgt_obj.verify_uploaded_data
+            if upload_errors is not None:
+                self._ctrl.handle_finished(1, False, ["File Error", upload_errors])
                 return
 
             self.start_task()

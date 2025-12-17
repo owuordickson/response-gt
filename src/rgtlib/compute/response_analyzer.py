@@ -29,40 +29,62 @@ class ResponseAnalyzer(ProgressUpdate):
         self._props: list = []
 
     @property
-    def network_img(self):
+    def network_img(self) -> None | np.ndarray:
         return self._network_img
 
     @property
-    def configs(self):
+    def configs(self) -> dict:
         return self._configs
 
     @configs.setter
-    def configs(self, configs):
+    def configs(self, configs) -> None:
         self._configs = configs
 
     @property
-    def list_data(self):
+    def list_data(self) -> dict:
         return self._list_data
 
     @list_data.setter
-    def list_data(self, list_params):
+    def list_data(self, list_params) -> None:
         self._list_data = list_params
 
     @property
-    def props(self):
+    def props(self) -> list:
         return self._props
 
     @property
-    def vertices_uploaded(self):
+    def vertices_uploaded(self) -> bool:
+        """Check if the vertex coordinates were uploaded"""
         is_uploaded = True if self.list_data["vertex_coordinates"]["value"] == 1 else False
-        print(f"Vertex uploaded: {is_uploaded}")
         return is_uploaded
 
     @property
-    def edges_uploaded(self):
+    def edges_uploaded(self) -> bool:
+        """Check if the edge list was uploaded"""
         is_uploaded = True if self.list_data["edge_list"]["value"] == 1 else False
-        print(f"Edge uploaded: {is_uploaded}")
         return is_uploaded
+
+    @property
+    def verify_uploaded_data(self) -> str | None:
+        """Verify if any of the list data item has errors."""
+        list_data = self.list_data
+        lst_errors = ""
+        for key, item in list_data.items():
+            if key == "calculated_vertex_potentials" or key == "calculated_edge_currents":
+                continue
+
+            if item["value"] == -1:
+                lst_errors += f"{item['text']} has errors. Please re-upload the data!"
+
+            if key == "edge_list" and item["data"] is None:
+                lst_errors += f"{item['text']} is missing. Please upload it via a CSV file!"
+
+            if key == "vertex_coordinates" and item["data"] is None:
+                lst_errors += f"{item['text']} is missing. Please upload it via a CSV file!"
+
+        if lst_errors == "":
+            return None
+        return lst_errors
 
     def reset(self):
         """Reset all properties"""
