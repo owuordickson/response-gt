@@ -150,7 +150,7 @@ class NetworkController(QObject):
                 self._ctrl.rgt_obj.list_params["given_potential_list"]["value"] = 1
         except Exception as err:
             logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
-            self._ctrl.handle_finished(1, False, ["Upload Error", f"Unable to parse imposed vertices data: Separate values with commas ONLY."])
+            self._ctrl.handle_finished(1, False, ["Upload Error", f"Unable to read your data. Try this format for vertex position and its potential: [position-1, potential-1], [position-2, potential-2], ..."])
 
     @Slot(str, str)
     def upload_file_data(self, file_path: str, param_type: str):

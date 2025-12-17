@@ -225,7 +225,7 @@ class ResponseAnalyzer(ProgressUpdate):
             incidence_mat = csc_array((c_vals, (c_rows, c_cols)), shape=(num_edges, num_vertices), dtype="complex")
             return incidence_mat
 
-        def make_potential_top_down() -> tuple[np.ndarray, np.ndarray]:
+        def make_potential() -> tuple[np.ndarray, np.ndarray]:
             """
             Generate an externally imposed potential field for the system.
 
@@ -313,7 +313,7 @@ class ResponseAnalyzer(ProgressUpdate):
         # Apply imposing potentials by direction
         self.update_status(ProgressData(percent=5, sender="RGT", message=f"Imposing response potential...")) if not silent else None
         c_mat = incidence_matrix()                          # The incidence matrix of the network, where rows are directed edges and columns are vertices
-        ua_list, va_list = make_potential_top_down()        # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
+        ua_list, va_list = make_potential()        # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
 
         given_potential_frequency = self.get_parameter_value("potential_frequency")
         omega = given_potential_frequency                   # The angular frequency of applied alternating potential

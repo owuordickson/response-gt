@@ -37,11 +37,12 @@ def initialize_list_params():
     """Initialize the list of parameters for the ResponseGT computation."""
 
     response_file_options: dict[str, dict[str, str | int | None | np.ndarray]] = {
-        "resistivity_list": {"value": 0, "data": None},
-        "inductance_list": {"value": 0, "data": None},
-        "capacitance_list": {"value": 0, "data": None},
-        "leak_resistivity_list": {"value": 0, "data": None},
-        "given_potential_list": {"value": 0, "data": None},
+        "resistivity_list": {"value": 0, "data": None, "text": "Resistivity List"},
+        "inductance_list": {"value": 0, "data": None, "text": "Inductance List"},
+        "capacitance_list": {"value": 0, "data": None, "text": "Capacitance List"},
+        "leak_resistivity_list": {"value": 0, "data": None, "text": "Leak Resistivity List"},
+        "given_potential_list": {"value": 0, "data": None, "text": "Given Potential List"},
+        "vertex_list": {"value": 0, "data": None, "text": "Vertex List"}
     }
     return response_file_options
 

@@ -14,9 +14,9 @@ ColumnLayout {
     visible: networkController.graph_data_uploaded()
 
     property int dirValueRole: Qt.UserRole + 4
-    property int lblWidthSize: 100
+    property int lblWidthSize: 80
     property int rdoWidthSize: 75
-    property int spbWidthSize: 75
+    property int spbWidthSize: 95
     property int cmbWidthSize: 180
 
     Label {
@@ -58,35 +58,6 @@ ColumnLayout {
                     }
                 }
             }
-        }
-
-
-        RowLayout {
-
-            Label {
-                text: "Direction:"
-                color: Theme.text
-                Layout.preferredWidth: rdoWidthSize
-            }
-
-            ComboBox {
-                id: cmbDirection
-                Layout.minimumWidth: cmbWidthSize
-                model: rgtPotentialDirections
-                textRole: "text"
-                currentIndex: 0
-
-                // Fires only when the user selects a new option
-                onActivated: (index) => {
-                    // Update all to 0, only current to 1
-                    for (let i = 0; i < rgtPotentialDirections.rowCount(); ++i) {
-                        let val = i === index ? 1 : 0;
-                        let idx = rgtPotentialDirections.index(i, 0);
-                        rgtPotentialDirections.setData(idx, val, dirValueRole);
-                    }
-                }
-            }
-
         }
 
 
@@ -143,7 +114,7 @@ ColumnLayout {
                             Label {
                                 Layout.preferredWidth: lblWidthSize
                                 text: model.text
-                                font.pixelSize: 10
+                                font.pixelSize: 9
                                 color: Theme.blue
                             }
 
@@ -189,6 +160,36 @@ ColumnLayout {
 
                         }
                     }
+                }
+
+
+                RowLayout {
+
+                    Label {
+                        Layout.preferredWidth: lblWidthSize
+                        text: "Direction:"
+                        font.pixelSize: 9
+                        color: Theme.blue
+                    }
+
+                    ComboBox {
+                        id: cmbDirection
+                        Layout.minimumWidth: spbWidthSize
+                        model: rgtPotentialDirections
+                        textRole: "text"
+                        currentIndex: 0
+
+                        // Fires only when the user selects a new option
+                        onActivated: (index) => {
+                            // Update all to 0, only current to 1
+                            for (let i = 0; i < rgtPotentialDirections.rowCount(); ++i) {
+                                let val = i === index ? 1 : 0;
+                                let idx = rgtPotentialDirections.index(i, 0);
+                                rgtPotentialDirections.setData(idx, val, dirValueRole);
+                            }
+                        }
+                    }
+
                 }
 
             }
@@ -254,7 +255,24 @@ ColumnLayout {
                         width: flickable.width // Ensure TextArea fills Flickable's width
                         wrapMode: TextArea.Wrap
                         font.pixelSize: 9
-                        placeholderText: "enter/paste vertex potentials"
+                        placeholderText: "Type/paste vertex positions and their corresponding potentials."
+
+                        // Access the internal Text item used for the placeholder and bind its wrapMode
+                        property Text placeholderTextItem: children.length > 0 ? children[0] : null
+
+                        Binding {
+                            when: taVerts.placeholderTextItem !== null
+                            target: taVerts.placeholderTextItem
+                            property: "wrapMode"
+                            value: Text.WordWrap
+                        }
+
+                        Binding {
+                            when: taVerts.placeholderTextItem !== null
+                            target: taVerts.placeholderTextItem
+                            property: "width"
+                            value: taVerts.width - taVerts.leftPadding - taVerts.rightPadding
+                        }
 
                         // When focus leaves the TextArea
                         onEditingFinished: {
