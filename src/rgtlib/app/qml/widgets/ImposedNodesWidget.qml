@@ -17,7 +17,8 @@ ColumnLayout {
     property int lblWidthSize: 80
     property int rdoWidthSize: 75
     property int spbWidthSize: 95
-    property int cmbWidthSize: 180
+    property int cmbWidthSize: 125
+    property int taWidthSize: 180
 
     Label {
         text: "Impose Potential"
@@ -44,17 +45,17 @@ ColumnLayout {
                         colDefault.enabled = true;
                         taVerts.enabled = false;
                         rectVerts.border.width = 0;
-                        btnUpload.enabled = false;
+                        rowFile.enabled = false;
                     } else if (checkedButton === rdoCustom) {
                         colDefault.enabled = false;
                         taVerts.enabled = true;
                         rectVerts.border.width = 1;
-                        btnUpload.enabled = false;
+                        rowFile.enabled = false;
                     } else if (checkedButton === rdoFile) {
                         colDefault.enabled = false;
                         taVerts.enabled = false;
                         rectVerts.border.width = 0;
-                        btnUpload.enabled = true;
+                        rowFile.enabled = true;
                     }
                 }
             }
@@ -235,8 +236,8 @@ ColumnLayout {
 
             Rectangle {
                 id: rectVerts
-                //width: cmbWidthSize
-                Layout.minimumWidth: cmbWidthSize
+                //width: taWidthSize
+                Layout.minimumWidth: taWidthSize
                 height: 48
                 color: "transparent"
                 border.width: 1
@@ -336,14 +337,39 @@ ColumnLayout {
                 }
             }
 
-            Imagine.Button {
-                id: btnUpload
+            /*Imagine.Button {
+                id: btnPotentialUpload
                 text: "Upload"
                 enabled: false
                 onClicked: {
                     dlgFileData.file_type = "imposed_vertices";
                     dlgFileData.open();
                 }
+            }*/
+
+            RowLayout {
+                id: rowFile
+
+                ComboBox {
+                    id: cmbPotentialList
+                    Layout.minimumWidth: cmbWidthSize
+                    model: [
+                        "Potential List",
+                        "Vertex List"
+                    ]
+                    currentIndex: 0
+                }
+
+                Imagine.Button {
+                    id: btnPotentialUpload
+                    text: "Upload"
+                    onClicked: {
+                        let file_desc = cmbResponseList.model[cmbResponseList.currentIndex];
+                        dlgFileData.file_type = file_desc;
+                        dlgFileData.open();
+                    }
+                }
+
             }
         }
 

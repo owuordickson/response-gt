@@ -8,7 +8,7 @@ import Theme 1.0
 ColumnLayout {
     id: responseTypeWidget
     Layout.leftMargin: 10
-    Layout.preferredHeight: 56
+    Layout.preferredHeight: 36
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignTop
     enabled: networkController.graph_data_uploaded()
@@ -19,13 +19,13 @@ ColumnLayout {
     property int rdoWidthSize: 75
 
 
-    Label {
+    /*Label {
         text: "Response Types"
         color: Theme.text
         font.pixelSize: 12
         font.bold: true
         Layout.alignment: Qt.AlignHCenter
-    }
+    }*/
 
 
     RowLayout {

@@ -145,11 +145,16 @@ class MainController(QObject):
                             self.rgt_obj.edge_list = edges
                             self.rgt_obj.list_data["edge_list"]["data"] = edges
                             self.rgt_obj.list_data["edge_list"]["value"] = 1
-                    elif upload_type == "imposed_vertices":
+                    elif upload_type == "Potential List":
                         imposed_vertices = graph_data
                         if imposed_vertices is not None:
                             self.rgt_obj.list_data["given_potential_list"]["data"] = imposed_vertices
                             self.rgt_obj.list_data["given_potential_list"]["value"] = 1
+                    elif upload_type == "Vertex List":
+                        vert_list = graph_data
+                        if vert_list is not None:
+                            self.rgt_obj.list_data["vertex_list"]["data"] = vert_list
+                            self.rgt_obj.list_data["vertex_list"]["value"] = 1
                     elif upload_type == "Resistivity List":
                         res_list = graph_data
                         if res_list is not None:

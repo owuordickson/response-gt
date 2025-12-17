@@ -16,7 +16,7 @@ ColumnLayout {
     property int cmbWidthSize: 125
 
     Label {
-        text: "Response Properties"
+        text: "Response Data"
         color: Theme.text
         font.pixelSize: 12
         font.bold: true

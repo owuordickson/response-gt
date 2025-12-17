@@ -23,13 +23,13 @@ Rectangle {
         }
 
 
-        ResponseTypeWidget{}
+        //UploadedFilesWidget{}
 
 
-        ResponsePropertyWidget{}
+        ResponseParameterWidget{}
 
 
-        ListPropertyWidget{}
+        ResponseDataWidget{}
 
 
         ImposedNodesWidget{}
