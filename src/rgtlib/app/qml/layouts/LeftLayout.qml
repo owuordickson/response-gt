@@ -23,7 +23,7 @@ Rectangle {
         }
 
 
-        //UploadedFilesWidget{}
+        UploadedFilesWidget{}
 
 
         ResponseParameterWidget{}

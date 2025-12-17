@@ -337,16 +337,6 @@ ColumnLayout {
                 }
             }
 
-            /*Imagine.Button {
-                id: btnPotentialUpload
-                text: "Upload"
-                enabled: false
-                onClicked: {
-                    dlgFileData.file_type = "imposed_vertices";
-                    dlgFileData.open();
-                }
-            }*/
-
             RowLayout {
                 id: rowFile
 
@@ -364,7 +354,7 @@ ColumnLayout {
                     id: btnPotentialUpload
                     text: "Upload"
                     onClicked: {
-                        let file_desc = cmbResponseList.model[cmbResponseList.currentIndex];
+                        let file_desc = cmbPotentialList.model[cmbPotentialList.currentIndex];
                         dlgFileData.file_type = file_desc;
                         dlgFileData.open();
                     }

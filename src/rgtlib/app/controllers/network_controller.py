@@ -26,6 +26,7 @@ class NetworkController(QObject):
         self._applying_changes = False
 
         # Create Models
+        self.rgtFiles = CheckBoxModel([])
         self.rgtOptions = CheckBoxModel([])
         self.rgtDCParams = CheckBoxModel([])
         self.rgtPotentialOptions = CheckBoxModel([])
@@ -57,14 +58,17 @@ class NetworkController(QObject):
         try:
             # Models Auto-update with saved sgt_obj configs. No need to re-assign!
             options_rgt = rgt_obj.configs
+            list_data = rgt_obj.list_data
 
             # Get data from object configs
+            rgt_files = [v for v in list_data.values() if (v["visible"] == 1 and v["value"] != 0)]
             rgt_settings = [v for v in options_rgt.values() if v["type"] == "rgt-settings"]
             rgt_dc_params = [v for v in options_rgt.values() if v["type"] == "dc-param"]
             rgt_potentials = [v for v in options_rgt.values() if v["type"] == "potential-settings"]
             rgt_pot_dir = options_rgt["potential_direction"]["items"]
 
             # Update QML adapter-models with fetched data
+            self.rgtFiles.reset_data(rgt_files)
             self.rgtOptions.reset_data(rgt_settings)
             self.rgtDCParams.reset_data(rgt_dc_params)
             self.rgtPotentialOptions.reset_data(rgt_potentials)
@@ -147,12 +151,17 @@ class NetworkController(QObject):
                 arr_data = np.array(data.split(","), dtype=float)
                 print(arr_data)
                 self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = arr_data
+                self._ctrl.rgt_obj.list_data["given_potential_list"]["type"] = "Custom"
                 self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = 1
             self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = None
             self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = 0
+
+            self._ctrl.syncModelSignal.emit(self._ctrl.rgt_obj)  # Sync models and refresh image
         except Exception as err:
             self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = None
+            self._ctrl.rgt_obj.list_data["given_potential_list"]["type"] = "Custom"
             self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = -1
+            self._ctrl.syncModelSignal.emit(self._ctrl.rgt_obj)  # Sync models and refresh image
             logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_finished(1, False, ["Upload Error", f"Unable to read your data. Try this format for vertex position and its potential: [position-1, potential-1], [position-2, potential-2], ..."])
 
