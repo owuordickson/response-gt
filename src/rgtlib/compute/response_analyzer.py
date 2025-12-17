@@ -14,7 +14,7 @@ from scipy.sparse.linalg import spsolve
 from scipy.sparse import diags, csc_array
 from matplotlib.collections import LineCollection
 
-from ..utils.config_loader import load_rgt_configs, initialize_list_params
+from ..utils.config_loader import load_rgt_configs, initialize_list_data
 
 ALLOWED_GRAPH_FILE_EXTENSIONS = ['*.csv']
 class ResponseAnalyzer(ProgressUpdate):
@@ -23,14 +23,10 @@ class ResponseAnalyzer(ProgressUpdate):
         """"""
         super(ResponseAnalyzer, self).__init__()
         self._configs: dict = load_rgt_configs(config_file)
-        self._list_params: dict = initialize_list_params()
+        self._list_data: dict = initialize_list_data()
         self._network_img: None | np.ndarray = None
         self._save_path: str = ""
         self._props: list = []
-        self._vertex_coordinates: None | np.ndarray = None
-        self._vertex_potentials: None | np.ndarray = None
-        self._edge_list: None | np.ndarray = None
-        self._edge_currents: None | np.ndarray = None
 
     @property
     def network_img(self):
@@ -45,60 +41,42 @@ class ResponseAnalyzer(ProgressUpdate):
         self._configs = configs
 
     @property
-    def list_params(self):
-        return self._list_params
+    def list_data(self):
+        return self._list_data
 
-    @list_params.setter
-    def list_params(self, list_params):
-        self._list_params = list_params
+    @list_data.setter
+    def list_data(self, list_params):
+        self._list_data = list_params
 
     @property
     def props(self):
         return self._props
 
     @property
-    def vertex_coordinates(self):
-        return self._vertex_coordinates
+    def vertices_uploaded(self):
+        is_uploaded = True if self.list_data["vertex_coordinates"]["value"] == 1 else False
+        print(f"Vertex uploaded: {is_uploaded}")
+        return is_uploaded
 
     @property
-    def vertex_potentials(self):
-        return self._vertex_potentials
-
-    @property
-    def edge_list(self):
-        return self._edge_list
-
-    @property
-    def edge_currents(self):
-        return self._edge_currents
-
-    @edge_list.setter
-    def edge_list(self, edge_list: np.ndarray):
-        self._edge_list = edge_list
-
-    @vertex_coordinates.setter
-    def vertex_coordinates(self, vertex_coordinates: np.ndarray):
-        self._vertex_coordinates = vertex_coordinates
-
-    @vertex_potentials.setter
-    def vertex_potentials(self, vertex_potentials: np.ndarray):
-        self._vertex_potentials = vertex_potentials
+    def edges_uploaded(self):
+        is_uploaded = True if self.list_data["edge_list"]["value"] == 1 else False
+        print(f"Edge uploaded: {is_uploaded}")
+        return is_uploaded
 
     def reset(self):
         """Reset all properties"""
         self._props = []
-        self._vertex_coordinates = None
-        self._vertex_potentials = None
-        self._edge_list = None
-        self._edge_currents = None
-        self.list_params: dict = initialize_list_params()
+        self.list_data: dict = initialize_list_data()
 
     def copy_rgt_obj(self, other):
         """Copy attributes from another ResponseAnalyzer object"""
         try:
             self._network_img = other.network_img
-            self._vertex_potentials = other.vertex_potentials
-            self._edge_currents = other.edge_currents
+            self.list_data["calculated_vertex_potentials"]["data"] = other.list_data["calculated_vertex_potentials"]["data"]
+            self.list_data["calculated_vertex_potentials"]["value"] = other.list_data["calculated_vertex_potentials"]["value"]
+            self.list_data["calculated_edge_currents"]["data"] = other.list_data["calculated_edge_currents"]["data"]
+            self.list_data["calculated_edge_currents"]["value"] = other.list_data["calculated_edge_currents"]["value"]
         except AttributeError:
             return
 
@@ -121,14 +99,14 @@ class ResponseAnalyzer(ProgressUpdate):
 
     def get_parameter_value(self, key: str):
         """Returns the value of a parameter from the RGT configuration"""
-        opt_rgt = self._configs
+        opt_rgt = self.configs
         coefficient = opt_rgt[key]["value"]
         multiplier = opt_rgt[key]["multiplier"]
         # print(f"{key}: {coefficient} * 10^{multiplier} = {coefficient * 10 ** multiplier}")
         return coefficient * 10 ** multiplier
 
     def get_response_direction(self) -> str | None:
-        opt_rgt = self._configs
+        opt_rgt = self.configs
         res_dir = None  # Default direction
 
         for i in range(len(opt_rgt["potential_direction"]["items"])):
@@ -136,42 +114,42 @@ class ResponseAnalyzer(ProgressUpdate):
                 res_dir = opt_rgt["potential_direction"]["items"][i]["id"]
         return res_dir
 
-    def init_list_params(self):
+    def init_list_data(self):
         """Compute the list parameters for the response analyzer (if they were not uploaded by the user)"""
-        opt_rgt = self._configs
-        list_params = self._list_params
+        opt_rgt = self.configs
+        list_data = self.list_data
 
-        edge_list = self.edge_list
-        vert_pos = self.vertex_coordinates
+        edge_list = list_data["edge_list"]["data"]
+        vert_pos = list_data["vertex_coordinates"]["data"]
         resistivity = self.get_parameter_value("resistivity")
         capacitance = self.get_parameter_value("capacitance")
         inductance = self.get_parameter_value("inductance")
         leak_resistivity = self.get_parameter_value("leak_resistivity")
 
-        if list_params["resistivity_list"]["value"] == 0 or list_params["resistivity_list"]["data"] is None:
+        if list_data["resistivity_list"]["value"] == 0 or list_data["resistivity_list"]["data"] is None:
             # The array of resistance for each EDGE
-            list_params["resistivity_list"]["data"] = resistivity * np.ones(len(edge_list))
+            list_data["resistivity_list"]["data"] = resistivity * np.ones(len(edge_list))
 
-        if list_params["inductance_list"]["value"] == 0 or list_params["inductance_list"]["data"] is None:
+        if list_data["inductance_list"]["value"] == 0 or list_data["inductance_list"]["data"] is None:
             # The array of inductance for each EDGE
-            list_params["inductance_list"]["data"] = inductance * np.ones(len(edge_list))
+            list_data["inductance_list"]["data"] = inductance * np.ones(len(edge_list))
 
-        if list_params["given_potential_list"]["value"] == 0 or list_params["given_potential_list"]["data"] is None:
+        if list_data["given_potential_list"]["value"] == 0 or list_data["given_potential_list"]["data"] is None:
             given_potential_fraction = float(opt_rgt["potential_fraction"]["value"])
             num_vertices = len(vert_pos)
             num_selected = int(given_potential_fraction * num_vertices)
-            list_params["given_potential_list"]["data"] = np.zeros(int(2 * num_selected))
+            list_data["given_potential_list"]["data"] = np.zeros(int(2 * num_selected))
 
         num_vertices = len(vert_pos)
-        num_selected = len(list_params["given_potential_list"]["data"])
+        num_selected = len(list_data["given_potential_list"]["data"])
         vertex_list = np.ones(num_vertices - num_selected)
-        if list_params["capacitance_list"]["value"] == 0 or list_params["capacitance_list"]["data"] is None:
+        if list_data["capacitance_list"]["value"] == 0 or list_data["capacitance_list"]["data"] is None:
             # The array of capacitance for each NODE that is NOT given an applied potential. nodes are taken to be capacitors connected to a grounded potential (0).
-            list_params["capacitance_list"]["data"] = capacitance * vertex_list
+            list_data["capacitance_list"]["data"] = capacitance * vertex_list
 
-        if list_params["leak_resistivity_list"]["value"] == 0 or list_params["leak_resistivity_list"]["data"] is None:
+        if list_data["leak_resistivity_list"]["value"] == 0 or list_data["leak_resistivity_list"]["data"] is None:
             # The array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
-            list_params["leak_resistivity_list"]["data"] = leak_resistivity * vertex_list
+            list_data["leak_resistivity_list"]["data"] = leak_resistivity * vertex_list
 
     def run_analyzer(self) -> None:
         """Executes functions that will compute AC Response and draw the response graph"""
@@ -181,7 +159,11 @@ class ResponseAnalyzer(ProgressUpdate):
             return
 
         # 1. Compute AC Response
-        self._vertex_potentials, self._edge_currents = self.compute_ac_response()
+        vertex_potentials, edge_currents = self.compute_ac_response()
+        self.list_data["calculated_vertex_potentials"]["data"] = vertex_potentials
+        self.list_data["calculated_vertex_potentials"]["value"] = 1
+        self.list_data["calculated_edge_currents"]["data"] = edge_currents
+        self.list_data["calculated_edge_currents"]["value"] = 1
 
         # 2. Draw Response Graph
         plt_fig = self.plot_response_graph()
@@ -210,9 +192,9 @@ class ResponseAnalyzer(ProgressUpdate):
             c_vals = []
 
             # Appending non-zero entries and their row/col data for each edge in the list. Edges are considered directed (+1/-1), but the direction does not matter
-            edge_list = self.edge_list
+            edge_list = list_data["edge_list"]["data"]
             num_edges = len(edge_list)
-            num_vertices = len(self.vertex_coordinates)
+            num_vertices = len(list_data["vertex_coordinates"]["data"])
             for idx in range(len(edge_list)):
                 c_rows.append(idx)
                 c_cols.append(int(edge_list[idx, 0]))
@@ -240,13 +222,13 @@ class ResponseAnalyzer(ProgressUpdate):
                     - ua_list: Array of potential values applied to boundary nodes.
                     - va_list: Array of node indices corresponding to the applied potentials.
             """
-            opt_rgt = self._configs
-            vert_pos = self.vertex_coordinates
+            opt_rgt = self.configs
+            vert_pos = list_data["vertex_coordinates"]["data"]
             given_potential_magnitude = float(opt_rgt["potential_magnitude"]["value"])
             potential_direction = self.get_response_direction()
 
             # Ultimately this is what gets passed on; the other code in this block just makes this a top-bottom potential
-            given_potential_list = list_params["given_potential_list"]["data"]
+            given_potential_list = list_data["given_potential_list"]["data"]
             vertex_list = np.zeros_like(given_potential_list, dtype=int)
             num_selected = int(len(given_potential_list) / 2)
 
@@ -294,21 +276,21 @@ class ResponseAnalyzer(ProgressUpdate):
             return given_potential_list, vertex_list
 
         self.update_status(ProgressData(percent=1, sender="RGT", message=f"Computing AC response...")) if not silent else None
-        if self.vertex_coordinates is None:
+        if self.list_data["vertex_coordinates"]["data"] is None:
             self.update_status(ProgressData(type="error", sender="RGT", message=f"Vertex positions are missing! Please upload them via a CSV file.")) if not silent else None
             return None, None
-        if self.edge_list is None:
+        if self.list_data["edge_list"]["data"] is None:
             self.update_status(ProgressData(type="error", sender="RGT", message=f"Edge list is missing! Please upload them via a CSV file.")) if not silent else None
             return None, None
 
         # Initialize response parameters and parameter lists
         self.update_status(ProgressData(percent=10, sender="RGT", message=f"Initializing response parameters...")) if not silent else None
-        self.init_list_params()
-        list_params = self._list_params
-        cap_list = list_params["capacitance_list"]["data"]
-        leak_res_list = list_params["leak_resistivity_list"]["data"]
-        res_list = list_params["resistivity_list"]["data"]
-        ind_list = list_params["inductance_list"]["data"]
+        self.init_list_data()
+        list_data = self.list_data
+        cap_list = list_data["capacitance_list"]["data"]
+        leak_res_list = list_data["leak_resistivity_list"]["data"]
+        res_list = list_data["resistivity_list"]["data"]
+        ind_list = list_data["inductance_list"]["data"]
 
         # Apply imposing potentials by direction
         self.update_status(ProgressData(percent=5, sender="RGT", message=f"Imposing response potential...")) if not silent else None
@@ -420,7 +402,7 @@ class ResponseAnalyzer(ProgressUpdate):
         Draws the response graph of the network.
         """
 
-        if self._vertex_potentials is None or self._edge_currents is None:
+        if self.list_data["calculated_vertex_potentials"]["data"] is None or self.list_data["calculated_edge_currents"]["data"] is None:
             self.update_status(ProgressData(type="error", sender="RGT", message=f"Response data is missing! Please run the compute_response() method first."))
             return None
 
@@ -511,10 +493,10 @@ class ResponseAnalyzer(ProgressUpdate):
 
         self.update_status(ProgressData(percent=1, sender="RGT", message=f"Generating response graph..."))
         # Retrieve computed response data (should be numpy arrays)
-        vert_pos = self.vertex_coordinates
-        edge_list = self.edge_list
-        potential_resp = self._vertex_potentials
-        current_resp = self._edge_currents
+        vert_pos = self.list_data["vertex_coordinates"]["data"]
+        edge_list = self.list_data["edge_list"]["data"]
+        potential_resp = self.list_data["calculated_vertex_potentials"]["data"]
+        current_resp = self.list_data["calculated_edge_currents"]["data"]
 
         self.update_status(ProgressData(percent=5, sender="RGT", message=f"Fetching parameters..."))
         # Create a figure and an axis
@@ -561,7 +543,7 @@ class ResponseAnalyzer(ProgressUpdate):
 
     def save_results_to_file(self) -> bool:
         """Save computed response data to a file."""
-        if self._vertex_potentials is None or self._edge_currents is None:
+        if self.list_data["calculated_vertex_potentials"]["data"] is None or self.list_data["calculated_edge_currents"]["data"] is None:
             return False
 
         filename, out_dir = self.get_filenames()
@@ -574,10 +556,10 @@ class ResponseAnalyzer(ProgressUpdate):
         nodes_file = os.path.join(out_dir, nodes_filename)
 
         # Export the DataFrame to a CSV file without header and index
-        df_pot = pd.DataFrame(self._vertex_potentials)
+        df_pot = pd.DataFrame(self.list_data["calculated_vertex_potentials"]["data"])
         df_pot.to_csv(str(nodes_file), header=False, index=False)
 
         # Export the DataFrame to a CSV file without header and index
-        df_curr = pd.DataFrame(self._edge_currents)
+        df_curr = pd.DataFrame(self.list_data["calculated_edge_currents"]["data"])
         df_curr.to_csv(str(edges_file), header=False, index=False)
         return True

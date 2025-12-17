@@ -33,16 +33,20 @@ def read_config_file(config_path):
         return None
 
 
-def initialize_list_params():
+def initialize_list_data():
     """Initialize the list of parameters for the ResponseGT computation."""
 
     response_file_options: dict[str, dict[str, str | int | None | np.ndarray]] = {
+        "vertex_coordinates": {"value": 0, "data": None, "text": "Vertex Coordinates"},
+        "edge_list": {"value": 0, "data": None, "text": "Edge List"},
         "resistivity_list": {"value": 0, "data": None, "text": "Resistivity List"},
         "inductance_list": {"value": 0, "data": None, "text": "Inductance List"},
         "capacitance_list": {"value": 0, "data": None, "text": "Capacitance List"},
         "leak_resistivity_list": {"value": 0, "data": None, "text": "Leak Resistivity List"},
         "given_potential_list": {"value": 0, "data": None, "text": "Given Potential List"},
-        "vertex_list": {"value": 0, "data": None, "text": "Vertex List"}
+        "vertex_list": {"value": 0, "data": None, "text": "Vertex List"},
+        "calculated_vertex_potentials": {"value": 0, "data": None, "text": "Calculated Vertex Potentials"},
+        "calculated_edge_currents": {"value": 0, "data": None, "text": "Calculated Edge Currents"},
     }
     return response_file_options
 

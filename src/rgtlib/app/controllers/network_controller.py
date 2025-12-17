@@ -115,13 +115,13 @@ class NetworkController(QObject):
     def enable_edge_list_upload(self):
         if self._ctrl.wait_flag:
             return False
-        return True if self._ctrl.rgt_obj.edge_list is None else False
+        return not self._ctrl.rgt_obj.edges_uploaded
 
     @Slot(result=bool)
     def enable_vertex_positions_upload(self):
         if self._ctrl.wait_flag:
             return False
-        return True if self._ctrl.rgt_obj.vertex_coordinates is None else False
+        return not self._ctrl.rgt_obj.vertices_uploaded
 
     @Slot(result=bool)
     def graph_data_uploaded(self):
@@ -146,8 +146,8 @@ class NetworkController(QObject):
                 # Convert to a numpy array
                 arr_data = np.array(data.split(","), dtype=float)
                 print(arr_data)
-                self._ctrl.rgt_obj.list_params["given_potential_list"]["data"] = arr_data
-                self._ctrl.rgt_obj.list_params["given_potential_list"]["value"] = 1
+                self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = arr_data
+                self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = 1
         except Exception as err:
             logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_finished(1, False, ["Upload Error", f"Unable to read your data. Try this format for vertex position and its potential: [position-1, potential-1], [position-2, potential-2], ..."])
@@ -179,7 +179,7 @@ class NetworkController(QObject):
             return
 
         try:
-            if self._ctrl.rgt_obj.edge_list is None or self._ctrl.rgt_obj.vertex_coordinates is None:
+            if (not self._ctrl.rgt_obj.edges_uploaded) or (not self._ctrl.rgt_obj.vertices_uploaded):
                 return
 
             self.start_task()
@@ -199,7 +199,7 @@ class NetworkController(QObject):
             return
 
         try:
-            if self._ctrl.rgt_obj.edge_currents is None and self._ctrl.rgt_obj.vertex_potentials is None:
+            if self._ctrl.rgt_obj.list_data["calculated_vertex_potentials"]["data"] is None or self._ctrl.rgt_obj.list_data["calculated_edge_currents"]["data"] is None:
                 self._ctrl.handle_finished(1, False,["Download Error", "Please run the 'Compute Response' first."])
                 return
 
