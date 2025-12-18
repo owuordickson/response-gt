@@ -155,13 +155,14 @@ class NetworkController(QObject):
                 self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = 1
             self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = None
             self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = 0
-
-            self._ctrl.syncModelSignal.emit(self._ctrl.rgt_obj)  # Sync models and refresh image
+            # Sync models
+            self._ctrl.syncModelSignal.emit(self._ctrl.rgt_obj)
         except Exception as err:
             self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = None
             self._ctrl.rgt_obj.list_data["given_potential_list"]["type"] = "Custom"
             self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = -1
-            self._ctrl.syncModelSignal.emit(self._ctrl.rgt_obj)  # Sync models and refresh image
+            # Sync models and refresh image
+            self._ctrl.syncModelSignal.emit(self._ctrl.rgt_obj)
             logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_finished(1, False, ["Upload Error", f"Unable to read your data. Try this format for vertex position and its potential: [position-1, potential-1], [position-2, potential-2], ..."])
 
@@ -181,6 +182,17 @@ class NetworkController(QObject):
             logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_progress_update(ProgressData(type="error", sender="RGT", message=f"Error occurred!"))
             self._ctrl.handle_finished(1, False, ["Upload Error", f"Fatal error while trying to upload {param_type}."])
+
+    @Slot(str)
+    def remove_data(self, data_id: str):
+        """Remove uploaded data from the ResponseGT object."""
+        print(f"Removing {data_id} data...")
+        list_data = self._ctrl.rgt_obj.list_data
+        list_data[data_id]["data"] = None
+        list_data[data_id]["value"] = 0
+        # Sync models and refresh image
+        self._ctrl.syncModelSignal.emit(self._ctrl.rgt_obj)
+        self.imageChangedSignal.emit()
 
     @Slot()
     def run_response_analyzer(self):

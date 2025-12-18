@@ -37,16 +37,16 @@ def initialize_list_data():
     """Initialize the list of parameters for the ResponseGT computation."""
 
     response_file_options: dict[str, dict[str, str | int | None | np.ndarray]] = {
-        "vertex_coordinates": {"value": 0, "data": None, "type": "File", "text": "Vertex Coordinates", "visible": 1},
-        "edge_list": {"value": 0, "data": None, "type": "File", "text": "Edge List", "visible": 1},
-        "resistivity_list": {"value": 0, "data": None, "type": "File", "text": "Resistivity List", "visible": 1},
-        "inductance_list": {"value": 0, "data": None, "type": "File", "text": "Inductance List", "visible": 1},
-        "capacitance_list": {"value": 0, "data": None, "type": "File", "text": "Capacitance List", "visible": 1},
-        "leak_resistivity_list": {"value": 0, "data": None, "type": "File", "text": "Leak Resistivity List", "visible": 1},
-        "given_potential_list": {"value": 0, "data": None, "type": "File", "text": "Given Potential List", "visible": 1},
-        "vertex_list": {"value": 0, "data": None, "type": "File", "text": "Vertex List", "visible": 1},
-        "calculated_vertex_potentials": {"value": 0, "data": None, "type": "Custom", "text": "Calculated Vertex Potentials", "visible": 0},
-        "calculated_edge_currents": {"value": 0, "data": None, "type": "Custom", "text": "Calculated Edge Currents", "visible": 0},
+        "vertex_coordinates": {"id": "vertex_coordinates", "value": 0, "data": None, "type": "File", "text": "Vertex Coordinates", "visible": 1},
+        "edge_list": {"id": "edge_list", "value": 0, "data": None, "type": "File", "text": "Edge List", "visible": 1},
+        "resistivity_list": {"id": "resistivity_list", "value": 0, "data": None, "type": "File", "text": "Resistivity List", "visible": 1},
+        "inductance_list": {"id": "inductance_list", "value": 0, "data": None, "type": "File", "text": "Inductance List", "visible": 1},
+        "capacitance_list": {"id": "capacitance_list", "value": 0, "data": None, "type": "File", "text": "Capacitance List", "visible": 1},
+        "leak_resistivity_list": {"id": "leak_resistivity_list", "value": 0, "data": None, "type": "File", "text": "Leak Resistivity List", "visible": 1},
+        "given_potential_list": {"id": "given_potential_list", "value": 0, "data": None, "type": "File", "text": "Given Potential List", "visible": 1},
+        "vertex_list": {"id": "vertex_list", "value": 0, "data": None, "type": "File", "text": "Vertex List", "visible": 1},
+        "calculated_vertex_potentials": {"id": "calculated_vertex_potentials", "value": 0, "data": None, "type": "Custom", "text": "Calculated Vertex Potentials", "visible": 0},
+        "calculated_edge_currents": {"id": "calculated_edge_currents", "value": 0, "data": None, "type": "Custom", "text": "Calculated Edge Currents", "visible": 0},
     }
     return response_file_options
 

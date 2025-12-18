@@ -256,7 +256,7 @@ ColumnLayout {
                         width: flickable.width // Ensure TextArea fills Flickable's width
                         wrapMode: TextArea.Wrap
                         font.pixelSize: 9
-                        placeholderText: "Type/paste vertex positions and their corresponding potentials."
+                        placeholderText: "Type/paste vertex positions and their corresponding potentials. Format: [position, potential] -> [30, 1], [20, -1]"
 
                         // Access the internal Text item used for the placeholder and bind its wrapMode
                         property Text placeholderTextItem: children.length > 0 ? children[0] : null

@@ -149,11 +149,13 @@ class MainController(QObject):
                         imposed_vertices = graph_data
                         if imposed_vertices is not None:
                             self.rgt_obj.list_data["given_potential_list"]["data"] = imposed_vertices
+                            self.rgt_obj.list_data["given_potential_list"]["type"] = "File"
                             self.rgt_obj.list_data["given_potential_list"]["value"] = 1
                     elif upload_type == "Vertex List":
                         vert_list = graph_data
                         if vert_list is not None:
                             self.rgt_obj.list_data["vertex_list"]["data"] = vert_list
+                            self.rgt_obj.list_data["vertex_list"]["type"] = "File"
                             self.rgt_obj.list_data["vertex_list"]["value"] = 1
                     elif upload_type == "Resistivity List":
                         res_list = graph_data

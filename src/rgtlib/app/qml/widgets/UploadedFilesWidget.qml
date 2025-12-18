@@ -33,14 +33,17 @@ ColumnLayout {
             id: flickable
             anchors.fill: parent
             anchors.margins: 2
+            anchors.leftMargin: 15
             clip: true
             contentWidth: parent.width          // vertical-only scrolling
             contentHeight: colFiles.implicitHeight + 25
 
             ColumnLayout {
                 id: colFiles
-                Layout.alignment: Qt.AlignHCenter
+                //Layout.alignment: Qt.AlignHCenter
+                Layout.leftMargin: 10
                 width: flickable.width - 20
+                //anchors.horizontalCenter: flickable.horizontalCenter
                 spacing: 2
 
                 Repeater {
@@ -55,9 +58,6 @@ ColumnLayout {
                             width: colFiles.width
                             height: 21
                             color: "transparent"
-                            //border.width: 1
-                            //border.color: model.value === 1 ? Theme.green : Theme.red
-                            //radius: 2
 
                             RowLayout {
                                 anchors.fill: parent
@@ -68,7 +68,7 @@ ColumnLayout {
                                     Layout.fillWidth: true
                                     text: model.text + ' (' + model.type + ')'
                                     font.pixelSize: 10
-                                    color: model.value === 1 ? Theme.green : Theme.red
+                                    color: model.value === 1 ? Theme.darkGray : Theme.red
                                     //verticalAlignment: Text.AlignVCenter
                                 }
 
@@ -76,13 +76,13 @@ ColumnLayout {
                                     text: ""
                                     icon.source: "../assets/icons/delete_icon.png"
                                     icon.height: 18
-                                    icon.color: "transparent"   // important for PNGs
+                                    icon.color: model.value === 1 ? Theme.darkGray : Theme.red
                                     background: Rectangle {
                                         color: "transparent"
                                     }
 
                                     onClicked: {
-                                        //networkController.;
+                                        networkController.remove_data(model.id);
                                     }
                                 }
                             }
