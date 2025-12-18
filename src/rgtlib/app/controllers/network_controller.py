@@ -103,6 +103,9 @@ class NetworkController(QObject):
 
     @Slot(result=bool)
     def graph_is_ready(self):
+        data_available = self.graph_data_uploaded()
+        if not data_available:
+            return False
         return self._graph_loaded
 
     @Slot(result=str)
