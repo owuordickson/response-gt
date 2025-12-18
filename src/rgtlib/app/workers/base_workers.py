@@ -6,8 +6,7 @@ Base worker class for executing all resource-intensive StructuralGT tasks.
 
 import os
 import logging
-import pandas as pd
-from sgtlib.modules import ProgressData, TaskResult, verify_path
+from sgtlib.modules import ProgressData, TaskResult, verify_path, csv_to_numpy
 from ...compute.response_analyzer import ALLOWED_GRAPH_FILE_EXTENSIONS
 
 
@@ -100,7 +99,7 @@ class BaseWorker:
 
             # 3. Read the file and return graph data
             self._update_progress(ProgressData(percent=50, sender="RGT", message=f"Reading File..."))
-            graph_data = pd.read_csv(file_path, header=None, index_col=False).to_numpy()
+            graph_data = csv_to_numpy(file_path)
             self._update_progress(ProgressData(percent=95, sender="RGT", message=f"Reading File..."))
             task_data = TaskResult(task_id="Upload CSV", status="Finished", message="CSV file successfully uploaded!", data=[upload_type, file_path,  graph_data])
             return True, task_data
