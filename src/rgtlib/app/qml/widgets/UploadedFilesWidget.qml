@@ -8,7 +8,7 @@ import Theme 1.0
 ColumnLayout {
     id: uploadedFilesWidget
     Layout.leftMargin: 10
-    Layout.preferredHeight: 75
+    Layout.preferredHeight: 100
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignVCenter
     visible: networkController.graph_data_uploaded()
@@ -24,33 +24,35 @@ ColumnLayout {
 
     Rectangle {
         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-        width: 200
-        height: 75
-        color: "transparent"
-        border.width: 1
-        border.color: Theme.darkGrey
+        width: 220
+        height: 100
+        color: Theme.veryLightGray
         radius: 4
 
         Flickable {
             id: flickable
             anchors.fill: parent
             anchors.margins: 2
-            contentWidth: parent.width // Important for vertical-only scrolling
-            contentHeight: colFiles.implicitHeight
+            clip: true
+            contentWidth: parent.width          // vertical-only scrolling
+            contentHeight: colFiles.implicitHeight + 25
 
-            ColumnLayout.flickable: ColumnLayout {
+            ColumnLayout {
                 id: colFiles
+                Layout.alignment: Qt.AlignHCenter
+                width: flickable.width - 20
+                spacing: 2
 
                 Repeater {
-                    id: rptFiles
                     model: rgtFiles
 
                     Loader {
-                        active: model.value === 1 || model.value === -1  // <-- Only create the delegate if visible
+                        // Only create delegate when needed
+                        active: model.value === 1 || model.value === -1
 
                         sourceComponent: Rectangle {
                             property int mainIndex: index
-                            width: flickable.width
+                            width: colFiles.width
                             height: 21
                             color: "transparent"
                             //border.width: 1
@@ -67,11 +69,10 @@ ColumnLayout {
                                     text: model.text + ' (' + model.type + ')'
                                     font.pixelSize: 10
                                     color: model.value === 1 ? Theme.green : Theme.red
+                                    //verticalAlignment: Text.AlignVCenter
                                 }
 
-
                                 Basic.Button {
-                                    id: btnDelete
                                     text: ""
                                     icon.source: "../assets/icons/delete_icon.png"
                                     icon.height: 18
@@ -79,26 +80,22 @@ ColumnLayout {
                                     background: Rectangle {
                                         color: "transparent"
                                     }
+
                                     onClicked: {
                                         //networkController.;
                                     }
                                 }
-
                             }
-
                         }
-
                     }
-
                 }
             }
 
             ScrollBar.vertical: ScrollBar { // Attach vertical scrollbar
-                parent: flickable
+                //parent: flickable
                 policy: ScrollBar.AsNeeded // Show scrollbar only when needed
             }
         }
-
     }
 
 
