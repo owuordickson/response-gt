@@ -180,12 +180,17 @@ class ResponseAnalyzer(ProgressUpdate):
             self.update_status([-1, "Problem encountered while running Response Analyzer.."])
             return
 
-        # 1. Compute AC Response
-        vertex_potentials, edge_currents = self.compute_ac_response()
-        self.list_data["calculated_vertex_potentials"]["data"] = vertex_potentials
-        self.list_data["calculated_vertex_potentials"]["value"] = 1
-        self.list_data["calculated_edge_currents"]["data"] = edge_currents
-        self.list_data["calculated_edge_currents"]["value"] = 1
+        try:
+            # 1. Compute AC Response
+            vertex_potentials, edge_currents = self.compute_ac_response()
+            self.list_data["calculated_vertex_potentials"]["data"] = vertex_potentials
+            self.list_data["calculated_vertex_potentials"]["value"] = 1
+            self.list_data["calculated_edge_currents"]["data"] = edge_currents
+            self.list_data["calculated_edge_currents"]["value"] = 1
+        except IndexError:
+            self.update_status([-1, "One or more vertex positions are out of range! Please re-upload Vertex List."])
+            self.abort = True
+            return
 
         # 2. Draw Response Graph
         plt_fig = self.plot_response_graph()
@@ -317,7 +322,11 @@ class ResponseAnalyzer(ProgressUpdate):
         # Apply imposing potentials by direction
         self.update_status(ProgressData(percent=5, sender="RGT", message=f"Imposing response potential...")) if not silent else None
         c_mat = incidence_matrix()                          # The incidence matrix of the network, where rows are directed edges and columns are vertices
-        ua_list, va_list = make_potential()        # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
+        if list_data["given_potential_list"]["value"] == 1 and list_data["vertex_list"]["data"] is not None:
+            ua_list = list_data["given_potential_list"]["data"]
+            va_list = np.array(list_data["vertex_list"]["data"], dtype=int)
+        else:
+            ua_list, va_list = make_potential()             # ua_list: array applied potentials; va_list: array of nodes with the corresponding applied potential
 
         given_potential_frequency = self.get_parameter_value("potential_frequency")
         omega = given_potential_frequency                   # The angular frequency of applied alternating potential

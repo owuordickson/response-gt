@@ -40,6 +40,8 @@ ColumnLayout {
             checkedButton: rdoDefault
             onCheckedButtonChanged: {
                 if (currentCheckedButton !== checkedButton) {
+                    networkController.remove_data("given_potential_list");
+                    networkController.remove_data("vertex_list");
                     currentCheckedButton = checkedButton;
                     if (checkedButton === rdoDefault) {
                         colDefault.enabled = true;
@@ -47,6 +49,7 @@ ColumnLayout {
                         rectVerts.border.width = 0;
                         rowFile.enabled = false;
                     } else if (checkedButton === rdoCustom) {
+                        networkController.apply_imposed_vertices("custom", taVerts.text);
                         colDefault.enabled = false;
                         taVerts.enabled = true;
                         rectVerts.border.width = 1;

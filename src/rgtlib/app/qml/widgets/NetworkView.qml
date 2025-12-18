@@ -14,4 +14,7 @@ ColumnLayout {
     // The network container
     NetworkWidget{}
 
+    // The network control buttons
+    NetworkViewControls{}
+
 }

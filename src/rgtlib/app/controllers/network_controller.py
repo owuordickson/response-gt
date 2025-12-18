@@ -3,6 +3,7 @@
 Pyside6 (GUI components) controller class for network retrieval and computations.
 """
 
+import ast
 import logging
 import numpy as np
 from sgtlib.modules import ProgressData
@@ -145,16 +146,33 @@ class NetworkController(QObject):
     def apply_imposed_vertices(self, source: str, data: str):
         """Apply imposed vertices to the response graph."""
         try:
-            print(f"Applying {source} with data: {data}")
+            # Convert string '[30, 1], [20, -1]' to 2 numpy arrays: [30, 20] and [1, -1]
             if data != "":
-                # Convert to a numpy array
-                arr_data = np.array(data.split(","), dtype=float)
-                print(arr_data)
-                self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = arr_data
+                # Parse string to a Python list
+                pairs = ast.literal_eval(data)  # pairs -> [[30, 1], [20, -1]]
+
+                # Convert to NumPy array
+                arr = np.asarray(pairs, dtype=float)
+
+                # Split into two arrays
+                lst_vert = arr[:, 0]    # [30. 20.]
+                lst_pot = arr[:, 1]     # [ 1. -1.]
+
+                # Potential List
+                self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = lst_pot
                 self._ctrl.rgt_obj.list_data["given_potential_list"]["type"] = "Custom"
                 self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = 1
-            self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = None
-            self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = 0
+
+                # Vertex List
+                self._ctrl.rgt_obj.list_data["vertex_list"]["data"] = lst_vert
+                self._ctrl.rgt_obj.list_data["vertex_list"]["type"] = "Custom"
+                self._ctrl.rgt_obj.list_data["vertex_list"]["value"] = 1
+            else:
+                # Data is blank
+                self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = None
+                self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = 0
+                self._ctrl.rgt_obj.list_data["vertex_list"]["data"] = None
+                self._ctrl.rgt_obj.list_data["vertex_list"]["value"] = 0
             # Sync models
             self._ctrl.syncModelSignal.emit(self._ctrl.rgt_obj)
         except Exception as err:
@@ -186,7 +204,6 @@ class NetworkController(QObject):
     @Slot(str)
     def remove_data(self, data_id: str):
         """Remove uploaded data from the ResponseGT object."""
-        print(f"Removing {data_id} data...")
         list_data = self._ctrl.rgt_obj.list_data
         list_data[data_id]["data"] = None
         list_data[data_id]["value"] = 0
