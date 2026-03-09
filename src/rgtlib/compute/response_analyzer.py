@@ -10,8 +10,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from sgtlib.modules import ProgressUpdate, plot_to_opencv, ProgressData
-from scipy.sparse.linalg import spsolve
-from scipy.sparse import diags, csc_array
+from scipy.sparse.linalg import spsolve, lsqr
+from scipy.sparse import diags, csc_array, csr_matrix
 from matplotlib.collections import LineCollection
 
 from ..utils.config_loader import load_rgt_configs, initialize_list_data
@@ -427,6 +427,141 @@ class ResponseAnalyzer(ProgressUpdate):
         # calculating current response
         current_response = admittance_mat @ c_mat @ potential_response
         return potential_response, current_response
+
+    def compute_mechanical_response(self, silent: bool = False) -> tuple[None, None] | tuple[np.ndarray, np.ndarray]:
+        """
+            Calculates the 2D structural response to static displacements. Uses lsqr to find the minimum-norm solution,
+            natively handling singular matrices caused by zero-energy (floppy) modes.
+
+            :return: All displacements (as a Numpy array) and all tensions (as a Numpy array).
+        """
+
+        def pinned_compatibility_matrix():
+            """
+                Constructs a pinned 2D compatibility matrix and returns the reduced geometry.
+                Pins a specified fraction of vertices based on their spatial ranking.
+            """
+            vertex_positions = np.asarray(vertex_positions)
+            edgesByIndex = np.asarray(edgesByIndex)
+
+            num_verts = len(vertex_positions)
+            num_edges = len(edgesByIndex)
+
+            # 1. Edges by endpoints
+            p1 = vertex_positions[edgesByIndex[:, 0]]
+            p2 = vertex_positions[edgesByIndex[:, 1]]
+
+            # 2. Construct normal cMat (2D)
+            diff = p1 - p2
+            lengths = np.linalg.norm(diff, axis=1, keepdims=True)
+            hats = diff / lengths
+
+            rows = np.repeat(np.arange(num_edges), 4)
+            cols = np.zeros(num_edges * 4, dtype=int)
+            data = np.zeros(num_edges * 4)
+
+            u = edgesByIndex[:, 0]
+            v = edgesByIndex[:, 1]
+
+            # 2 DOFs per vertex (x, y)
+            cols[0::4] = 2 * u
+            cols[1::4] = 2 * u + 1
+            cols[2::4] = 2 * v
+            cols[3::4] = 2 * v + 1
+
+            data[0::4] = hats[:, 0]
+            data[1::4] = hats[:, 1]
+            data[2::4] = -hats[:, 0]
+            data[3::4] = -hats[:, 1]
+
+            cMat = csr_matrix((data, (rows, cols)), shape=(num_edges, 2 * num_verts))
+
+            # 3. Identify pinned and unpinned vertices based on fraction
+            coords = vertex_positions[:, Cartesian_direction]
+            num_to_pin = int(round(num_verts * frac_selected))
+            sorted_indices = np.argsort(coords)
+
+            if smallest_boolean:
+                pinned_verts = sorted_indices[:num_to_pin]
+            else:
+                pinned_verts = sorted_indices[-num_to_pin:]
+
+            # Get unpinned vertices
+            all_verts = np.arange(num_verts)
+            unpinned_vert_indices = np.setdiff1d(all_verts, pinned_verts)
+            unpinned_vertex_positions = vertex_positions[unpinned_vert_indices]
+
+            # 4. Construct pinned_cMat
+            pinned_dofs = []
+            for pv in pinned_verts:
+                pinned_dofs.extend([2 * pv, 2 * pv + 1])
+
+            mask = np.ones(2 * num_verts, dtype=bool)
+            mask[pinned_dofs] = False
+            remaining_dofs = np.where(mask)[0]
+            pinned_cMat = cMat[:, remaining_dofs]
+            transposed_cMat = (csr_matrix(pinned_cMat)).T
+
+            # 5. Filter and Re-index Edges
+            old_to_new_map = np.full(num_verts, -1, dtype=int)
+            old_to_new_map[unpinned_vert_indices] = np.arange(len(unpinned_vert_indices))
+
+            valid_edges_mask = (old_to_new_map[u] != -1) & (old_to_new_map[v] != -1)
+            valid_edges_old = edgesByIndex[valid_edges_mask]
+
+            unpinned_edges = old_to_new_map[valid_edges_old]
+
+            return transposed_cMat, unpinned_vertex_positions, unpinned_edges, valid_edges_mask
+
+        def generate_2d_spring_constants(k=1.0):
+            """
+            Generates a list of spring constants for the 2D network. Defaults to 1.0 for all edges.
+
+            :return: A list of spring constants (as a Numpy array) for the 2D network..
+            """
+            num_edges = len(original_edges)
+            return np.full(num_edges, k)
+
+        # 1. Constructing the compatibility matrix
+
+        # 2. Applying the load to network
+
+        # 3. Computing mechanical response
+        cMat = pinned_compatibility_matrix()[0]
+        n_total = Cmat.shape[0]
+
+        # Diagonals of k_list form the stiffness matrix
+        k_list = generate_2d_spring_constants()
+        stiffness_mat = diags(np.array(k_list), format='csr')
+        d_mat = Cmat @ stiffness_mat @ Cmat.T
+
+        v_list = np.array(v_list)
+        vb_list = np.setdiff1d(np.arange(n_total), v_list)
+
+        daa = d_mat[v_list, :][:, v_list]
+        dba = d_mat[vb_list, :][:, v_list]
+        dbb = d_mat[vb_list, :][:, vb_list]
+
+        ua = np.array(u_list)
+        p = -dba @ ua
+        u_b = lsqr(dbb, p)[0]
+
+        dab = dba.T
+        f_a = (daa @ ua) + (dab @ u_b)
+
+        # Reshape forces to 2D
+        f_a_2d = f_a.reshape(-1, 2)
+        total_applied_force = np.sum(f_a_2d, axis=0)
+
+        u = np.zeros(n_total)
+        u[v_list] = ua
+        u[vb_list] = u_b
+
+        # Tensions
+        t = stiffness_mat @ Cmat.T @ u
+
+        print("Total applied force:", total_applied_force)
+        return u, t
 
     def plot_electrical_response(self, graph_type: str = "all", show_current_phase: bool = None, vertex_marker_size: float = None, edge_line_width: float = None, show_color_wheel: bool = None, phase_labels: dict = None) -> None | plt.Figure:
         """
