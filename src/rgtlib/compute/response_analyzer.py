@@ -165,7 +165,7 @@ class ResponseAnalyzer(ProgressUpdate):
         edge_list = list_data["edge_list"]["data"]
         vert_pos = list_data["vertex_coordinates"]["data"]
 
-        response_type = int(opt_rgt["response_type"]["value"])
+        response_type = 0 #int(opt_rgt["response_type"]["value"])
         if response_type == 0:
             # Initialize lists (data) for electrical response
             resistivity = self.get_parameter_value("resistivity")
