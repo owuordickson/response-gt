@@ -193,7 +193,7 @@ class ResponseAnalyzer(ProgressUpdate):
             return
 
         # 2. Draw Response Graph
-        plt_fig = self.plot_response_graph()
+        plt_fig = self.plot_electrical_response()
         self.update_status(ProgressData(percent=80, sender="RGT", message=f"Saving graph plot..."))
         self._network_img = plot_to_opencv(plt_fig)
 
@@ -428,7 +428,7 @@ class ResponseAnalyzer(ProgressUpdate):
         current_response = admittance_mat @ c_mat @ potential_response
         return potential_response, current_response
 
-    def plot_response_graph(self, graph_type: str = "all", show_current_phase: bool = None, vertex_marker_size: float = None, edge_line_width: float = None, show_color_wheel: bool = None, phase_labels: dict = None) -> None | plt.Figure:
+    def plot_electrical_response(self, graph_type: str = "all", show_current_phase: bool = None, vertex_marker_size: float = None, edge_line_width: float = None, show_color_wheel: bool = None, phase_labels: dict = None) -> None | plt.Figure:
         """
         Draws the response graph of the network.
         """
@@ -571,6 +571,86 @@ class ResponseAnalyzer(ProgressUpdate):
 
         # fig.tight_layout()
         return fig
+
+    def plot_mechanical_response(self):
+        """"""
+        # Setup the 2D figure
+        fig, ax = plt.subplots(figsize=(10, 10))
+
+        # --- VERTICES ---
+        # Plot all original vertices as background
+        ax.scatter(original_verts[:, 0], original_verts[:, 1],
+                   color='black', s=10, alpha=0.3, zorder=1, label='All Vertices (Background)')
+
+        # Plot active unpinned vertices darker
+        x_unp = unpinned_verts[:, 0]
+        y_unp = unpinned_verts[:, 1]
+        ax.scatter(x_unp, y_unp, color='black', s=15, alpha=0.9, zorder=4)
+
+        # --- EDGES (TENSION VISUALIZATION) ---
+        segments = unpinned_verts[unpinned_edges]
+
+        tol = 1e-8
+        zero_mask = np.abs(active_tensions) < tol
+        nonzero_mask = ~zero_mask
+
+        # Add zero-tension edges
+        if np.any(zero_mask):
+            lc_zero = LineCollection(segments[zero_mask], colors='gray',
+                                     linewidths=0.5, linestyles='dashed', alpha=0.5, zorder=2)
+            ax.add_collection(lc_zero)
+
+        # Add non-zero-tension edges
+        if np.any(nonzero_mask):
+            max_t = np.max(np.abs(active_tensions[nonzero_mask]))
+            normalized_tensions = np.abs(active_tensions[nonzero_mask]) / (max_t + 1e-12)
+            dynamic_linewidths = 0.5 + (4.0 * normalized_tensions)
+
+            lc_nonzero = LineCollection(segments[nonzero_mask], colors='black',
+                                        linewidths=dynamic_linewidths, alpha=0.8, zorder=3)
+            ax.add_collection(lc_nonzero)
+
+        # --- DISPLACEMENT ARROWS ---
+        # Reshape to 2D
+        disp_2d = all_displacements.reshape(-1, 2)
+        u_vec, v_vec = disp_2d[:, 0], disp_2d[:, 1]
+
+        disp_magnitudes = np.linalg.norm(disp_2d, axis=1)
+
+        cmap = plt.get_cmap('turbo')
+        norm = mcolors.Normalize(vmin=disp_magnitudes.min(), vmax=disp_magnitudes.max())
+        arrow_colors = cmap(norm(disp_magnitudes))
+
+        moved_mask = disp_magnitudes > 1e-10
+
+        if np.any(moved_mask):
+            # Auto-scaling arrows to sensible dimensions for readibility
+            # Note: angles='xy' ensures vectors correctly map to graph geometry
+            ax.quiver(x_unp[moved_mask], y_unp[moved_mask],
+                      u_vec[moved_mask], v_vec[moved_mask],
+                      color=arrow_colors[moved_mask], angles='xy', zorder=5)
+
+        # --- COLORBAR ---
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+        cbar = fig.colorbar(sm, ax=ax, shrink=0.5, pad=0.05)
+        cbar.set_label('Displacement Magnitude')
+
+        # --- AESTHETICS & SCALING ---
+        ax.set_title("")
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_aspect('equal', adjustable='box')  # Keeps geometry undistorted
+
+        buffer = 0.1
+        x_range = original_verts[:, 0].max() - original_verts[:, 0].min()
+        y_range = original_verts[:, 1].max() - original_verts[:, 1].min()
+
+        ax.set_xlim(original_verts[:, 0].min() - buffer * x_range, original_verts[:, 0].max() + buffer * x_range)
+        ax.set_ylim(original_verts[:, 1].min() - buffer * y_range, original_verts[:, 1].max() + buffer * y_range)
+
+        plt.tight_layout()
+        plt.show()
 
     def save_results_to_file(self) -> bool:
         """Save computed response data to a file."""
