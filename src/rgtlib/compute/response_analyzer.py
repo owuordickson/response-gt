@@ -136,8 +136,19 @@ class ResponseAnalyzer(ProgressUpdate):
                 res_dir = opt_rgt["potential_direction"]["items"][i]["id"]
         return res_dir
 
-    def init_list_data(self):
+    def init_list_data(self, silent: bool) -> bool:
         """Compute the list parameters for the response analyzer (if they were not uploaded by the user)"""
+        self.update_status(ProgressData(percent=10, sender="RGT",
+                                        message=f"Initializing response parameters...")) if not silent else None
+        if self.list_data["vertex_coordinates"]["data"] is None:
+            self.update_status(ProgressData(type="error", sender="RGT",
+                                            message=f"Vertex positions are missing! Please upload them via a CSV file.")) if not silent else None
+            return False
+        if self.list_data["edge_list"]["data"] is None:
+            self.update_status(ProgressData(type="error", sender="RGT",
+                                            message=f"Edge list is missing! Please upload them via a CSV file.")) if not silent else None
+            return False
+
         opt_rgt = self.configs
         list_data = self.list_data
 
@@ -172,6 +183,7 @@ class ResponseAnalyzer(ProgressUpdate):
         if list_data["leak_resistivity_list"]["value"] == 0 or list_data["leak_resistivity_list"]["data"] is None:
             # The array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
             list_data["leak_resistivity_list"]["data"] = leak_resistivity * vertex_list
+        return True
 
     def run_analyzer(self) -> None:
         """Executes functions that will compute AC Response and draw the response graph"""
@@ -303,16 +315,11 @@ class ResponseAnalyzer(ProgressUpdate):
             return given_potential_list, vertex_list
 
         self.update_status(ProgressData(percent=1, sender="RGT", message=f"Computing AC response...")) if not silent else None
-        if self.list_data["vertex_coordinates"]["data"] is None:
-            self.update_status(ProgressData(type="error", sender="RGT", message=f"Vertex positions are missing! Please upload them via a CSV file.")) if not silent else None
-            return None, None
-        if self.list_data["edge_list"]["data"] is None:
-            self.update_status(ProgressData(type="error", sender="RGT", message=f"Edge list is missing! Please upload them via a CSV file.")) if not silent else None
-            return None, None
 
         # Initialize response parameters and parameter lists
-        self.update_status(ProgressData(percent=10, sender="RGT", message=f"Initializing response parameters...")) if not silent else None
-        self.init_list_data()
+        data_ok = self.init_list_data(silent=silent)
+        if not data_ok:
+            return None, None
         list_data = self.list_data
         cap_list = list_data["capacitance_list"]["data"]
         leak_res_list = list_data["leak_resistivity_list"]["data"]
@@ -522,18 +529,26 @@ class ResponseAnalyzer(ProgressUpdate):
             num_edges = len(original_edges)
             return np.full(num_edges, k)
 
+        self.update_status(ProgressData(percent=1, sender="RGT", message=f"Computing Mechanical response...")) if not silent else None
+
+        # Initialize response parameters and parameter lists
+        data_ok = self.init_list_data(silent=silent)
+        if not data_ok:
+            return None, None
+        list_data = self.list_data
+
         # 1. Constructing the compatibility matrix
+        c_mat = pinned_compatibility_matrix()[0]
 
         # 2. Applying the load to network
 
         # 3. Computing mechanical response
-        cMat = pinned_compatibility_matrix()[0]
-        n_total = Cmat.shape[0]
+        n_total = c_mat.shape[0]
 
         # Diagonals of k_list form the stiffness matrix
         k_list = generate_2d_spring_constants()
         stiffness_mat = diags(np.array(k_list), format='csr')
-        d_mat = Cmat @ stiffness_mat @ Cmat.T
+        d_mat = c_mat @ stiffness_mat @ c_mat.T
 
         v_list = np.array(v_list)
         vb_list = np.setdiff1d(np.arange(n_total), v_list)
@@ -558,7 +573,7 @@ class ResponseAnalyzer(ProgressUpdate):
         u[vb_list] = u_b
 
         # Tensions
-        t = stiffness_mat @ Cmat.T @ u
+        t = stiffness_mat @ c_mat.T @ u
 
         print("Total applied force:", total_applied_force)
         return u, t
