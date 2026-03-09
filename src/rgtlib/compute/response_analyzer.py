@@ -467,10 +467,13 @@ class ResponseAnalyzer(ProgressUpdate):
             :return: All displacements (as a Numpy array) and all tensions (as a Numpy array).
         """
 
-        def pinned_compatibility_matrix():
+        def pinned_compatibility_matrix() -> tuple[csr_matrix, np.ndarray, np.ndarray, np.ndarray]:
             """
                 Constructs a pinned 2D compatibility matrix and returns the reduced geometry.
                 Pins a specified fraction of vertices based on their spatial ranking.
+
+                :return: A pinned compatibility matrix (as a scipy.sparse.csr_matrix), an array of pinned vertex indices,
+                 an array of unpinned edge indices, and a boolean array indicating which edges are valid (not floppy).
             """
 
             edge_list = list_data["edge_list"]["data"]
@@ -532,21 +535,24 @@ class ResponseAnalyzer(ProgressUpdate):
             mask[pinned_dof_arr] = False
             remaining_dofs = np.where(mask)[0]
             pinned_cmat = compatibility_mat[:, remaining_dofs]
-            transposed_cmat = (csr_matrix(pinned_cmat)).T
+            # transposed_cmat = (csr_matrix(pinned_cmat)).T
 
             # 5. Filter and Re-index Edges
             old_to_new_map = np.full(num_vertices, -1, dtype=int)
             old_to_new_map[unpinned_vert_indices] = np.arange(len(unpinned_vert_indices))
 
-            valid_edges_mask = (old_to_new_map[u_idx] != -1) & (old_to_new_map[v_idx] != -1)
-            valid_edges_old = edge_list[valid_edges_mask]
-            unpinned_edges = old_to_new_map[valid_edges_old]
+            valid_edge_list_mask = (old_to_new_map[u_idx] != -1) & (old_to_new_map[v_idx] != -1)
+            valid_edges_old = edge_list[valid_edge_list_mask]
+            unpinned_edge_list = old_to_new_map[valid_edges_old]
 
-            return pinned_cmat, unpinned_vertex_positions, unpinned_edges
+            return pinned_cmat, unpinned_vertex_positions, unpinned_edge_list, valid_edge_list_mask
 
-        def get_imposed_displacements(unpinned_vert_positions: np.ndarray):
+        def get_imposed_displacements(unpinned_vert_positions: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
             """
                 Selects a fraction of boundary vertices and assigns a 2D displacement vector to them.
+
+                :param unpinned_vert_positions: An array of unpinned vertex positions.
+                :return: A tuple containing two arrays: v_list_dof (DOFs of selected vertices), u_list_flat (displacement vectors).
             """
             displacement_vec = list_data["displacement_vector"]["data"]  # displacement_vector=np.array([0, 10])
 
@@ -568,7 +574,7 @@ class ResponseAnalyzer(ProgressUpdate):
             v_list_dof = np.array(v_list_dof)
             u_list_flat = np.tile(displacement_vec, num_to_select)
 
-            return v_list_dof, u_list_flat, selected_vertices
+            return v_list_dof, u_list_flat
 
         def generate_2d_spring_constants(k=1.0):
             """
@@ -593,13 +599,16 @@ class ResponseAnalyzer(ProgressUpdate):
         list_data = self.list_data
 
         # 1. Constructing the compatibility matrix
-        pin_cmat = pinned_compatibility_matrix()[0]
-        c_mat = (csr_matrix(pin_cmat)).T
+        self.update_status(ProgressData(percent=15, sender="RGT", message=f"Constructing compatibility matrix...")) if not silent else None
+        pinned_compat_mat, unpinned_vert_pos, unpinned_edge_lst, edge_lst_mask = pinned_compatibility_matrix()
+        c_mat = (csr_matrix(pinned_compat_mat)).T
 
         # 2. Applying the load to network
-        get_imposed_displacements()
+        self.update_status(ProgressData(percent=30, sender="RGT", message=f"Applying load to network...")) if not silent else None
+        v_dof_arr, u_disp_vec = get_imposed_displacements(unpinned_vert_pos)
 
         # 3. Computing mechanical response
+        self.update_status(ProgressData(percent=50, sender="RGT", message=f"Computing mechanical response...")) if not silent else None
         n_total = c_mat.shape[0]
 
         # Diagonals of k_list form the stiffness matrix
@@ -607,48 +616,53 @@ class ResponseAnalyzer(ProgressUpdate):
         stiffness_mat = diags(np.array(k_list), format='csr')
         d_mat = c_mat @ stiffness_mat @ c_mat.T
 
-        v_list = v_list  # np.array(v_list)
-        vb_list = np.setdiff1d(np.arange(n_total), v_list)
+        # v_dof_arr = np.array(v_dof_arr)
+        vb_list = np.setdiff1d(np.arange(n_total), v_dof_arr)
 
-        daa = d_mat[v_list, :][:, v_list]
-        dba = d_mat[vb_list, :][:, v_list]
+        daa = d_mat[v_dof_arr, :][:, v_dof_arr]
+        dba = d_mat[vb_list, :][:, v_dof_arr]
         dbb = d_mat[vb_list, :][:, vb_list]
 
-        ua = u_list  # np.array(u_list)
-        p = -dba @ ua
+        # u_disp_vec = u_list  # np.array(u_list)
+        p = -dba @ u_disp_vec
         u_b = lsqr(dbb, p)[0]
 
         dab = dba.T
-        f_a = (daa @ ua) + (dab @ u_b)
+        f_a = (daa @ u_disp_vec) + (dab @ u_b)
 
         # Reshape forces to 2D
+        self.update_status(ProgressData(percent=75, sender="RGT", message=f"Computing tension and displacements...")) if not silent else None
         f_a_2d = f_a.reshape(-1, 2)
         total_applied_force = np.sum(f_a_2d, axis=0)
 
         all_displacements = np.zeros(n_total)
-        all_displacements[v_list] = ua
+        all_displacements[v_dof_arr] = u_disp_vec
         all_displacements[vb_list] = u_b
 
         # Tensions
         all_tensions = stiffness_mat @ c_mat.T @ all_displacements
+        active_tensions = all_tensions[edge_lst_mask]
 
+        self.update_status(ProgressData(percent=85, sender="RGT", message=f"Saving results...")) if not silent else None
         print("Total applied force:", total_applied_force)
         # Save results
-        self.list_data["pinned_cmat"]["data"] = None
-        self.list_data["pinned_cmat"]["value"] = 1
-        self.list_data["unpinned_vertex_positions"]["data"] = None
+        # self.list_data["pinned_cmat"]["data"] = c_mat
+        # self.list_data["pinned_cmat"]["value"] = 1
+        self.list_data["unpinned_vertex_positions"]["data"] = unpinned_vert_pos
         self.list_data["unpinned_vertex_positions"]["value"] = 1
-        self.list_data["unpinned_edges"]["data"] = None
-        self.list_data["unpinned_edges"]["value"] = 1
-        self.list_data["u_list"]["data"] = ua
-        self.list_data["u_list"]["value"] = 1
-        self.list_data["v_list"]["data"] = v_list
-        self.list_data["v_list"]["value"] = 1
+        self.list_data["unpinned_edge_list"]["data"] = unpinned_edge_lst
+        self.list_data["unpinned_edge_list"]["value"] = 1
+        # self.list_data["displacement_vector"]["data"] = u_disp_vec
+        # self.list_data["displacement_vector"]["value"] = 1
+        # self.list_data["dof_vertices"]["data"] = v_dof_arr
+        # self.list_data["dof_vertices"]["value"] = 1
 
         self.list_data["calculated_displacements"]["data"] = all_displacements
         self.list_data["calculated_displacements"]["value"] = 1
         self.list_data["calculated_tensions"]["data"] = all_tensions
         self.list_data["calculated_tensions"]["value"] = 1
+        self.list_data["calculated_active_tensions"]["data"] = active_tensions
+        self.list_data["calculated_active_tensions"]["value"] = 1
         return all_displacements, all_tensions
 
     def plot_electrical_response(self, graph_type: str = "all", show_current_phase: bool = None, vertex_marker_size: float = None, edge_line_width: float = None, show_color_wheel: bool = None, phase_labels: dict = None) -> None | plt.Figure:
@@ -795,17 +809,30 @@ class ResponseAnalyzer(ProgressUpdate):
         # fig.tight_layout()
         return fig
 
-    @staticmethod
-    def plot_mechanical_response(vert_pos, unpinned_vertices, unpinned_edges, active_tensions, all_displacements) -> None | plt.Figure:
+    def plot_mechanical_response(self) -> None | plt.Figure:
         """
         Draws the graph of a mechanical response network.
         """
+        if self.list_data["calculated_displacements"]["data"] is None or self.list_data["calculated_active_tensions"]["data"] is None\
+                or self.list_data["unpinned_vertex_positions"]["data"] is None or self.list_data["unpinned_edge_list"]["data"] is None:
+            self.update_status(ProgressData(type="error", sender="RGT", message=f"Response data is missing! Please run the compute_response() method first."))
+            return None
+
+        # Fetch calculated data
+        self.update_status(ProgressData(percent=1, sender="RGT", message=f"Generating response graph..."))
+        vert_pos = self.list_data["vertex_coordinates"]["data"]
+        unpinned_vertices = self.list_data["unpinned_vertex_positions"]["data"]
+        unpinned_edges = self.list_data["unpinned_edge_list"]["data"]
+        active_tensions = self.list_data["calculated_active_tensions"]["data"]
+        all_displacements = self.list_data["calculated_displacements"]["data"]
+
         # Set up the figure, and axis
         #fig = plt.figure(figsize=(10, 10))
         #ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
         fig, ax = plt.subplots(figsize=(10, 10))
 
         # --- VERTICES ---
+        self.update_status(ProgressData(percent=10, sender="RGT", message=f"Plotting graph vertices..."))
         # Plot all original vertices as the background
         ax.scatter(vert_pos[:, 0], vert_pos[:, 1], color='black', s=10, alpha=0.3, zorder=1, label='All Vertices (Background)')
 
@@ -815,6 +842,7 @@ class ResponseAnalyzer(ProgressUpdate):
         ax.scatter(x_unp, y_unp, color='black', s=15, alpha=0.9, zorder=4)
 
         # --- EDGES (TENSION VISUALIZATION) ---
+        self.update_status(ProgressData(percent=20, sender="RGT", message=f"Plotting unpinned edges..."))
         segments = unpinned_vertices[unpinned_edges]
 
         tol = 1e-8
@@ -836,6 +864,7 @@ class ResponseAnalyzer(ProgressUpdate):
             ax.add_collection(lc_nonzero)
 
         # --- DISPLACEMENT ARROWS ---
+        self.update_status(ProgressData(percent=50, sender="RGT", message=f"Plotting displacement arrows..."))
         # Reshape to 2D
         disp_2d = all_displacements.reshape(-1, 2)
         u_vec, v_vec = disp_2d[:, 0], disp_2d[:, 1]
@@ -856,6 +885,7 @@ class ResponseAnalyzer(ProgressUpdate):
                       color=arrow_colors[moved_mask], angles='xy', zorder=5)
 
         # --- COLORBAR ---
+        self.update_status(ProgressData(percent=80, sender="RGT", message=f"Adding colorbar..."))
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
         cbar = fig.colorbar(sm, ax=ax, shrink=0.5, pad=0.05)
