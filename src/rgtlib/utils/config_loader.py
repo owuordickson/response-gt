@@ -49,6 +49,7 @@ def initialize_list_data():
         "calculated_vertex_potentials": {"id": "calculated_vertex_potentials", "value": 0, "data": None, "type": "Custom", "text": "Calculated Vertex Potentials", "visible": 0},
         "calculated_edge_currents": {"id": "calculated_edge_currents", "value": 0, "data": None, "type": "Custom", "text": "Calculated Edge Currents", "visible": 0},
         # Mechanical Response
+        "displacement_vector": {"id": "displacement_vector", "value": 0, "data": None, "type": "File", "text": "Displacement Vector", "visible": 1},
         "delete_edge_list": {"id": "delete_edge_list", "value": 0, "data": None, "type": "File", "text": "Edges to Delete", "visible": 1},
         "edge_mask_list": {"id": "edge_mask_list", "value": 0, "data": None, "type": "File", "text": "Valid Edge Mask", "visible": 1},
         "unpinned_vertex_positions": {"id": "unpinned_vertex_positions", "value": 0, "data": None, "type": "Custom", "text": "Calculated Unpinned Vertex Positions", "visible": 0},

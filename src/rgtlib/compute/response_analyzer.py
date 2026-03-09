@@ -199,8 +199,11 @@ class ResponseAnalyzer(ProgressUpdate):
                 list_data["leak_resistivity_list"]["data"] = leak_resistivity * vertex_list
             return True
         elif response_type == 1:
-            # Removing long edges (Specific to CSV network)
+            if list_data["displacement_vector"]["value"] == 0 or list_data["displacement_vector"]["data"] is None:
+                list_data["displacement_vector"]["data"] = np.array([0, 10])
+
             if list_data["delete_edge_list"]["value"] == 1 and list_data["delete_edge_list"]["data"] is not None:
+                # Removing long edges (Specific to CSV network)
                 # indices_to_remove = [22, 232]
                 indices_to_remove = list_data["delete_edge_list"]["data"]
                 indices_to_remove = [i for i in indices_to_remove if i < len(edge_list)]
@@ -216,18 +219,32 @@ class ResponseAnalyzer(ProgressUpdate):
             self.update_status([-1, "Problem encountered while running Response Analyzer.."])
             return
 
+        opt_rgt = self.configs
+        response_type = int(opt_rgt["response_type"]["value"])
+        if response_type != 0 and response_type != 1:
+            self.update_status([-1, "Invalid response type! Please select either 'Electrical' or 'Mechanical' response."])
+            self.abort = True
+            return
         try:
-            # 1. Compute AC Response
-            _, _ = self.compute_ac_response()
+            if response_type == 0:
+                # 1a. Compute AC Response
+                _, _ = self.compute_ac_response()
+            elif response_type == 1:
+                # 1b. Compute AC Response with long edges removed
+                _, _ = self.compute_mechanical_response()
         except IndexError:
             self.update_status([-1, "One or more vertex positions are out of range! Please re-upload Vertex List."])
             self.abort = True
             return
 
         # 2. Draw Response Graph
-        plt_fig = self.plot_electrical_response()
+        plt_fig = None
+        if response_type == 0:
+            plt_fig = self.plot_electrical_response()
+        elif response_type == 1:
+            plt_fig = self.plot_mechanical_response()
         self.update_status(ProgressData(percent=80, sender="RGT", message=f"Saving graph plot..."))
-        self._network_img = plot_to_opencv(plt_fig)
+        self._network_img = plot_to_opencv(plt_fig) if plt_fig is not None else None
 
     def compute_ac_response(self, silent: bool = False) -> tuple[None, None] | tuple[np.ndarray, np.ndarray]:
         """
@@ -887,7 +904,7 @@ class ResponseAnalyzer(ProgressUpdate):
                       color=arrow_colors[moved_mask], angles='xy', zorder=5)
 
         # --- COLORBAR ---
-        self.update_status(ProgressData(percent=80, sender="RGT", message=f"Adding colorbar..."))
+        self.update_status(ProgressData(percent=75, sender="RGT", message=f"Adding colorbar..."))
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
         cbar = fig.colorbar(sm, ax=ax, shrink=0.5, pad=0.05)
