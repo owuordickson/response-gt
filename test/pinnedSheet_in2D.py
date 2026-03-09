@@ -226,14 +226,12 @@ def response_to_static_displacements(Cmat, k_list, v_list, u_list):
 #=================================================================================
 
 # Toggles for features
-use_generated_network = True  # Set to False to load from CSV instead
+use_generated_network = False  # Set to False - to load from CSV instead
 
 if use_generated_network:
     # Generate a disordered network dynamically
     # nx and ny dictate the grid size, disorder_strength configures the "messiness"
-    original_verts, original_edges = generate_disordered_triangular_lattice(
-        nx=20, ny=15, spacing=1.0, disorder_strength=0.25
-    )
+    original_verts, original_edges = generate_disordered_triangular_lattice(nx=20, ny=15, spacing=1.0, disorder_strength=0.25)
 else:
     # Importing data from CSV
     nodes_df = pd.read_csv('nodes_AP.csv')
@@ -255,14 +253,13 @@ k_2d_list = generate_2d_spring_constants(num_edges)
 # Constructing the compatibility matrix
 Cmat, unpinned_verts, unpinned_edges, valid_edges_mask = pinnedCmat(original_verts, original_edges)
 
-active_tensions = np.zeros(1)
-all_displacements = np.zeros(1)
+#active_tensions = np.zeros(1)
+#all_displacements = np.zeros(1)
 
-# Applying load to network
+# Applying the load to network
 v_list_dof, u_list_flat, selected_verts = get_imposed_displacements(unpinned_verts)
     
-all_displacements, all_tensions, total_applied_force = response_to_static_displacements(
-    Cmat, k_2d_list, v_list_dof, u_list_flat)
+all_displacements, all_tensions, total_applied_force = response_to_static_displacements(Cmat, k_2d_list, v_list_dof, u_list_flat)
         
 active_tensions = all_tensions[valid_edges_mask]
 print("Total applied force:", total_applied_force)
