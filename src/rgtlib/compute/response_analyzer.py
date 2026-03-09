@@ -430,7 +430,7 @@ class ResponseAnalyzer(ProgressUpdate):
 
     def plot_electrical_response(self, graph_type: str = "all", show_current_phase: bool = None, vertex_marker_size: float = None, edge_line_width: float = None, show_color_wheel: bool = None, phase_labels: dict = None) -> None | plt.Figure:
         """
-        Draws the response graph of the network.
+        Draws the graph of an electrical response network.
         """
 
         if self.list_data["calculated_vertex_potentials"]["data"] is None or self.list_data["calculated_edge_currents"]["data"] is None:
@@ -530,9 +530,9 @@ class ResponseAnalyzer(ProgressUpdate):
         current_resp = self.list_data["calculated_edge_currents"]["data"]
 
         self.update_status(ProgressData(percent=5, sender="RGT", message=f"Fetching parameters..."))
-        # Create a figure and an axis
+        # Set up a figure and an axis
         if graph_type == "all":
-            fig = plt.Figure(figsize=(16.4 / 2, 10.7 / 2)) # last ordered pair is aspect ratio
+            fig = plt.Figure(figsize=(16.4 / 2, 10.7 / 2)) # the last ordered pair is the aspect ratio
             ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
             mk_size = 10 if vertex_marker_size is None else vertex_marker_size
             lw = 5 if edge_line_width is None else edge_line_width
@@ -572,15 +572,19 @@ class ResponseAnalyzer(ProgressUpdate):
         # fig.tight_layout()
         return fig
 
-    def plot_mechanical_response(self):
-        """"""
-        # Setup the 2D figure
+    @staticmethod
+    def plot_mechanical_response(original_verts, unpinned_verts, unpinned_edges, active_tensions, all_displacements) -> None | plt.Figure:
+        """
+        Draws the graph of a mechanical response network.
+        """
+        # Set up the figure, and axis
+        #fig = plt.figure(figsize=(10, 10))
+        #ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
         fig, ax = plt.subplots(figsize=(10, 10))
 
         # --- VERTICES ---
-        # Plot all original vertices as background
-        ax.scatter(original_verts[:, 0], original_verts[:, 1],
-                   color='black', s=10, alpha=0.3, zorder=1, label='All Vertices (Background)')
+        # Plot all original vertices as the background
+        ax.scatter(original_verts[:, 0], original_verts[:, 1], color='black', s=10, alpha=0.3, zorder=1, label='All Vertices (Background)')
 
         # Plot active unpinned vertices darker
         x_unp = unpinned_verts[:, 0]
@@ -596,8 +600,7 @@ class ResponseAnalyzer(ProgressUpdate):
 
         # Add zero-tension edges
         if np.any(zero_mask):
-            lc_zero = LineCollection(segments[zero_mask], colors='gray',
-                                     linewidths=0.5, linestyles='dashed', alpha=0.5, zorder=2)
+            lc_zero = LineCollection(segments[zero_mask], colors='gray', linewidths=0.5, linestyles='dashed', alpha=0.5, zorder=2)
             ax.add_collection(lc_zero)
 
         # Add non-zero-tension edges
@@ -606,8 +609,7 @@ class ResponseAnalyzer(ProgressUpdate):
             normalized_tensions = np.abs(active_tensions[nonzero_mask]) / (max_t + 1e-12)
             dynamic_linewidths = 0.5 + (4.0 * normalized_tensions)
 
-            lc_nonzero = LineCollection(segments[nonzero_mask], colors='black',
-                                        linewidths=dynamic_linewidths, alpha=0.8, zorder=3)
+            lc_nonzero = LineCollection(segments[nonzero_mask], colors='black', linewidths=dynamic_linewidths, alpha=0.8, zorder=3)
             ax.add_collection(lc_nonzero)
 
         # --- DISPLACEMENT ARROWS ---
@@ -624,7 +626,7 @@ class ResponseAnalyzer(ProgressUpdate):
         moved_mask = disp_magnitudes > 1e-10
 
         if np.any(moved_mask):
-            # Auto-scaling arrows to sensible dimensions for readibility
+            # Auto-scaling arrows to sensible dimensions for readability
             # Note: angles='xy' ensures vectors correctly map to graph geometry
             ax.quiver(x_unp[moved_mask], y_unp[moved_mask],
                       u_vec[moved_mask], v_vec[moved_mask],
@@ -649,8 +651,8 @@ class ResponseAnalyzer(ProgressUpdate):
         ax.set_xlim(original_verts[:, 0].min() - buffer * x_range, original_verts[:, 0].max() + buffer * x_range)
         ax.set_ylim(original_verts[:, 1].min() - buffer * y_range, original_verts[:, 1].max() + buffer * y_range)
 
-        plt.tight_layout()
-        plt.show()
+        fig.tight_layout()
+        return fig
 
     def save_results_to_file(self) -> bool:
         """Save computed response data to a file."""

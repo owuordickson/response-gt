@@ -11,6 +11,9 @@ from matplotlib.collections import LineCollection
 import pandas as pd
 import matplotlib.colors as mcolors
 
+from src.rgtlib.compute.response_analyzer import ResponseAnalyzer
+
+
 #=================================================================================
 # 2 - functions
 #=================================================================================
@@ -269,5 +272,5 @@ print("Total applied force:", total_applied_force)
 #=================================================================================
 #4 - plotting
 #=================================================================================
-
-
+plt_fig = ResponseAnalyzer.plot_mechanical_response(original_verts, unpinned_verts, unpinned_edges, active_tensions, all_displacements)
+plt_fig.show()
