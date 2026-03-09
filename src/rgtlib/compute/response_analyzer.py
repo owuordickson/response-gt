@@ -216,11 +216,7 @@ class ResponseAnalyzer(ProgressUpdate):
 
         try:
             # 1. Compute AC Response
-            vertex_potentials, edge_currents = self.compute_ac_response()
-            self.list_data["calculated_vertex_potentials"]["data"] = vertex_potentials
-            self.list_data["calculated_vertex_potentials"]["value"] = 1
-            self.list_data["calculated_edge_currents"]["data"] = edge_currents
-            self.list_data["calculated_edge_currents"]["value"] = 1
+            _, _ = self.compute_ac_response()
         except IndexError:
             self.update_status([-1, "One or more vertex positions are out of range! Please re-upload Vertex List."])
             self.abort = True
@@ -455,6 +451,12 @@ class ResponseAnalyzer(ProgressUpdate):
         self.update_status(ProgressData(percent=85, sender="RGT", message=f"Computing current response...")) if not silent else None
         # calculating current response
         current_response = admittance_mat @ c_mat @ potential_response
+
+        # Save computations
+        self.list_data["calculated_vertex_potentials"]["data"] = potential_response
+        self.list_data["calculated_vertex_potentials"]["value"] = 1
+        self.list_data["calculated_edge_currents"]["data"] = current_response
+        self.list_data["calculated_edge_currents"]["value"] = 1
         return potential_response, current_response
 
     def compute_mechanical_response(self, silent: bool = False) -> tuple[None, None] | tuple[np.ndarray, np.ndarray]:
@@ -470,10 +472,6 @@ class ResponseAnalyzer(ProgressUpdate):
                 Constructs a pinned 2D compatibility matrix and returns the reduced geometry.
                 Pins a specified fraction of vertices based on their spatial ranking.
             """
-            opt_rgt = self.configs
-            cartesian_direction = int(opt_rgt["cartesian_direction"]["value"])
-            use_smallest_boolean = int(opt_rgt["use_smallest_boolean"]["value"])
-            selected_vertex_fraction = float(opt_rgt["selected_vertex_proportion"]["value"])
 
             edge_list = list_data["edge_list"]["data"]
             vertex_positions = list_data["vertex_coordinates"]["data"]
@@ -494,14 +492,14 @@ class ResponseAnalyzer(ProgressUpdate):
             cols = np.zeros(num_edges * 4, dtype=int)
             data = np.zeros(num_edges * 4)
 
-            u = edge_list[:, 0]
-            v = edge_list[:, 1]
+            u_idx = edge_list[:, 0]
+            v_idx = edge_list[:, 1]
 
             # 2 DOFs per vertex (x, y)
-            cols[0::4] = 2 * u
-            cols[1::4] = 2 * u + 1
-            cols[2::4] = 2 * v
-            cols[3::4] = 2 * v + 1
+            cols[0::4] = 2 * u_idx
+            cols[1::4] = 2 * u_idx + 1
+            cols[2::4] = 2 * v_idx
+            cols[3::4] = 2 * v_idx + 1
 
             data[0::4] = hats[:, 0]
             data[1::4] = hats[:, 1]
@@ -516,42 +514,67 @@ class ResponseAnalyzer(ProgressUpdate):
             sorted_indices = np.argsort(coords)
 
             if use_smallest_boolean == 1:
-                pinned_verts = sorted_indices[:num_to_pin]
+                pinned_vertices = sorted_indices[:num_to_pin]
             else:
-                pinned_verts = sorted_indices[-num_to_pin:]
+                pinned_vertices = sorted_indices[-num_to_pin:]
 
             # Get unpinned vertices
-            all_verts = np.arange(num_vertices)
-            unpinned_vert_indices = np.setdiff1d(all_verts, pinned_verts)
+            all_vertices = np.arange(num_vertices)
+            unpinned_vert_indices = np.setdiff1d(all_vertices, pinned_vertices)
             unpinned_vertex_positions = vertex_positions[unpinned_vert_indices]
 
-            # 4. Construct pinned_cMat
-            pinned_dofs = []
-            for pv in pinned_verts:
-                pinned_dofs.extend([2 * pv, 2 * pv + 1])
+            # 4. Construct pinned_cmat
+            pinned_dof_arr = []
+            for pv in pinned_vertices:
+                pinned_dof_arr.extend([2 * pv, 2 * pv + 1])
 
             mask = np.ones(2 * num_vertices, dtype=bool)
-            mask[pinned_dofs] = False
+            mask[pinned_dof_arr] = False
             remaining_dofs = np.where(mask)[0]
-            pinned_cMat = compatibility_mat[:, remaining_dofs]
-            transposed_cMat = (csr_matrix(pinned_cMat)).T
+            pinned_cmat = compatibility_mat[:, remaining_dofs]
+            transposed_cmat = (csr_matrix(pinned_cmat)).T
 
             # 5. Filter and Re-index Edges
             old_to_new_map = np.full(num_vertices, -1, dtype=int)
             old_to_new_map[unpinned_vert_indices] = np.arange(len(unpinned_vert_indices))
 
-            valid_edges_mask = (old_to_new_map[u] != -1) & (old_to_new_map[v] != -1)
+            valid_edges_mask = (old_to_new_map[u_idx] != -1) & (old_to_new_map[v_idx] != -1)
             valid_edges_old = edge_list[valid_edges_mask]
-
             unpinned_edges = old_to_new_map[valid_edges_old]
 
-            return transposed_cMat, unpinned_vertex_positions, unpinned_edges, valid_edges_mask
+            return pinned_cmat, unpinned_vertex_positions, unpinned_edges
+
+        def get_imposed_displacements(unpinned_vert_positions: np.ndarray):
+            """
+                Selects a fraction of boundary vertices and assigns a 2D displacement vector to them.
+            """
+            displacement_vec = list_data["displacement_vector"]["data"]  # displacement_vector=np.array([0, 10])
+
+            num_vertices = len(unpinned_vert_positions)
+            num_to_select = int(round(num_vertices * selected_vertex_fraction))
+
+            coords = unpinned_vert_positions[:, cartesian_direction]
+            sorted_indices = np.argsort(coords)
+
+            if use_smallest_boolean:
+                selected_vertices = sorted_indices[:num_to_select]
+            else:
+                selected_vertices = sorted_indices[-num_to_select:]
+
+            v_list_dof = []
+            for v in selected_vertices:
+                v_list_dof.extend([2 * v, 2 * v + 1])
+
+            v_list_dof = np.array(v_list_dof)
+            u_list_flat = np.tile(displacement_vec, num_to_select)
+
+            return v_list_dof, u_list_flat, selected_vertices
 
         def generate_2d_spring_constants(k=1.0):
             """
             Generates a list of spring constants for the 2D network. Defaults to 1.0 for all edges.
 
-            :return: A list of spring constants (as a Numpy array) for the 2D network..
+            :return: A list of spring constants (as a Numpy array) for the 2D network.
             """
             num_edges = len(list_data["edge_list"]["data"])
             return np.full(num_edges, k)
@@ -562,12 +585,19 @@ class ResponseAnalyzer(ProgressUpdate):
         data_ok = self.init_list_data(silent=silent)
         if not data_ok:
             return None, None
+
+        opt_rgt = self.configs
+        cartesian_direction = int(opt_rgt["cartesian_direction"]["value"])
+        use_smallest_boolean = int(opt_rgt["use_smallest_boolean"]["value"])
+        selected_vertex_fraction = float(opt_rgt["selected_vertex_proportion"]["value"])
         list_data = self.list_data
 
         # 1. Constructing the compatibility matrix
-        c_mat = pinned_compatibility_matrix()[0]
+        pin_cmat = pinned_compatibility_matrix()[0]
+        c_mat = (csr_matrix(pin_cmat)).T
 
         # 2. Applying the load to network
+        get_imposed_displacements()
 
         # 3. Computing mechanical response
         n_total = c_mat.shape[0]
@@ -577,14 +607,14 @@ class ResponseAnalyzer(ProgressUpdate):
         stiffness_mat = diags(np.array(k_list), format='csr')
         d_mat = c_mat @ stiffness_mat @ c_mat.T
 
-        v_list = np.array(v_list)
+        v_list = v_list  # np.array(v_list)
         vb_list = np.setdiff1d(np.arange(n_total), v_list)
 
         daa = d_mat[v_list, :][:, v_list]
         dba = d_mat[vb_list, :][:, v_list]
         dbb = d_mat[vb_list, :][:, vb_list]
 
-        ua = np.array(u_list)
+        ua = u_list  # np.array(u_list)
         p = -dba @ ua
         u_b = lsqr(dbb, p)[0]
 
@@ -595,15 +625,31 @@ class ResponseAnalyzer(ProgressUpdate):
         f_a_2d = f_a.reshape(-1, 2)
         total_applied_force = np.sum(f_a_2d, axis=0)
 
-        u = np.zeros(n_total)
-        u[v_list] = ua
-        u[vb_list] = u_b
+        all_displacements = np.zeros(n_total)
+        all_displacements[v_list] = ua
+        all_displacements[vb_list] = u_b
 
         # Tensions
-        t = stiffness_mat @ c_mat.T @ u
+        all_tensions = stiffness_mat @ c_mat.T @ all_displacements
 
         print("Total applied force:", total_applied_force)
-        return u, t
+        # Save results
+        self.list_data["pinned_cmat"]["data"] = None
+        self.list_data["pinned_cmat"]["value"] = 1
+        self.list_data["unpinned_vertex_positions"]["data"] = None
+        self.list_data["unpinned_vertex_positions"]["value"] = 1
+        self.list_data["unpinned_edges"]["data"] = None
+        self.list_data["unpinned_edges"]["value"] = 1
+        self.list_data["u_list"]["data"] = ua
+        self.list_data["u_list"]["value"] = 1
+        self.list_data["v_list"]["data"] = v_list
+        self.list_data["v_list"]["value"] = 1
+
+        self.list_data["calculated_displacements"]["data"] = all_displacements
+        self.list_data["calculated_displacements"]["value"] = 1
+        self.list_data["calculated_tensions"]["data"] = all_tensions
+        self.list_data["calculated_tensions"]["value"] = 1
+        return all_displacements, all_tensions
 
     def plot_electrical_response(self, graph_type: str = "all", show_current_phase: bool = None, vertex_marker_size: float = None, edge_line_width: float = None, show_color_wheel: bool = None, phase_labels: dict = None) -> None | plt.Figure:
         """
@@ -750,7 +796,7 @@ class ResponseAnalyzer(ProgressUpdate):
         return fig
 
     @staticmethod
-    def plot_mechanical_response(original_verts, unpinned_verts, unpinned_edges, active_tensions, all_displacements) -> None | plt.Figure:
+    def plot_mechanical_response(vert_pos, unpinned_vertices, unpinned_edges, active_tensions, all_displacements) -> None | plt.Figure:
         """
         Draws the graph of a mechanical response network.
         """
@@ -761,15 +807,15 @@ class ResponseAnalyzer(ProgressUpdate):
 
         # --- VERTICES ---
         # Plot all original vertices as the background
-        ax.scatter(original_verts[:, 0], original_verts[:, 1], color='black', s=10, alpha=0.3, zorder=1, label='All Vertices (Background)')
+        ax.scatter(vert_pos[:, 0], vert_pos[:, 1], color='black', s=10, alpha=0.3, zorder=1, label='All Vertices (Background)')
 
         # Plot active unpinned vertices darker
-        x_unp = unpinned_verts[:, 0]
-        y_unp = unpinned_verts[:, 1]
+        x_unp = unpinned_vertices[:, 0]
+        y_unp = unpinned_vertices[:, 1]
         ax.scatter(x_unp, y_unp, color='black', s=15, alpha=0.9, zorder=4)
 
         # --- EDGES (TENSION VISUALIZATION) ---
-        segments = unpinned_verts[unpinned_edges]
+        segments = unpinned_vertices[unpinned_edges]
 
         tol = 1e-8
         zero_mask = np.abs(active_tensions) < tol
@@ -822,11 +868,11 @@ class ResponseAnalyzer(ProgressUpdate):
         ax.set_aspect('equal', adjustable='box')  # Keeps geometry undistorted
 
         buffer = 0.1
-        x_range = original_verts[:, 0].max() - original_verts[:, 0].min()
-        y_range = original_verts[:, 1].max() - original_verts[:, 1].min()
+        x_range = vert_pos[:, 0].max() - vert_pos[:, 0].min()
+        y_range = vert_pos[:, 1].max() - vert_pos[:, 1].min()
 
-        ax.set_xlim(original_verts[:, 0].min() - buffer * x_range, original_verts[:, 0].max() + buffer * x_range)
-        ax.set_ylim(original_verts[:, 1].min() - buffer * y_range, original_verts[:, 1].max() + buffer * y_range)
+        ax.set_xlim(vert_pos[:, 0].min() - buffer * x_range, vert_pos[:, 0].max() + buffer * x_range)
+        ax.set_ylim(vert_pos[:, 1].min() - buffer * y_range, vert_pos[:, 1].max() + buffer * y_range)
 
         fig.tight_layout()
         return fig
