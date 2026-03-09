@@ -125,6 +125,7 @@ def load_rgt_configs(cfg_path: str = ""):
     # add the imposed direction (selected)
     options_rgt: dict[str, dict[str, Union[int, float, list]]] = {
         "response_type": {"id": "response_type", "type": "rgt-settings", "text": "Response Type", "visible": 1, "value": 0},
+
         "potential_direction": {"id": "potential_direction", "type": "potential-settings", "text": "Potential Direction", "visible": 0, "value": 1,
                                 "items": [
                                     {"id": "TB", "text": "Top-Bottom", "value": 1},
@@ -135,10 +136,14 @@ def load_rgt_configs(cfg_path: str = ""):
         "potential_magnitude": {"id": "potential_magnitude", "type": "potential-settings", "text": "Potential Magnitude", "visible": 1, "value": 100.0, "minValue": -100, "maxValue": 100},
         "selected_vertex_proportion": {"id": "selected_vertex_proportion", "type": "potential-settings", "text": "Fraction of Vertices", "visible": 1, "value": 0.05, "minValue": 0, "maxValue": 1},
         "potential_frequency": {"id": "potential_frequency", "type": "dc-param", "text": "Potential Frequency", "visible": 1, "value": 1, "multiplier": -6, "minValue": -1000, "maxValue": 1000},
+
         "resistivity": {"id": "resistivity", "type": "dc-param", "text": "Resistivity", "visible": 1, "value": 1, "multiplier": 0, "minValue": -1000, "maxValue": 1000},
         "capacitance": {"id": "capacitance", "type": "dc-param", "text": "Capacitance", "visible": 1, "value": 1, "multiplier": -6, "minValue": -1000, "maxValue": 1000},
         "inductance": {"id": "inductance", "type": "dc-param", "text": "Inductance", "visible": 1, "value": 1, "multiplier": -9, "minValue": -1000, "maxValue": 1000},
-        "leak_resistivity": {"id": "leak_resistivity", "type": "dc-param", "text": "Leak Resistivity", "visible": 1, "value": 1, "multiplier": 6, "minValue": -1000, "maxValue": 1000}
+        "leak_resistivity": {"id": "leak_resistivity", "type": "dc-param", "text": "Leak Resistivity", "visible": 1, "value": 1, "multiplier": 6, "minValue": -1000, "maxValue": 1000},
+
+        "cartesian_direction": {"id": "cartesian_direction", "type": "mech-param", "text": "Cartesian Direction", "visible": 1, "value": 0},
+        "use_smallest_boolean": {"id": "use_smallest_boolean", "type": "mech-param", "text": "Use Smallest Boolean", "visible": 1, "value": 1},
     }
 
     # Load configuration from the file
@@ -148,15 +153,18 @@ def load_rgt_configs(cfg_path: str = ""):
 
     try:
         options_rgt["response_type"]["value"] = int(config.get('rgt-settings', 'response_type'))
+        frac_val = float(config.get('rgt-settings', 'selected_vertex_proportion'))
 
         pot_dir = str(config.get('dc-response', 'potential_direction'))
         freq_val = float(config.get('dc-response', 'potential_frequency'))
-        frac_val = float(config.get('dc-response', 'potential_fraction'))
         mag_val = float(config.get('dc-response', 'potential_magnitude'))
         res_val = float(config.get('dc-response', 'resistivity'))
         cap_val = float(config.get('dc-response', 'capacitance'))
         ind_val = float(config.get('dc-response', 'inductance'))
         leak_val = float(config.get('dc-response', 'leak_resistivity'))
+
+        cart_dir = int(config.get('mechanical-response', 'cartesian_direction'))
+        small_bool = int(config.get('mechanical-response', 'use_smallest_boolean'))
 
         options_rgt["selected_vertex_proportion"]["value"] = frac_val
         options_rgt["potential_magnitude"]["value"] = mag_val
@@ -168,6 +176,9 @@ def load_rgt_configs(cfg_path: str = ""):
         options_rgt["capacitance"]["value"], options_rgt["capacitance"]["multiplier"] = number_to_scientific_parts(cap_val)
         options_rgt["inductance"]["value"], options_rgt["inductance"]["multiplier"] = number_to_scientific_parts(ind_val)
         options_rgt["leak_resistivity"]["value"], options_rgt["leak_resistivity"]["multiplier"] = number_to_scientific_parts(leak_val)
+
+        options_rgt["cartesian_direction"]["value"] = cart_dir
+        options_rgt["use_smallest_boolean"]["value"] = small_bool
 
         return options_rgt
     except configparser.NoSectionError:
