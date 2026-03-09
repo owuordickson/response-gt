@@ -136,10 +136,21 @@ class ResponseAnalyzer(ProgressUpdate):
                 res_dir = opt_rgt["potential_direction"]["items"][i]["id"]
         return res_dir
 
-    def init_list_data(self, silent: bool) -> bool:
-        """Compute the list parameters for the response analyzer (if they were not uploaded by the user)"""
+    def init_list_data(self, silent: bool, response_type: int = 0) -> bool:
+        """
+        Compute the list parameters for the response analyzer (electrical and mechanical).
+
+        Args:
+             silent (bool): If True, the function will not update the status bar or send status messages
+             response_type (int): 0 for electrical, 1 for mechanical
+
+        Returns:
+            True if the list parameters are successfully initialized, False otherwise.
+        """
         self.update_status(ProgressData(percent=10, sender="RGT",
                                         message=f"Initializing response parameters...")) if not silent else None
+
+        # Check if data is read from CSV
         if self.list_data["vertex_coordinates"]["data"] is None:
             self.update_status(ProgressData(type="error", sender="RGT",
                                             message=f"Vertex positions are missing! Please upload them via a CSV file.")) if not silent else None
@@ -149,41 +160,52 @@ class ResponseAnalyzer(ProgressUpdate):
                                             message=f"Edge list is missing! Please upload them via a CSV file.")) if not silent else None
             return False
 
+        # Retrieve configs and all data
         opt_rgt = self.configs
         list_data = self.list_data
-
         edge_list = list_data["edge_list"]["data"]
         vert_pos = list_data["vertex_coordinates"]["data"]
-        resistivity = self.get_parameter_value("resistivity")
-        capacitance = self.get_parameter_value("capacitance")
-        inductance = self.get_parameter_value("inductance")
-        leak_resistivity = self.get_parameter_value("leak_resistivity")
 
-        if list_data["resistivity_list"]["value"] == 0 or list_data["resistivity_list"]["data"] is None:
-            # The array of resistance for each EDGE
-            list_data["resistivity_list"]["data"] = resistivity * np.ones(len(edge_list))
+        if response_type == 0:
+            # Initialize lists (data) for electrical response
+            resistivity = self.get_parameter_value("resistivity")
+            capacitance = self.get_parameter_value("capacitance")
+            inductance = self.get_parameter_value("inductance")
+            leak_resistivity = self.get_parameter_value("leak_resistivity")
 
-        if list_data["inductance_list"]["value"] == 0 or list_data["inductance_list"]["data"] is None:
-            # The array of inductance for each EDGE
-            list_data["inductance_list"]["data"] = inductance * np.ones(len(edge_list))
+            if list_data["resistivity_list"]["value"] == 0 or list_data["resistivity_list"]["data"] is None:
+                # The array of resistance for each EDGE
+                list_data["resistivity_list"]["data"] = resistivity * np.ones(len(edge_list))
 
-        if list_data["given_potential_list"]["value"] == 0 or list_data["given_potential_list"]["data"] is None:
-            given_potential_fraction = float(opt_rgt["potential_fraction"]["value"])
+            if list_data["inductance_list"]["value"] == 0 or list_data["inductance_list"]["data"] is None:
+                # The array of inductance for each EDGE
+                list_data["inductance_list"]["data"] = inductance * np.ones(len(edge_list))
+
+            if list_data["given_potential_list"]["value"] == 0 or list_data["given_potential_list"]["data"] is None:
+                given_potential_fraction = float(opt_rgt["selected_vertex_proportion"]["value"])
+                num_vertices = len(vert_pos)
+                num_selected = int(given_potential_fraction * num_vertices)
+                list_data["given_potential_list"]["data"] = np.zeros(int(2 * num_selected))
+
             num_vertices = len(vert_pos)
-            num_selected = int(given_potential_fraction * num_vertices)
-            list_data["given_potential_list"]["data"] = np.zeros(int(2 * num_selected))
+            num_selected = len(list_data["given_potential_list"]["data"])
+            vertex_list = np.ones(num_vertices - num_selected)
+            if list_data["capacitance_list"]["value"] == 0 or list_data["capacitance_list"]["data"] is None:
+                # The array of capacitance for each NODE that is NOT given an applied potential. nodes are taken to be capacitors connected to a grounded potential (0).
+                list_data["capacitance_list"]["data"] = capacitance * vertex_list
 
-        num_vertices = len(vert_pos)
-        num_selected = len(list_data["given_potential_list"]["data"])
-        vertex_list = np.ones(num_vertices - num_selected)
-        if list_data["capacitance_list"]["value"] == 0 or list_data["capacitance_list"]["data"] is None:
-            # The array of capacitance for each NODE that is NOT given an applied potential. nodes are taken to be capacitors connected to a grounded potential (0).
-            list_data["capacitance_list"]["data"] = capacitance * vertex_list
-
-        if list_data["leak_resistivity_list"]["value"] == 0 or list_data["leak_resistivity_list"]["data"] is None:
-            # The array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
-            list_data["leak_resistivity_list"]["data"] = leak_resistivity * vertex_list
-        return True
+            if list_data["leak_resistivity_list"]["value"] == 0 or list_data["leak_resistivity_list"]["data"] is None:
+                # The array of resistance between each NODE that is NOT given an applied potential and the ground, a "leakage" resistance.
+                list_data["leak_resistivity_list"]["data"] = leak_resistivity * vertex_list
+            return True
+        elif response_type == 1:
+            # Removing long edges (Specific to CSV network, skip if generating fresh)
+            # indices_to_remove = [22, 232]
+            # indices_to_remove = [i for i in indices_to_remove if i < len(edge_list)]
+            # list_data["edge_list"]["data"] = np.delete(edge_list, indices_to_remove, axis=0)
+            return True
+        else:
+            return False
 
     def run_analyzer(self) -> None:
         """Executes functions that will compute AC Response and draw the response graph"""
@@ -448,17 +470,22 @@ class ResponseAnalyzer(ProgressUpdate):
                 Constructs a pinned 2D compatibility matrix and returns the reduced geometry.
                 Pins a specified fraction of vertices based on their spatial ranking.
             """
-            vertex_positions = np.asarray(vertex_positions)
-            edgesByIndex = np.asarray(edgesByIndex)
+            opt_rgt = self.configs
+            cartesian_direction = int(opt_rgt["cartesian_direction"]["value"])
+            use_smallest_boolean = int(opt_rgt["use_smallest_boolean"]["value"])
+            selected_vertex_fraction = float(opt_rgt["selected_vertex_proportion"]["value"])
 
-            num_verts = len(vertex_positions)
-            num_edges = len(edgesByIndex)
+            edge_list = list_data["edge_list"]["data"]
+            vertex_positions = list_data["vertex_coordinates"]["data"]
+
+            num_vertices = len(vertex_positions)
+            num_edges = len(edge_list)
 
             # 1. Edges by endpoints
-            p1 = vertex_positions[edgesByIndex[:, 0]]
-            p2 = vertex_positions[edgesByIndex[:, 1]]
+            p1 = vertex_positions[edge_list[:, 0]]
+            p2 = vertex_positions[edge_list[:, 1]]
 
-            # 2. Construct normal cMat (2D)
+            # 2. Construct normal compatibility_mat (2D)
             diff = p1 - p2
             lengths = np.linalg.norm(diff, axis=1, keepdims=True)
             hats = diff / lengths
@@ -467,8 +494,8 @@ class ResponseAnalyzer(ProgressUpdate):
             cols = np.zeros(num_edges * 4, dtype=int)
             data = np.zeros(num_edges * 4)
 
-            u = edgesByIndex[:, 0]
-            v = edgesByIndex[:, 1]
+            u = edge_list[:, 0]
+            v = edge_list[:, 1]
 
             # 2 DOFs per vertex (x, y)
             cols[0::4] = 2 * u
@@ -481,20 +508,20 @@ class ResponseAnalyzer(ProgressUpdate):
             data[2::4] = -hats[:, 0]
             data[3::4] = -hats[:, 1]
 
-            cMat = csr_matrix((data, (rows, cols)), shape=(num_edges, 2 * num_verts))
+            compatibility_mat = csr_matrix((data, (rows, cols)), shape=(num_edges, 2 * num_vertices))
 
-            # 3. Identify pinned and unpinned vertices based on fraction
-            coords = vertex_positions[:, Cartesian_direction]
-            num_to_pin = int(round(num_verts * frac_selected))
+            # 3. Identify pinned and unpinned vertices based on a fraction
+            coords = vertex_positions[:, cartesian_direction]
+            num_to_pin = int(round(num_vertices * selected_vertex_fraction))
             sorted_indices = np.argsort(coords)
 
-            if smallest_boolean:
+            if use_smallest_boolean == 1:
                 pinned_verts = sorted_indices[:num_to_pin]
             else:
                 pinned_verts = sorted_indices[-num_to_pin:]
 
             # Get unpinned vertices
-            all_verts = np.arange(num_verts)
+            all_verts = np.arange(num_vertices)
             unpinned_vert_indices = np.setdiff1d(all_verts, pinned_verts)
             unpinned_vertex_positions = vertex_positions[unpinned_vert_indices]
 
@@ -503,18 +530,18 @@ class ResponseAnalyzer(ProgressUpdate):
             for pv in pinned_verts:
                 pinned_dofs.extend([2 * pv, 2 * pv + 1])
 
-            mask = np.ones(2 * num_verts, dtype=bool)
+            mask = np.ones(2 * num_vertices, dtype=bool)
             mask[pinned_dofs] = False
             remaining_dofs = np.where(mask)[0]
-            pinned_cMat = cMat[:, remaining_dofs]
+            pinned_cMat = compatibility_mat[:, remaining_dofs]
             transposed_cMat = (csr_matrix(pinned_cMat)).T
 
             # 5. Filter and Re-index Edges
-            old_to_new_map = np.full(num_verts, -1, dtype=int)
+            old_to_new_map = np.full(num_vertices, -1, dtype=int)
             old_to_new_map[unpinned_vert_indices] = np.arange(len(unpinned_vert_indices))
 
             valid_edges_mask = (old_to_new_map[u] != -1) & (old_to_new_map[v] != -1)
-            valid_edges_old = edgesByIndex[valid_edges_mask]
+            valid_edges_old = edge_list[valid_edges_mask]
 
             unpinned_edges = old_to_new_map[valid_edges_old]
 
@@ -526,7 +553,7 @@ class ResponseAnalyzer(ProgressUpdate):
 
             :return: A list of spring constants (as a Numpy array) for the 2D network..
             """
-            num_edges = len(original_edges)
+            num_edges = len(list_data["edge_list"]["data"])
             return np.full(num_edges, k)
 
         self.update_status(ProgressData(percent=1, sender="RGT", message=f"Computing Mechanical response...")) if not silent else None

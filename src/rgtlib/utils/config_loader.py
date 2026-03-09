@@ -133,7 +133,7 @@ def load_rgt_configs(cfg_path: str = ""):
                                     {"id": "RL", "text": "Right-Left", "value": 0}
                                 ]},
         "potential_magnitude": {"id": "potential_magnitude", "type": "potential-settings", "text": "Potential Magnitude", "visible": 1, "value": 100.0, "minValue": -100, "maxValue": 100},
-        "potential_fraction": {"id": "potential_fraction", "type": "potential-settings", "text": "Fraction of Vertices", "visible": 1, "value": 0.05, "minValue": 0, "maxValue": 1},
+        "selected_vertex_proportion": {"id": "selected_vertex_proportion", "type": "potential-settings", "text": "Fraction of Vertices", "visible": 1, "value": 0.05, "minValue": 0, "maxValue": 1},
         "potential_frequency": {"id": "potential_frequency", "type": "dc-param", "text": "Potential Frequency", "visible": 1, "value": 1, "multiplier": -6, "minValue": -1000, "maxValue": 1000},
         "resistivity": {"id": "resistivity", "type": "dc-param", "text": "Resistivity", "visible": 1, "value": 1, "multiplier": 0, "minValue": -1000, "maxValue": 1000},
         "capacitance": {"id": "capacitance", "type": "dc-param", "text": "Capacitance", "visible": 1, "value": 1, "multiplier": -6, "minValue": -1000, "maxValue": 1000},
@@ -158,7 +158,7 @@ def load_rgt_configs(cfg_path: str = ""):
         ind_val = float(config.get('dc-response', 'inductance'))
         leak_val = float(config.get('dc-response', 'leak_resistivity'))
 
-        options_rgt["potential_fraction"]["value"] = frac_val
+        options_rgt["selected_vertex_proportion"]["value"] = frac_val
         options_rgt["potential_magnitude"]["value"] = mag_val
         for i in range(len(options_rgt["potential_direction"]["items"])):
             options_rgt["potential_direction"]["items"][i]["value"] = 1 if options_rgt["potential_direction"]["items"][i]["id"] == pot_dir else 0
