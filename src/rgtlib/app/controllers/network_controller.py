@@ -85,7 +85,7 @@ class NetworkController(QObject):
 
         try:
             options_rgt = rgt_obj.configs
-            res_type = options_rgt["response_type"]["value"]
+            res_type = options_rgt["param_type"]["value"]
             rgt_dc_params = [v for v in options_rgt.values() if v["type"] == "dc-param"]
             for  param in rgt_dc_params:
                 if param["id"] == "resistivity":

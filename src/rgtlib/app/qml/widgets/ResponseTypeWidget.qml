@@ -125,7 +125,7 @@ ColumnLayout {
             let item_id = rgtOptions.data(index, idRole);  // IdRole
             let item_val = rgtOptions.data(index, valueRole); // ValueRole
 
-            if (item_id === "response_type") {
+            if (item_id === "param_type") {
                 btnGrpType.checkedButton = item_val === 0 ? rdoStatic : rdoDynamic;
             }
         }
