@@ -234,8 +234,8 @@ if use_generated_network:
     original_verts, original_edges = generate_disordered_triangular_lattice(nx=20, ny=15, spacing=1.0, disorder_strength=0.25)
 else:
     # Importing data from CSV
-    nodes_df = pd.read_csv('nodes_AP.csv')
-    edges_df = pd.read_csv('edges_AP.csv')
+    nodes_df = pd.read_csv('../datasets/nodes_AP.csv')
+    edges_df = pd.read_csv('../datasets/edges_AP.csv')
 
     # Ensure we are only taking the first 2 columns (X, Y)
     original_verts = nodes_df.to_numpy()[:, :2] 

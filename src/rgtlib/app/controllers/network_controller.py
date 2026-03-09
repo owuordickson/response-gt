@@ -63,7 +63,7 @@ class NetworkController(QObject):
 
             # Get data from object configs
             rgt_files = [v for v in list_data.values() if (v["visible"] == 1 and v["value"] != 0)]
-            rgt_settings = [v for v in options_rgt.values() if v["type"] == "rgt-settings"]
+            rgt_settings = [v for v in options_rgt.values() if v["type"] == "param-settings"]
             rgt_dc_params = [v for v in options_rgt.values() if v["type"] == "dc-param"]
             rgt_potentials = [v for v in options_rgt.values() if v["type"] == "potential-settings"]
             rgt_pot_dir = options_rgt["potential_direction"]["items"]
