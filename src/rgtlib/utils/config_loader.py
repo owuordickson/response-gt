@@ -124,6 +124,7 @@ def load_rgt_configs(cfg_path: str = ""):
 
     # add the imposed direction (selected)
     options_rgt: dict[str, dict[str, Union[int, float, list]]] = {
+        "response_type": {"id": "response_type", "type": "rgt-settings", "text": "Response Type", "visible": 1, "value": 0},
         "param_type": {"id": "param_type", "type": "rgt-settings", "text": "Response Type", "visible": 1, "value": 0},
 
         "potential_direction": {"id": "potential_direction", "type": "potential-settings", "text": "Potential Direction", "visible": 0, "value": 1,
@@ -152,6 +153,7 @@ def load_rgt_configs(cfg_path: str = ""):
         return options_rgt
 
     try:
+        options_rgt["response_type"]["value"] = int(config.get('rgt-settings', 'response_type'))
         options_rgt["param_type"]["value"] = int(config.get('rgt-settings', 'param_type'))
         frac_val = float(config.get('rgt-settings', 'selected_vertex_proportion'))
 

@@ -136,13 +136,12 @@ class ResponseAnalyzer(ProgressUpdate):
                 res_dir = opt_rgt["potential_direction"]["items"][i]["id"]
         return res_dir
 
-    def init_list_data(self, silent: bool, response_type: int = 0) -> bool:
+    def init_list_data(self, silent: bool) -> bool:
         """
         Compute the list parameters for the response analyzer (electrical and mechanical).
 
         Args:
              silent (bool): If True, the function will not update the status bar or send status messages
-             response_type (int): 0 for electrical, 1 for mechanical
 
         Returns:
             True if the list parameters are successfully initialized, False otherwise.
@@ -166,6 +165,7 @@ class ResponseAnalyzer(ProgressUpdate):
         edge_list = list_data["edge_list"]["data"]
         vert_pos = list_data["vertex_coordinates"]["data"]
 
+        response_type = int(opt_rgt["response_type"]["value"])
         if response_type == 0:
             # Initialize lists (data) for electrical response
             resistivity = self.get_parameter_value("resistivity")
@@ -646,12 +646,12 @@ class ResponseAnalyzer(ProgressUpdate):
         self.update_status(ProgressData(percent=85, sender="RGT", message=f"Saving results...")) if not silent else None
         print("Total applied force:", total_applied_force)
         # Save results
-        # self.list_data["pinned_cmat"]["data"] = c_mat
-        # self.list_data["pinned_cmat"]["value"] = 1
         self.list_data["unpinned_vertex_positions"]["data"] = unpinned_vert_pos
         self.list_data["unpinned_vertex_positions"]["value"] = 1
         self.list_data["unpinned_edge_list"]["data"] = unpinned_edge_lst
         self.list_data["unpinned_edge_list"]["value"] = 1
+        # self.list_data["pinned_cmat"]["data"] = c_mat
+        # self.list_data["pinned_cmat"]["value"] = 1
         # self.list_data["displacement_vector"]["data"] = u_disp_vec
         # self.list_data["displacement_vector"]["value"] = 1
         # self.list_data["dof_vertices"]["data"] = v_dof_arr
