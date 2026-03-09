@@ -374,7 +374,7 @@ ColumnLayout {
 
         function onImageChangedSignal() {
             // Force refresh
-            imposedNodesWidget.visible = networkController.graph_data_uploaded();
+            imposedNodesWidget.visible = networkController.graph_data_uploaded() && networkController.is_electrical_response();
         }
     }
 

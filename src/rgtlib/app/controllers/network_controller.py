@@ -137,6 +137,20 @@ class NetworkController(QObject):
         is_vertex_positions_uploaded = not self.enable_vertex_positions_upload()
         return is_edge_list_uploaded and is_vertex_positions_uploaded
 
+    @Slot(result=bool)
+    def is_electrical_response(self):
+        response_type = self._ctrl.rgt_obj.configs["response_type"]["value"]
+        if response_type == 0:
+            return True
+        return False
+
+    @Slot(result=bool)
+    def is_mechanical_response(self):
+        response_type = self._ctrl.rgt_obj.configs["response_type"]["value"]
+        if response_type == 1:
+            return True
+        return False
+
     @Slot()
     def apply_changes(self):
         """Retrieve changes made by the user and apply to the response graph."""

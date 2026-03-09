@@ -63,7 +63,7 @@ ColumnLayout {
 
         function onImageChangedSignal() {
             // Force refresh
-            listResponsePropWidget.visible = networkController.graph_data_uploaded();
+            listResponsePropWidget.visible = networkController.graph_data_uploaded() && networkController.is_electrical_response();
         }
     }
 

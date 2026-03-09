@@ -139,7 +139,7 @@ ColumnLayout {
 
         function onImageChangedSignal() {
             // Force refresh
-            materialPropertyWidget.visible = networkController.graph_data_uploaded();
+            materialPropertyWidget.visible = networkController.graph_data_uploaded() && networkController.is_electrical_response();
         }
     }
 
