@@ -12,7 +12,7 @@ import pandas as pd
 import matplotlib.colors as mcolors
 
 #=================================================================================
-#2 - functions
+# 2 - functions
 #=================================================================================
 
 def generate_disordered_triangular_lattice(nx=10, ny=10, spacing=1.0, disorder_strength=0.2):
