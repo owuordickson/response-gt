@@ -199,10 +199,12 @@ class ResponseAnalyzer(ProgressUpdate):
                 list_data["leak_resistivity_list"]["data"] = leak_resistivity * vertex_list
             return True
         elif response_type == 1:
-            # Removing long edges (Specific to CSV network, skip if generating fresh)
-            # indices_to_remove = [22, 232]
-            # indices_to_remove = [i for i in indices_to_remove if i < len(edge_list)]
-            # list_data["edge_list"]["data"] = np.delete(edge_list, indices_to_remove, axis=0)
+            # Removing long edges (Specific to CSV network)
+            if list_data["delete_edge_list"]["value"] == 1 and list_data["delete_edge_list"]["data"] is not None:
+                # indices_to_remove = [22, 232]
+                indices_to_remove = list_data["delete_edge_list"]["data"]
+                indices_to_remove = [i for i in indices_to_remove if i < len(edge_list)]
+                list_data["edge_list"]["data"] = np.delete(edge_list, indices_to_remove, axis=0)
             return True
         else:
             return False

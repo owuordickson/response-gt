@@ -37,6 +37,7 @@ def initialize_list_data():
     """Initialize the list of parameters for the ResponseGT computation."""
 
     response_file_options: dict[str, dict[str, str | int | None | np.ndarray]] = {
+        # Electrical Response
         "vertex_coordinates": {"id": "vertex_coordinates", "value": 0, "data": None, "type": "File", "text": "Vertex Coordinates", "visible": 1},
         "edge_list": {"id": "edge_list", "value": 0, "data": None, "type": "File", "text": "Edge List", "visible": 1},
         "resistivity_list": {"id": "resistivity_list", "value": 0, "data": None, "type": "File", "text": "Resistivity List", "visible": 1},
@@ -47,7 +48,14 @@ def initialize_list_data():
         "vertex_list": {"id": "vertex_list", "value": 0, "data": None, "type": "File", "text": "Vertex List", "visible": 1},
         "calculated_vertex_potentials": {"id": "calculated_vertex_potentials", "value": 0, "data": None, "type": "Custom", "text": "Calculated Vertex Potentials", "visible": 0},
         "calculated_edge_currents": {"id": "calculated_edge_currents", "value": 0, "data": None, "type": "Custom", "text": "Calculated Edge Currents", "visible": 0},
-        # "delete_edge_list": {"id": "delete_edge_list", "value": 0, "data": None, "type": "File", "text": "Delete Edge List", "visible": 1},
+        # Mechanical Response
+        "delete_edge_list": {"id": "delete_edge_list", "value": 0, "data": None, "type": "File", "text": "Edges to Delete", "visible": 1},
+        "edge_mask_list": {"id": "edge_mask_list", "value": 0, "data": None, "type": "File", "text": "Valid Edge Mask", "visible": 1},
+        "unpinned_vertex_positions": {"id": "unpinned_vertex_positions", "value": 0, "data": None, "type": "Custom", "text": "Calculated Unpinned Vertex Positions", "visible": 0},
+        "unpinned_edge_list": {"id": "unpinned_edge_list", "value": 0, "data": None, "type": "Custom", "text": "Calculated Unpinned Edge List", "visible": 0},
+        "calculated_displacements": {"id": "calculated_displacements", "value": 0, "data": None, "type": "Custom", "text": "Calculated Displacements", "visible": 0},
+        "calculated_tensions": {"id": "calculated_tensions", "value": 0, "data": None, "type": "Custom", "text": "Calculated Tensions", "visible": 0},
+        "calculated_active_tensions": {"id": "calculated_active_tensions", "value": 0, "data": None, "type": "Custom", "text": "Calculated Active Tensions", "visible": 0},
     }
     return response_file_options
 
