@@ -52,6 +52,8 @@ def initialize_list_data():
         "displacement_vector": {"id": "displacement_vector", "value": 0, "data": None, "type": "File", "text": "Displacement Vector", "visible": 1},
         "delete_edge_list": {"id": "delete_edge_list", "value": 0, "data": None, "type": "File", "text": "Edges to Delete", "visible": 1},
         "edge_mask_list": {"id": "edge_mask_list", "value": 0, "data": None, "type": "File", "text": "Valid Edge Mask", "visible": 1},
+        "displaced_vertex_positions": {"id": "displaced_vertex_positions", "value": 0, "data": None, "type": "Custom", "text": "Calculated Displaced Vertex Positions", "visible": 0},
+        "pinned_vertex_positions": {"id": "pinned_vertex_positions", "value": 0, "data": None, "type": "Custom", "text": "Calculated Pinned Vertex Positions", "visible": 0},
         "unpinned_vertex_positions": {"id": "unpinned_vertex_positions", "value": 0, "data": None, "type": "Custom", "text": "Calculated Unpinned Vertex Positions", "visible": 0},
         "unpinned_edge_list": {"id": "unpinned_edge_list", "value": 0, "data": None, "type": "Custom", "text": "Calculated Unpinned Edge List", "visible": 0},
         "calculated_displacements": {"id": "calculated_displacements", "value": 0, "data": None, "type": "Custom", "text": "Calculated Displacements", "visible": 0},
