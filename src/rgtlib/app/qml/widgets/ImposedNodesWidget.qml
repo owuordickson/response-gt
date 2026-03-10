@@ -49,7 +49,7 @@ ColumnLayout {
                         rectVerts.border.width = 0;
                         rowFile.enabled = false;
                     } else if (checkedButton === rdoCustom) {
-                        networkController.apply_imposed_vertices("custom", taVerts.text);
+                        networkController.apply_imposed_vertices("Custom", taVerts.text);
                         colDefault.enabled = false;
                         taVerts.enabled = true;
                         rectVerts.border.width = 1;
@@ -281,7 +281,7 @@ ColumnLayout {
                         // When focus leaves the TextArea
                         onEditingFinished: {
                             // Add your custom logic here
-                            networkController.apply_imposed_vertices("custom", taVerts.text);
+                            networkController.apply_imposed_vertices("Custom", taVerts.text);
                         }
 
                         // Trigger when Enter is pressed

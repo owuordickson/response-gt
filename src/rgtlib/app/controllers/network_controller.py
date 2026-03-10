@@ -28,7 +28,7 @@ class NetworkController(QObject):
 
         # Create Models
         self.rgtFiles = CheckBoxModel([])
-        self.rgtOptions = CheckBoxModel([])
+        self.rgtParamOptions = CheckBoxModel([])
         self.rgtDCParams = CheckBoxModel([])
         self.rgtPotentialOptions = CheckBoxModel([])
         self.rgtPotentialDirections = CheckBoxModel([])
@@ -70,7 +70,7 @@ class NetworkController(QObject):
 
             # Update QML adapter-models with fetched data
             self.rgtFiles.reset_data(rgt_files)
-            self.rgtOptions.reset_data(rgt_settings)
+            self.rgtParamOptions.reset_data(rgt_settings)
             self.rgtDCParams.reset_data(rgt_dc_params)
             self.rgtPotentialOptions.reset_data(rgt_potentials)
             self.rgtPotentialDirections.reset_data(rgt_pot_dir)
@@ -177,12 +177,12 @@ class NetworkController(QObject):
 
                 # Potential List
                 self._ctrl.rgt_obj.list_data["given_potential_list"]["data"] = lst_pot
-                self._ctrl.rgt_obj.list_data["given_potential_list"]["type"] = "Custom"
+                self._ctrl.rgt_obj.list_data["given_potential_list"]["type"] = source
                 self._ctrl.rgt_obj.list_data["given_potential_list"]["value"] = 1
 
                 # Vertex List
                 self._ctrl.rgt_obj.list_data["vertex_list"]["data"] = lst_vert
-                self._ctrl.rgt_obj.list_data["vertex_list"]["type"] = "Custom"
+                self._ctrl.rgt_obj.list_data["vertex_list"]["type"] = source
                 self._ctrl.rgt_obj.list_data["vertex_list"]["value"] = 1
             else:
                 # Data is blank

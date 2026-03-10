@@ -40,8 +40,8 @@ ColumnLayout {
                 if (currentCheckedButton !== checkedButton) {
                     currentCheckedButton = checkedButton;
                     var val = checkedButton === rdoStatic ? 0 : 1;
-                    var index = rgtOptions.index(0, 0);
-                    rgtOptions.setData(index, val, valueRole);
+                    var index = rgtParamOptions.index(0, 0);
+                    rgtParamOptions.setData(index, val, valueRole);
                     networkController.apply_changes();
                 }
             }
@@ -120,10 +120,10 @@ ColumnLayout {
 
 
     function initializeSelections() {
-        for (let row = 0; row < rgtOptions.rowCount(); row++) {
-            let index = rgtOptions.index(row, 0);
-            let item_id = rgtOptions.data(index, idRole);  // IdRole
-            let item_val = rgtOptions.data(index, valueRole); // ValueRole
+        for (let row = 0; row < rgtParamOptions.rowCount(); row++) {
+            let index = rgtParamOptions.index(row, 0);
+            let item_id = rgtParamOptions.data(index, idRole);  // IdRole
+            let item_val = rgtParamOptions.data(index, valueRole); // ValueRole
 
             if (item_id === "param_type") {
                 btnGrpType.checkedButton = item_val === 0 ? rdoStatic : rdoDynamic;

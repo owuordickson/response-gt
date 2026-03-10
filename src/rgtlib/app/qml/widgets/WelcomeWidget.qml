@@ -65,6 +65,12 @@ Rectangle {
         }
 
         RowLayout {
+            id: rowResponseTypes
+            Layout.alignment: Qt.AlignHCenter
+            visible: false
+        }
+
+        RowLayout {
             id: rowAnalyzerButtons
             Layout.alignment: Qt.AlignHCenter
             visible: false
@@ -88,6 +94,7 @@ Rectangle {
             welcomeContainer.visible = !networkController.graph_is_ready();
             rowUploadButtons.visible = !networkController.graph_data_uploaded();
             rowAnalyzerButtons.visible = networkController.graph_data_uploaded();
+            rowResponseType.visible = networkController.graph_data_uploaded();
 
             btnAddNodes.enabled = networkController.enable_vertex_positions_upload();
             btnAddEdges.enabled = networkController.enable_edge_list_upload();

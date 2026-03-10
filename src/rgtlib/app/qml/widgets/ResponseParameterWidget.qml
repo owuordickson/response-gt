@@ -31,7 +31,7 @@ ColumnLayout {
         id: colParams
         //spacing: 10
 
-        ResponseTypeWidget{}
+        ParamTypeWidget{}
 
         Repeater {
             model: rgtDCParams
