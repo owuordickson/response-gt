@@ -8,7 +8,7 @@ import Theme 1.0
 RowLayout {
     id: responseTypeWidget
     //Layout.leftMargin: 10
-    Layout.preferredHeight: 36
+    //Layout.preferredHeight: 36
     Layout.preferredWidth: 175
     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
     visible: false
@@ -16,7 +16,6 @@ RowLayout {
     property int idRole: Qt.UserRole + 1
     property int valueRole: Qt.UserRole + 4
     property int rdoWidthSize: 75
-    //Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
 
     ButtonGroup {

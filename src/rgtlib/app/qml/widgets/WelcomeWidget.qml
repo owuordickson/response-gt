@@ -28,6 +28,7 @@ Rectangle {
             id: lblQuick
             //Layout.leftMargin: 5
             Layout.alignment: Qt.AlignHCenter
+            Layout.bottomMargin: 10
             text: "Upload your graph network"
             color: Theme.darkGrey
             font.bold: true
@@ -68,7 +69,7 @@ Rectangle {
 
         RowLayout {
             id: rowAnalyzerButtons
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
             visible: false
 
             Material.Button {
