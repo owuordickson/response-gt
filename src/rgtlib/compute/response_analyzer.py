@@ -906,7 +906,7 @@ class ResponseAnalyzer(ProgressUpdate):
 
         # --- SET UP the figure, and axis ---
         fig = plt.figure(figsize=(10, 10))
-        ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
+        ax = fig.add_axes((0, 0.08, 1, 0.92))   # whole figure with a small bottom margin
         ##fig, ax = plt.subplots(figsize=(10, 10))
 
         # --- EDGES (TENSION VISUALIZATION FOR ALL EDGES) ---
@@ -994,7 +994,8 @@ class ResponseAnalyzer(ProgressUpdate):
 
         handles, labels = ax.get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
-        ax.legend(by_label.values(), by_label.keys(), loc='upper right', bbox_to_anchor=(1.35, 1))
+        #ax.legend(by_label.values(), by_label.keys(), loc='upper right', bbox_to_anchor=(1.35, 1))
+        fig.legend(by_label.values(), by_label.keys(), loc="upper center", bbox_to_anchor=(0.45, 0.25), ncol=3)
 
         # --- AESTHETICS & SCALING ---
         ax.set_title("Network Topology and Static Response")
