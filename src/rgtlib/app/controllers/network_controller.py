@@ -223,6 +223,38 @@ class NetworkController(QObject):
             logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.handle_finished(1, False, ["Upload Error", f"Unable to read your data. Try this format for vertex position and its potential: [position-1, potential-1], [position-2, potential-2], ..."])
 
+    @Slot(str)
+    def apply_displacement_vector(self, data: str):
+        """Apply the displacement vector to the response graph."""
+        try:
+            # Convert string '[20, 1]' to a numpy array: [20, 1]
+            if data != "":
+                # Parse string to a Python list
+                txt_arr = ast.literal_eval(data)  # txt_arr -> [20, 1]
+
+                # Convert to NumPy array
+                arr = np.asarray(txt_arr, dtype=float)
+
+                # Save to displacement_vector
+                self._ctrl.rgt_obj.list_data["displacement_vector"]["data"] = arr
+                self._ctrl.rgt_obj.list_data["displacement_vector"]["type"] = "Custom"
+                self._ctrl.rgt_obj.list_data["displacement_vector"]["value"] = 1
+            else:
+                # Data is blank
+                self._ctrl.rgt_obj.list_data["displacement_vector"]["data"] = None
+                self._ctrl.rgt_obj.list_data["displacement_vector"]["value"] = 0
+            # Sync models
+            self._ctrl.syncModelSignal.emit(self._ctrl.rgt_obj)
+        except Exception as err:
+            self._ctrl.rgt_obj.list_data["displacement_vector"]["data"] = None
+            self._ctrl.rgt_obj.list_data["displacement_vector"]["type"] = "Custom"
+            self._ctrl.rgt_obj.list_data["displacement_vector"]["value"] = -1
+            # Sync models and refresh image
+            self._ctrl.syncModelSignal.emit(self._ctrl.rgt_obj)
+            logging.exception("Upload Error: %s", err, extra={'user': 'RGT Logs'})
+            self._ctrl.handle_finished(1, False, ["Upload Error", f"Unable to read your data. Try this format for displacement vector: [value-1, value-2]"])
+
+
     @Slot(str, str)
     def upload_file_data(self, file_path: str, param_type: str):
         """Upload a CSV file and return True if successful."""
