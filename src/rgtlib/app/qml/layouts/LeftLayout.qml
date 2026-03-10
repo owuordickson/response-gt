@@ -34,7 +34,9 @@ Rectangle {
 
         ImposedNodesWidget{id: elecImposedPotentialsWidget}
 
+
         MechanicalParameterWidget{id: mechanicalParamWidget}
+
 
         VertexWidget{id: vertexWidget}
 

@@ -8,7 +8,7 @@ ColumnLayout {
     Layout.leftMargin: 10
     Layout.preferredHeight: 150
     Layout.preferredWidth: parent.width
-    Layout.alignment: Qt.AlignVCenter //| Qt.AlignHCenter
+    Layout.alignment: Qt.AlignVCenter | Qt.AlignTop
     visible: false
 
     property int dirValueRole: Qt.UserRole + 4
