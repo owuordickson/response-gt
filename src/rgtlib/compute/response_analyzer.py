@@ -200,14 +200,7 @@ class ResponseAnalyzer(ProgressUpdate):
             return True
         elif response_type == 1:
             if list_data["displacement_vector"]["value"] == 0 or list_data["displacement_vector"]["data"] is None:
-                list_data["displacement_vector"]["data"] = np.array([0, 10])
-
-            if list_data["delete_edge_list"]["value"] == 1 and list_data["delete_edge_list"]["data"] is not None:
-                # Removing long edges (Specific to CSV network)
-                # indices_to_remove = [22, 232]
-                indices_to_remove = list_data["delete_edge_list"]["data"]
-                indices_to_remove = [i for i in indices_to_remove if i < len(edge_list)]
-                list_data["edge_list"]["data"] = np.delete(edge_list, indices_to_remove, axis=0)
+                list_data["displacement_vector"]["data"] = np.array([1, -1])
             return True
         else:
             return False
@@ -495,6 +488,20 @@ class ResponseAnalyzer(ProgressUpdate):
                  an array of unpinned edge indices, and a boolean array indicating which edges are valid (not floppy).
             """
 
+            pinned_side = int(opt_rgt["pinned_side"]["value"])
+            if pinned_side == 'right':
+                use_smallest_boolean = False
+                cartesian_direction = 0
+            elif pinned_side == 'top':
+                use_smallest_boolean = False
+                cartesian_direction = 1
+            elif pinned_side == 'bottom':
+                use_smallest_boolean = True
+                cartesian_direction = 1
+            else: # left
+                use_smallest_boolean = True
+                cartesian_direction = 0
+
             num_vertices = len(vertex_positions)
             num_edges = len(edge_list)
 
@@ -532,7 +539,7 @@ class ResponseAnalyzer(ProgressUpdate):
             num_to_pin = int(round(num_vertices * selected_vertex_fraction))
             sorted_indices = np.argsort(coords)
 
-            if use_smallest_boolean == 1:
+            if use_smallest_boolean:
                 pinned_vertices = sorted_indices[:num_to_pin]
             else:
                 pinned_vertices = sorted_indices[-num_to_pin:]
@@ -571,7 +578,21 @@ class ResponseAnalyzer(ProgressUpdate):
                 :return: Three sets of arrays: v_list_dof (DOFs of selected vertices), u_list_flat
                 (displacement vectors), and displaced vertex positions.
             """
+            displacement_side = int(opt_rgt["displacement_side"]["value"])
             displacement_vec = list_data["displacement_vector"]["data"]  # displacement_vector=np.array([0, 10])
+
+            if displacement_side == 'left':
+                use_smallest_boolean = True
+                cartesian_direction = 0
+            elif displacement_side == 'top':
+                use_smallest_boolean = False
+                cartesian_direction = 1
+            elif displacement_side == 'bottom':
+                use_smallest_boolean = True
+                cartesian_direction = 1
+            else: # right
+                use_smallest_boolean = False
+                cartesian_direction = 0
 
             num_vertices = len(unpinned_vert_positions)
             num_to_select = int(round(num_vertices * selected_vertex_fraction))
@@ -585,8 +606,8 @@ class ResponseAnalyzer(ProgressUpdate):
                 selected_vertices = sorted_indices[-num_to_select:]
 
             v_list_dof = []
-            for v in selected_vertices:
-                v_list_dof.extend([2 * v, 2 * v + 1])
+            for vert in selected_vertices:
+                v_list_dof.extend([2 * vert, 2 * vert + 1])
 
             v_list_dof = np.array(v_list_dof)
             u_list_flat = np.tile(displacement_vec, num_to_select)
@@ -611,8 +632,6 @@ class ResponseAnalyzer(ProgressUpdate):
             return None, None
 
         opt_rgt = self.configs
-        cartesian_direction = int(opt_rgt["cartesian_direction"]["value"])
-        use_smallest_boolean = int(opt_rgt["use_smallest_boolean"]["value"])
         selected_vertex_fraction = float(opt_rgt["selected_vertex_proportion"]["value"])
 
         list_data = self.list_data
@@ -865,11 +884,11 @@ class ResponseAnalyzer(ProgressUpdate):
         all_displacements = self.list_data["calculated_displacements"]["data"]
         zero_mask_threshold = 1e-8
         moved_mask_threshold = 1e-10
-        print(pinned_vertices)
+        print(f"Pinned Verts: {pinned_vertices.shape}\nDisplacemets: {all_displacements.shape}")
 
-        # Set up the figure, and axis
-        # fig = plt.figure(figsize=(10, 10))
-        # ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
+        # --- SET UP the figure, and axis ---
+        #fig = plt.figure(figsize=(10, 10))
+        #ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
         fig, ax = plt.subplots(figsize=(16, 10))
 
         # --- EDGES (TENSION VISUALIZATION FOR ALL EDGES) ---
@@ -973,7 +992,8 @@ class ResponseAnalyzer(ProgressUpdate):
         ax.set_ylim(vert_pos[:, 1].min() - buffer * y_range, vert_pos[:, 1].max() + buffer * y_range)
 
         fig.tight_layout()
-        return fig
+        plt.show()
+        return None
 
     def save_results_to_file(self) -> bool:
         """Save computed response data to a file."""

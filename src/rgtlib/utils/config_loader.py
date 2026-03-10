@@ -50,7 +50,6 @@ def initialize_list_data():
         "calculated_edge_currents": {"id": "calculated_edge_currents", "value": 0, "data": None, "type": "Custom", "text": "Calculated Edge Currents", "visible": 0},
         # Mechanical Response
         "displacement_vector": {"id": "displacement_vector", "value": 0, "data": None, "type": "File", "text": "Displacement Vector", "visible": 1},
-        "delete_edge_list": {"id": "delete_edge_list", "value": 0, "data": None, "type": "File", "text": "Edges to Delete", "visible": 1},
         "edge_mask_list": {"id": "edge_mask_list", "value": 0, "data": None, "type": "File", "text": "Valid Edge Mask", "visible": 1},
         "displaced_vertex_positions": {"id": "displaced_vertex_positions", "value": 0, "data": None, "type": "Custom", "text": "Calculated Displaced Vertex Positions", "visible": 0},
         "pinned_vertex_positions": {"id": "pinned_vertex_positions", "value": 0, "data": None, "type": "Custom", "text": "Calculated Pinned Vertex Positions", "visible": 0},
@@ -155,8 +154,20 @@ def load_rgt_configs(cfg_path: str = ""):
         "inductance": {"id": "inductance", "type": "dc-param", "text": "Inductance", "visible": 1, "value": 1, "multiplier": -9, "minValue": -1000, "maxValue": 1000},
         "leak_resistivity": {"id": "leak_resistivity", "type": "dc-param", "text": "Leak Resistivity", "visible": 1, "value": 1, "multiplier": 6, "minValue": -1000, "maxValue": 1000},
 
-        "cartesian_direction": {"id": "cartesian_direction", "type": "mech-param", "text": "Cartesian Direction", "visible": 1, "value": 0},
-        "use_smallest_boolean": {"id": "use_smallest_boolean", "type": "mech-param", "text": "Use Smallest Boolean", "visible": 1, "value": 1},
+        "pinned_side": {"id": "pinned_side", "type": "mech-param", "text": "Pinned Side", "visible": 0, "value": 1,
+                        "items": [
+                            {"id": "left", "text": "Left", "value": 1},
+                            {"id": "right", "text": "Right", "value": 0},
+                            {"id": "top", "text": "Top", "value": 0},
+                            {"id": "bottom", "text": "Bottom", "value": 0}
+                        ]},
+        "displacement_side": {"id": "displacement_side", "type": "mech-param", "text": "Displacement Side", "visible": 0, "value": 1,
+                              "items": [
+                                  {"id": "left", "text": "Left", "value": 0},
+                                  {"id": "right", "text": "Right", "value": 1},
+                                  {"id": "top", "text": "Top", "value": 0},
+                                  {"id": "bottom", "text": "Bottom", "value": 0}
+                              ]},
     }
 
     # Load configuration from the file
@@ -177,8 +188,8 @@ def load_rgt_configs(cfg_path: str = ""):
         ind_val = float(config.get('dc-response', 'inductance'))
         leak_val = float(config.get('dc-response', 'leak_resistivity'))
 
-        cart_dir = int(config.get('mechanical-response', 'cartesian_direction'))
-        small_bool = int(config.get('mechanical-response', 'use_smallest_boolean'))
+        pin_sd = str(config.get('mechanical-response', 'pinned_side'))
+        disp_sd = str(config.get('mechanical-response', 'displacement_side'))
 
         options_rgt["selected_vertex_proportion"]["value"] = frac_val
         options_rgt["potential_magnitude"]["value"] = mag_val
@@ -191,8 +202,11 @@ def load_rgt_configs(cfg_path: str = ""):
         options_rgt["inductance"]["value"], options_rgt["inductance"]["multiplier"] = number_to_scientific_parts(ind_val)
         options_rgt["leak_resistivity"]["value"], options_rgt["leak_resistivity"]["multiplier"] = number_to_scientific_parts(leak_val)
 
-        options_rgt["cartesian_direction"]["value"] = cart_dir
-        options_rgt["use_smallest_boolean"]["value"] = small_bool
+        for i in range(len(options_rgt["pinned_side"]["items"])):
+            options_rgt["pinned_side"]["items"][i]["value"] = 1 if options_rgt["pinned_side"]["items"][i]["id"] == pin_sd else 0
+
+        for i in range(len(options_rgt["displacement_side"]["items"])):
+            options_rgt["displacement_side"]["items"][i]["value"] = 1 if options_rgt["displacement_side"]["items"][i]["id"] == disp_sd else 0
 
         return options_rgt
     except configparser.NoSectionError:
