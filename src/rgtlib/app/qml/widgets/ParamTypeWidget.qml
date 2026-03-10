@@ -11,8 +11,8 @@ ColumnLayout {
     Layout.preferredHeight: 36
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignTop
-    enabled: networkController.graph_data_uploaded()
-    visible: networkController.graph_data_uploaded()
+    enabled: false
+    visible: false
 
     property int idRole: Qt.UserRole + 1
     property int valueRole: Qt.UserRole + 4

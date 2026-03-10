@@ -11,6 +11,9 @@ ColumnLayout {
     // The welcome view
     WelcomeWidget{}
 
+    // The navigation controls
+    NetworkNavControls{}
+
     // The network container
     NetworkWidget{}
 

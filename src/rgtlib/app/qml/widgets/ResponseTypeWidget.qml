@@ -7,8 +7,6 @@ import Theme 1.0
 
 RowLayout {
     id: responseTypeWidget
-    //Layout.leftMargin: 10
-    //Layout.preferredHeight: 36
     Layout.preferredWidth: 175
     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
     visible: false
