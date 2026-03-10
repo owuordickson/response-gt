@@ -6,7 +6,7 @@ import Theme 1.0
 
 
 ColumnLayout {
-    id: paramTypeWidget
+    id: responseTypeWidget
     Layout.leftMargin: 10
     Layout.preferredHeight: 36
     Layout.preferredWidth: parent.width
@@ -17,16 +17,6 @@ ColumnLayout {
     property int idRole: Qt.UserRole + 1
     property int valueRole: Qt.UserRole + 4
     property int rdoWidthSize: 75
-
-
-    /*Label {
-        text: "Response Types"
-        color: Theme.text
-        font.pixelSize: 12
-        font.bold: true
-        Layout.alignment: Qt.AlignHCenter
-    }*/
-
 
     RowLayout {
         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
@@ -137,8 +127,8 @@ ColumnLayout {
 
         function onImageChangedSignal() {
             // Force refresh
-            paramTypeWidget.visible = networkController.graph_data_uploaded();
-            paramTypeWidget.enabled = networkController.graph_data_uploaded();
+            responseTypeWidget.visible = networkController.graph_data_uploaded();
+            responseTypeWidget.enabled = networkController.graph_data_uploaded();
             initializeSelections();
         }
     }

@@ -27,12 +27,19 @@ class NetworkController(QObject):
         self._applying_changes = False
 
         # Create Models
+        self.rgtResponseOptions = CheckBoxModel([])
+
+        # Electrical Response
         self.rgtFiles = CheckBoxModel([])
         self.rgtParamOptions = CheckBoxModel([])
         self.rgtDCParams = CheckBoxModel([])
         self.rgtPotentialOptions = CheckBoxModel([])
         self.rgtPotentialDirections = CheckBoxModel([])
         self.metricsModel = CheckBoxModel(get_metric_options())
+
+        # Mechanical Response
+        self.rgtPinnedDirections = CheckBoxModel([])
+        self.rgtDisplacedDirections = CheckBoxModel([])
 
         # Attach listener for syncing models
         self._ctrl.syncModelSignal.connect(self.synchronize_rgt_models)
@@ -62,18 +69,28 @@ class NetworkController(QObject):
             list_data = rgt_obj.list_data
 
             # Get data from object configs
+            rgt_response_type = [v for v in options_rgt.values() if v["type"] == "rgt-settings"]
+
+            # (electrical response)
             rgt_files = [v for v in list_data.values() if (v["visible"] == 1 and v["value"] != 0)]
-            rgt_settings = [v for v in options_rgt.values() if v["type"] == "param-settings"]
+            rgt_param_type = [v for v in options_rgt.values() if v["type"] == "param-settings"]
             rgt_dc_params = [v for v in options_rgt.values() if v["type"] == "dc-param"]
             rgt_potentials = [v for v in options_rgt.values() if v["type"] == "potential-settings"]
             rgt_pot_dir = options_rgt["potential_direction"]["items"]
 
+            # (mechanical response)
+            rgt_pin_dir = options_rgt["pinned_direction"]["items"]
+            rgt_disp_dir = options_rgt["displacement_direction"]["items"]
+
             # Update QML adapter-models with fetched data
+            self.rgtResponseOptions.reset_data(rgt_response_type)
             self.rgtFiles.reset_data(rgt_files)
-            self.rgtParamOptions.reset_data(rgt_settings)
+            self.rgtParamOptions.reset_data(rgt_param_type)
             self.rgtDCParams.reset_data(rgt_dc_params)
             self.rgtPotentialOptions.reset_data(rgt_potentials)
             self.rgtPotentialDirections.reset_data(rgt_pot_dir)
+            self.rgtPinnedDirections.reset_data(rgt_pin_dir)
+            self.rgtDisplacedDirections.reset_data(rgt_disp_dir)
         except Exception as err:
             logging.exception("Fatal Error: %s", err, extra={'user': 'RGT Logs'})
             self._ctrl.showAlertSignal.emit("Fatal Error", "Error re-loading RGT configurations! Close app and try again.")
