@@ -5,12 +5,11 @@ import Theme 1.0
 
 
 ColumnLayout {
-    id: materialPropertyWidget
     Layout.leftMargin: 10
     Layout.preferredHeight: 150
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignVCenter
-    visible: networkController.graph_data_uploaded()
+    visible: false
 
     property int propsValueRole: Qt.UserRole + 4
     property int multiplierRole: Qt.UserRole + 12
@@ -131,16 +130,6 @@ ColumnLayout {
             }
         }
 
-    }
-
-
-    Connections {
-        target: networkController
-
-        function onImageChangedSignal() {
-            // Force refresh
-            materialPropertyWidget.visible = networkController.graph_data_uploaded() && networkController.is_electrical_response();
-        }
     }
 
 }

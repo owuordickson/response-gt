@@ -6,12 +6,11 @@ import QtQuick.Controls.Imagine as Imagine
 import Theme 1.0
 
 ColumnLayout {
-    id: imposedNodesWidget
     Layout.leftMargin: 10
     Layout.preferredHeight: 210
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignVCenter
-    visible: networkController.graph_data_uploaded()
+    visible: false
 
     property int dirValueRole: Qt.UserRole + 4
     property int lblWidthSize: 80
@@ -368,14 +367,5 @@ ColumnLayout {
 
     }
 
-
-    Connections {
-        target: networkController
-
-        function onImageChangedSignal() {
-            // Force refresh
-            imposedNodesWidget.visible = networkController.graph_data_uploaded() && networkController.is_electrical_response();
-        }
-    }
 
 }

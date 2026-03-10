@@ -5,12 +5,11 @@ import QtQuick.Controls.Imagine as Imagine
 import Theme 1.0
 
 ColumnLayout {
-    id: listResponsePropWidget
     Layout.leftMargin: 10
     Layout.preferredHeight: 56
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignVCenter
-    visible: networkController.graph_data_uploaded()
+    visible: false
 
     property int lblWidthSize: 50
     property int cmbWidthSize: 125
@@ -55,16 +54,6 @@ ColumnLayout {
             }
         }
 
-    }
-
-
-    Connections {
-        target: networkController
-
-        function onImageChangedSignal() {
-            // Force refresh
-            listResponsePropWidget.visible = networkController.graph_data_uploaded() && networkController.is_electrical_response();
-        }
     }
 
 }

@@ -5,118 +5,114 @@ import QtQuick.Controls.Basic as Basic
 import Theme 1.0
 
 
-ColumnLayout {
+RowLayout {
     id: responseTypeWidget
-    Layout.leftMargin: 10
+    //Layout.leftMargin: 10
     Layout.preferredHeight: 36
-    Layout.preferredWidth: parent.width
-    Layout.alignment: Qt.AlignTop
-    enabled: networkController.graph_data_uploaded()
-    visible: networkController.graph_data_uploaded()
+    Layout.preferredWidth: 175
+    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+    visible: false
 
     property int idRole: Qt.UserRole + 1
     property int valueRole: Qt.UserRole + 4
     property int rdoWidthSize: 75
-
-    RowLayout {
-        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+    //Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
 
-        ButtonGroup {
-            id: btnGrpType
-            property bool currentCheckedButton: rdoStatic
-            exclusive: true
-            onCheckedButtonChanged: {
-                if (currentCheckedButton !== checkedButton) {
-                    currentCheckedButton = checkedButton;
-                    var val = checkedButton === rdoStatic ? 0 : 1;
-                    var index = rgtParamOptions.index(0, 0);
-                    rgtParamOptions.setData(index, val, valueRole);
-                    networkController.apply_changes();
-                }
-            }
-        }
-
-
-        Basic.RadioButton {
-            id: rdoStatic
-            text: "Static"
-            Layout.preferredWidth: rdoWidthSize
-            ButtonGroup.group: btnGrpType
-            onClicked: btnGrpType.checkedButton = this
-
-            indicator: Rectangle {
-                width: 14
-                height: 14
-                radius: 7
-                y: (rdoStatic.height - height) / 2   // center vertically
-                border.color: rdoStatic.checked ? Theme.dodgerBlue : Theme.text
-                border.width: 2
-                color: "transparent"
-
-                Rectangle {
-                    visible: rdoStatic.checked
-                    width: 8
-                    height: 8
-                    radius: 4
-                    anchors.centerIn: parent
-                    color: Theme.darkGray
-                }
-            }
-            contentItem: Label {
-                text: rdoStatic.text
-                font: rdoStatic.font
-                color: Theme.text
-                verticalAlignment: Text.AlignVCenter
-                leftPadding: rdoStatic.indicator.width + 6
-            }
-        }
-
-
-        Basic.RadioButton {
-            id: rdoDynamic
-            text: "Dynamic"
-            Layout.preferredWidth: rdoWidthSize
-            ButtonGroup.group: btnGrpType
-            onClicked: btnGrpType.checkedButton = this
-
-            indicator: Rectangle {
-                width: 14
-                height: 14
-                radius: 7
-                y: (rdoDynamic.height - height) / 2   // center vertically
-                border.color: rdoDynamic.checked ? Theme.dodgerBlue : Theme.text
-                border.width: 2
-                color: "transparent"
-
-                Rectangle {
-                    visible: rdoDynamic.checked
-                    width: 8
-                    height: 8
-                    radius: 4
-                    anchors.centerIn: parent
-                    color: Theme.darkGray
-                }
-            }
-            contentItem: Label {
-                text: rdoDynamic.text
-                font: rdoDynamic.font
-                color: Theme.text
-                verticalAlignment: Text.AlignVCenter
-                leftPadding: rdoDynamic.indicator.width + 6
+    ButtonGroup {
+        id: btnGrpResponseType
+        property bool currentCheckedButton: rdoElectrical
+        exclusive: true
+        onCheckedButtonChanged: {
+            if (currentCheckedButton !== checkedButton) {
+                currentCheckedButton = checkedButton;
+                var val = checkedButton === rdoElectrical ? 0 : 1;
+                var index = rgtResponseOptions.index(0, 0);
+                rgtResponseOptions.setData(index, val, valueRole);
+                networkController.toggle_response_type();
             }
         }
     }
 
 
-    function initializeSelections() {
-        for (let row = 0; row < rgtParamOptions.rowCount(); row++) {
-            let index = rgtParamOptions.index(row, 0);
-            let item_id = rgtParamOptions.data(index, idRole);  // IdRole
-            let item_val = rgtParamOptions.data(index, valueRole); // ValueRole
+    Basic.RadioButton {
+        id: rdoElectrical
+        text: "Electrical"
+        Layout.preferredWidth: rdoWidthSize
+        ButtonGroup.group: btnGrpResponseType
+        onClicked: btnGrpResponseType.checkedButton = this
 
-            if (item_id === "param_type") {
-                btnGrpType.checkedButton = item_val === 0 ? rdoStatic : rdoDynamic;
+        indicator: Rectangle {
+            width: 14
+            height: 14
+            radius: 7
+            y: (rdoElectrical.height - height) / 2   // center vertically
+            border.color: rdoElectrical.checked ? Theme.dodgerBlue : Theme.text
+            border.width: 2
+            color: "transparent"
+
+            Rectangle {
+                visible: rdoElectrical.checked
+                width: 8
+                height: 8
+                radius: 4
+                anchors.centerIn: parent
+                color: Theme.darkGray
+            }
+        }
+        contentItem: Label {
+            text: rdoElectrical.text
+            font: rdoElectrical.font
+            color: Theme.text
+            verticalAlignment: Text.AlignVCenter
+            leftPadding: rdoElectrical.indicator.width + 6
+        }
+    }
+
+
+    Basic.RadioButton {
+        id: rdoMechanical
+        text: "Mechanical"
+        Layout.preferredWidth: rdoWidthSize
+        ButtonGroup.group: btnGrpResponseType
+        onClicked: btnGrpResponseType.checkedButton = this
+
+        indicator: Rectangle {
+            width: 14
+            height: 14
+            radius: 7
+            y: (rdoMechanical.height - height) / 2   // center vertically
+            border.color: rdoMechanical.checked ? Theme.dodgerBlue : Theme.text
+            border.width: 2
+            color: "transparent"
+
+            Rectangle {
+                visible: rdoMechanical.checked
+                width: 8
+                height: 8
+                radius: 4
+                anchors.centerIn: parent
+                color: Theme.darkGray
+            }
+        }
+        contentItem: Label {
+            text: rdoMechanical.text
+            font: rdoMechanical.font
+            color: Theme.text
+            verticalAlignment: Text.AlignVCenter
+            leftPadding: rdoMechanical.indicator.width + 6
+        }
+    }
+
+
+    function initializeSelections() {
+        for (let row = 0; row < rgtResponseOptions.rowCount(); row++) {
+            let index = rgtResponseOptions.index(row, 0);
+            let item_id = rgtResponseOptions.data(index, idRole);  // IdRole
+            let item_val = rgtResponseOptions.data(index, valueRole); // ValueRole
+
+            if (item_id === "response_type") {
+                btnGrpResponseType.checkedButton = item_val === 0 ? rdoElectrical : rdoMechanical;
             }
         }
     }
@@ -128,9 +124,9 @@ ColumnLayout {
         function onImageChangedSignal() {
             // Force refresh
             responseTypeWidget.visible = networkController.graph_data_uploaded();
-            responseTypeWidget.enabled = networkController.graph_data_uploaded();
             initializeSelections();
         }
     }
 
 }
+

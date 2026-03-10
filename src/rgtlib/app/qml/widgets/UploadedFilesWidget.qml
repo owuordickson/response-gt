@@ -6,13 +6,12 @@ import Theme 1.0
 
 
 ColumnLayout {
-    id: uploadedFilesWidget
     Layout.leftMargin: 10
     Layout.topMargin: 10
     Layout.preferredHeight: 100
     Layout.preferredWidth: parent.width
     Layout.alignment: Qt.AlignVCenter | Qt.AlignTop
-    visible: networkController.graph_data_uploaded()
+    visible: false
 
     Label {
         text: "Uploaded Data"
@@ -96,16 +95,6 @@ ColumnLayout {
                 //parent: flickable
                 policy: ScrollBar.AsNeeded // Show scrollbar only when needed
             }
-        }
-    }
-
-
-    Connections {
-        target: networkController
-
-        function onImageChangedSignal() {
-            // Force refresh
-            uploadedFilesWidget.visible = networkController.graph_data_uploaded();
         }
     }
 

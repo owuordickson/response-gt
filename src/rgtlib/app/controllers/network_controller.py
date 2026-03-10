@@ -169,6 +169,11 @@ class NetworkController(QObject):
         return False
 
     @Slot()
+    def toggle_response_type(self):
+        """Toggle between electrical and mechanical response."""
+        self.imageChangedSignal.emit()
+
+    @Slot()
     def apply_changes(self):
         """Retrieve changes made by the user and apply to the response graph."""
         if not self._applying_changes:  # Disallow concurrent changes

@@ -23,16 +23,16 @@ Rectangle {
         }
 
 
-        UploadedFilesWidget{}
+        UploadedFilesWidget{id: uploadedFilesWidget}
 
 
-        ResponseParameterWidget{}
+        ResponseParameterWidget{id: elecParamWidget}
 
 
-        ResponseDataWidget{}
+        ResponseDataWidget{id: elecDataWidget}
 
 
-        ImposedNodesWidget{}
+        ImposedNodesWidget{id: elecImposedPotentialsWidget}
 
     }
 
@@ -43,12 +43,11 @@ Rectangle {
         function onImageChangedSignal() {
             // Force refresh
             lblNoNetwork.visible = !networkController.graph_data_uploaded();
+            uploadedFilesWidget.visible = networkController.graph_data_uploaded();
+            elecParamWidget.visible = networkController.graph_data_uploaded() && networkController.is_electrical_response();
+            elecDataWidget.visible = networkController.graph_data_uploaded() && networkController.is_electrical_response();
+            elecImposedPotentialsWidget.visible = networkController.graph_data_uploaded() && networkController.is_electrical_response();
 
-            /*if (networkController.graph_data_uploaded()) {
-                lblNoNetwork.text = "No graph network to show!\nRun 'Compute Response'.";
-            } else {
-                lblNoNetwork.text = "No graph network to show!\nUpload CSV files of vertex/node\n positions and edge list.";
-            }*/
         }
     }
 
