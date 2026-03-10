@@ -34,6 +34,10 @@ Rectangle {
 
         ImposedNodesWidget{id: elecImposedPotentialsWidget}
 
+        MechanicalParameterWidget{id: mechanicalParamWidget}
+
+        VertexWidget{id: vertexWidget}
+
     }
 
 
@@ -48,6 +52,8 @@ Rectangle {
             elecDataWidget.visible = networkController.graph_data_uploaded() && networkController.is_electrical_response();
             elecImposedPotentialsWidget.visible = networkController.graph_data_uploaded() && networkController.is_electrical_response();
 
+            mechanicalParamWidget.visible = networkController.graph_data_uploaded() && networkController.is_mechanical_response();
+            vertexWidget.visible = networkController.graph_data_uploaded() && networkController.is_mechanical_response();
         }
     }
 
