@@ -134,11 +134,13 @@ class MainController(QObject):
                     if upload_type == "vertices":
                         node_positions = graph_data
                         if node_positions is not None:
-                            # flips vertically to have same orientation as initial image
+                            # flips vertically to have the same orientation as the initial image
                             y_coords, x_coords = zip(*node_positions)
                             neg_y_coords = [y * -1 for y in y_coords]
-                            self.rgt_obj.list_data["vertex_coordinates"]["data"] = np.array(list(zip(x_coords, neg_y_coords)))
-                            self.rgt_obj.list_data["vertex_coordinates"]["value"] = 1
+                            self.rgt_obj.list_data["vertex_positions"]["data"] = node_positions
+                            self.rgt_obj.list_data["vertex_positions"]["value"] = 1
+                            self.rgt_obj.list_data["flipped_vertex_coordinates"]["data"] = np.array(list(zip(x_coords, neg_y_coords)))
+                            self.rgt_obj.list_data["flipped_vertex_coordinates"]["value"] = 1
                     elif upload_type == "edges":
                         edges = graph_data
                         if edges is not None:

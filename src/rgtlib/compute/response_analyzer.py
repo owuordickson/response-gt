@@ -55,7 +55,7 @@ class ResponseAnalyzer(ProgressUpdate):
     @property
     def vertices_uploaded(self) -> bool:
         """Check if the vertex coordinates were uploaded"""
-        is_uploaded = True if self.list_data["vertex_coordinates"]["value"] == 1 else False
+        is_uploaded = True if self.list_data["vertex_positions"]["value"] == 1 else False
         return is_uploaded
 
     @property
@@ -79,7 +79,7 @@ class ResponseAnalyzer(ProgressUpdate):
             if key == "edge_list" and item["data"] is None:
                 lst_errors += f"{item['text']} is missing. Please upload it via a CSV file!"
 
-            if key == "vertex_coordinates" and item["data"] is None:
+            if key == "vertex_positions" and item["data"] is None:
                 lst_errors += f"{item['text']} is missing. Please upload it via a CSV file!"
 
         if lst_errors == "":
@@ -136,6 +136,24 @@ class ResponseAnalyzer(ProgressUpdate):
                 res_dir = opt_rgt["potential_direction"]["items"][i]["id"]
         return res_dir
 
+    def get_pinned_direction(self) -> str | None:
+        opt_rgt = self.configs
+        res_dir = 'left'
+
+        for i in range(len(opt_rgt["pinned_direction"]["items"])):
+            if int(opt_rgt["pinned_direction"]["items"][i]["value"]) == 1:
+                res_dir = opt_rgt["pinned_direction"]["items"][i]["id"]
+        return res_dir
+
+    def get_displacement_direction(self) -> str | None:
+        opt_rgt = self.configs
+        res_dir = 'right'
+
+        for i in range(len(opt_rgt["displacement_direction"]["items"])):
+            if int(opt_rgt["displacement_direction"]["items"][i]["value"]) == 1:
+                res_dir = opt_rgt["displacement_direction"]["items"][i]["id"]
+        return res_dir
+
     def init_list_data(self, silent: bool) -> bool:
         """
         Compute the list parameters for the response analyzer (electrical and mechanical).
@@ -150,7 +168,7 @@ class ResponseAnalyzer(ProgressUpdate):
                                         message=f"Initializing response parameters...")) if not silent else None
 
         # Check if data is read from CSV
-        if self.list_data["vertex_coordinates"]["data"] is None:
+        if self.list_data["vertex_positions"]["data"] is None:
             self.update_status(ProgressData(type="error", sender="RGT",
                                             message=f"Vertex positions are missing! Please upload them via a CSV file.")) if not silent else None
             return False
@@ -163,11 +181,11 @@ class ResponseAnalyzer(ProgressUpdate):
         opt_rgt = self.configs
         list_data = self.list_data
         edge_list = list_data["edge_list"]["data"]
-        vert_pos = list_data["vertex_coordinates"]["data"]
 
         response_type = int(opt_rgt["response_type"]["value"])
         if response_type == 0:
             # Initialize lists (data) for electrical response
+            vert_pos = list_data["flipped_vertex_coordinates"]["data"]
             resistivity = self.get_parameter_value("resistivity")
             capacitance = self.get_parameter_value("capacitance")
             inductance = self.get_parameter_value("inductance")
@@ -224,7 +242,7 @@ class ResponseAnalyzer(ProgressUpdate):
                 _, _ = self.compute_ac_response()
             elif response_type == 1:
                 # 1b. Compute AC Response with long edges removed
-                _, _ = self.compute_mechanical_response()
+                _, _ = self.compute_mechanical_response(silent=True)
         except IndexError:
             self.update_status([-1, "One or more vertex positions are out of range! Please re-upload Vertex List."])
             self.abort = True
@@ -261,9 +279,8 @@ class ResponseAnalyzer(ProgressUpdate):
             c_vals = []
 
             # Appending non-zero entries and their row/col data for each edge in the list. Edges are considered directed (+1/-1), but the direction does not matter
-            edge_list = list_data["edge_list"]["data"]
             num_edges = len(edge_list)
-            num_vertices = len(list_data["vertex_coordinates"]["data"])
+            num_vertices = len(vert_pos)
             for idx in range(len(edge_list)):
                 c_rows.append(idx)
                 c_cols.append(int(edge_list[idx, 0]))
@@ -292,7 +309,6 @@ class ResponseAnalyzer(ProgressUpdate):
                     - va_list: Array of node indices corresponding to the applied potentials.
             """
             opt_rgt = self.configs
-            vert_pos = list_data["vertex_coordinates"]["data"]
             given_potential_magnitude = float(opt_rgt["potential_magnitude"]["value"])
             potential_direction = self.get_response_direction()
 
@@ -351,6 +367,9 @@ class ResponseAnalyzer(ProgressUpdate):
         if not data_ok:
             return None, None
         list_data = self.list_data
+        edge_list = list_data["edge_list"]["data"]
+        vert_pos = list_data["flipped_vertex_coordinates"]["data"]
+
         cap_list = list_data["capacitance_list"]["data"]
         leak_res_list = list_data["leak_resistivity_list"]["data"]
         res_list = list_data["resistivity_list"]["data"]
@@ -488,7 +507,7 @@ class ResponseAnalyzer(ProgressUpdate):
                  an array of unpinned edge indices, and a boolean array indicating which edges are valid (not floppy).
             """
 
-            pinned_side = int(opt_rgt["pinned_side"]["value"])
+            pinned_side = self.get_pinned_direction()
             if pinned_side == 'right':
                 use_smallest_boolean = False
                 cartesian_direction = 0
@@ -578,7 +597,7 @@ class ResponseAnalyzer(ProgressUpdate):
                 :return: Three sets of arrays: v_list_dof (DOFs of selected vertices), u_list_flat
                 (displacement vectors), and displaced vertex positions.
             """
-            displacement_side = int(opt_rgt["displacement_side"]["value"])
+            displacement_side = self.get_displacement_direction()
             displacement_vec = list_data["displacement_vector"]["data"]  # displacement_vector=np.array([0, 10])
 
             if displacement_side == 'left':
@@ -621,7 +640,7 @@ class ResponseAnalyzer(ProgressUpdate):
 
             :return: A list of spring constants (as a Numpy array) for the 2D network.
             """
-            num_edges = len(list_data["edge_list"]["data"])
+            num_edges = len(edge_list)
             return np.full(num_edges, k)
 
         self.update_status(ProgressData(percent=1, sender="RGT", message=f"Computing Mechanical response...")) if not silent else None
@@ -636,12 +655,11 @@ class ResponseAnalyzer(ProgressUpdate):
 
         list_data = self.list_data
         edge_list = list_data["edge_list"]["data"]
-        vertex_positions = list_data["vertex_coordinates"]["data"]
+        vertex_positions = list_data["vertex_positions"]["data"]
 
         # 1. Constructing the compatibility matrix
         self.update_status(ProgressData(percent=15, sender="RGT", message=f"Constructing compatibility matrix...")) if not silent else None
         pinned_compat_mat, unpinned_vert_pos, unpinned_edge_lst, edge_lst_mask = pinned_compatibility_matrix()
-        c_mat = (csr_matrix(pinned_compat_mat)).T
 
         # 2. Applying the load to network
         self.update_status(ProgressData(percent=30, sender="RGT", message=f"Applying load to network...")) if not silent else None
@@ -649,6 +667,7 @@ class ResponseAnalyzer(ProgressUpdate):
 
         # 3. Computing mechanical response
         self.update_status(ProgressData(percent=50, sender="RGT", message=f"Computing mechanical response...")) if not silent else None
+        c_mat = (csr_matrix(pinned_compat_mat)).T
         n_total = c_mat.shape[0]
 
         # Diagonals of k_list form the stiffness matrix
@@ -812,7 +831,7 @@ class ResponseAnalyzer(ProgressUpdate):
 
         self.update_status(ProgressData(percent=1, sender="RGT", message=f"Generating response graph..."))
         # Retrieve computed response data (should be numpy arrays)
-        vert_pos = self.list_data["vertex_coordinates"]["data"]
+        vert_pos = self.list_data["flipped_vertex_coordinates"]["data"]
         edge_list = self.list_data["edge_list"]["data"]
         potential_resp = self.list_data["calculated_vertex_potentials"]["data"]
         current_resp = self.list_data["calculated_edge_currents"]["data"]
@@ -874,7 +893,7 @@ class ResponseAnalyzer(ProgressUpdate):
         # Fetch calculated data
         self.update_status(ProgressData(percent=1, sender="RGT", message=f"Generating response graph..."))
         edge_list = self.list_data["edge_list"]["data"]
-        vert_pos = self.list_data["vertex_coordinates"]["data"]
+        vert_pos = self.list_data["vertex_positions"]["data"]
         displaced_vert_pos = self.list_data["displaced_vertex_positions"]["data"]
         pinned_vertices = self.list_data["pinned_vertex_positions"]["data"]
         unpinned_vertices = self.list_data["unpinned_vertex_positions"]["data"]
@@ -884,12 +903,11 @@ class ResponseAnalyzer(ProgressUpdate):
         all_displacements = self.list_data["calculated_displacements"]["data"]
         zero_mask_threshold = 1e-8
         moved_mask_threshold = 1e-10
-        print(f"Pinned Verts: {pinned_vertices.shape}\nDisplacemets: {all_displacements.shape}")
 
         # --- SET UP the figure, and axis ---
-        #fig = plt.figure(figsize=(10, 10))
-        #ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
-        fig, ax = plt.subplots(figsize=(16, 10))
+        fig = plt.figure(figsize=(10, 10))
+        ax = fig.add_axes((0, 0, 1, 1))  # span the whole figure
+        ##fig, ax = plt.subplots(figsize=(10, 10))
 
         # --- EDGES (TENSION VISUALIZATION FOR ALL EDGES) ---
         self.update_status(ProgressData(percent=10, sender="RGT", message=f"Plotting unpinned edges..."))
@@ -991,9 +1009,9 @@ class ResponseAnalyzer(ProgressUpdate):
         ax.set_xlim(vert_pos[:, 0].min() - buffer * x_range, vert_pos[:, 0].max() + buffer * x_range)
         ax.set_ylim(vert_pos[:, 1].min() - buffer * y_range, vert_pos[:, 1].max() + buffer * y_range)
 
-        fig.tight_layout()
-        plt.show()
-        return None
+        #fig.tight_layout()
+        #plt.show()
+        return fig
 
     def save_results_to_file(self) -> bool:
         """Save computed response data to a file."""
