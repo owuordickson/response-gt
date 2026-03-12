@@ -1,0 +1,7 @@
+include src/rgtlib/utils/*.ini
+include src/rgtlib/app/qml/*.qml
+include src/rgtlib/app/qml/assets/icons/*
+include src/rgtlib/app/qml/dialogs/*.qml
+include src/rgtlib/app/qml/layouts/*.qml
+include src/rgtlib/app/qml/Theme/*
+include src/rgtlib/app/qml/widgets/*.qml

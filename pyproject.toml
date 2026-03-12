@@ -17,25 +17,35 @@ dependencies = [
 ]
 requires-python = ">=3.12"
 authors = [
+  {name = "Dickson Owuor", email = "owuordickson@gmail.com"},
   {name = "	William Stephenson", email = "willste@umich.edu"},
   {name = "Xiaoming Mao", email = "maox@umich.edu"},
-  {name = "Dickson Owuor", email = "owuordickson@gmail.com"},
   {name = "Nicholas Kotov", email = "kotov@umich.edu"}
 ]
-
+maintainers = [
+  {name = "Dickson Owuor", email = "owuordickson@gmail.com"}
+]
 description = "A software tool for response analysis of graph networks."
 readme =  "README.md"
-license = {file = "LICENSE"}
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE*"]
 keywords = ["nano-particles", "nano-structures", "graph-theory"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
-  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
   "Operating System :: OS Independent",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering :: Artificial Intelligence"
 ]
+
+[project.urls]
+Homepage = "https://github.com/owuordickson/response-gt"
+COMPASS = "https://compass.engin.umich.edu/"
+# Documentation = "https://response-gt.readthedocs.io"
+Repository = "https://github.com/owuordickson/response-gt.git"
+"Bug Tracker" = "https://github.com/owuordickson/response-gt/issues"
+Changelog = "https://github.com/owuordickson/response-gt/blob/main/CHANGELOG.md"
 
 [project.scripts]
 ResponseGT = "rgtlib.entrypoints:main_gui"
