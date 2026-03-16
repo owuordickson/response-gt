@@ -28,7 +28,7 @@ ColumnLayout {
 
         Label {
             Layout.preferredWidth: lblWidthSize
-            text: "Pinned Direction:"
+            text: "Pinned Direction"
             font.pixelSize: 11
             color: Theme.blue
         }
@@ -58,7 +58,7 @@ ColumnLayout {
 
         Label {
             Layout.preferredWidth: lblWidthSize
-            text: "Displacement Direction:"
+            text: "Displacement Direction"
             font.pixelSize: 11
             color: Theme.blue
         }
@@ -87,7 +87,7 @@ ColumnLayout {
 
         Label {
             Layout.preferredWidth: lblWidthSize
-            text: "Displacement Vector:"
+            text: "Displacement Vector"
             font.pixelSize: 11
             color: Theme.blue
         }

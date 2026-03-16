@@ -13,11 +13,11 @@ ColumnLayout {
     visible: false
 
     property int dirValueRole: Qt.UserRole + 4
-    property int lblWidthSize: 80
+    property int lblWidthSize: 90
     property int rdoWidthSize: 75
     property int spbWidthSize: 95
     property int cmbWidthSize: 125
-    property int taWidthSize: 180
+    property int taWidthSize: 190
 
     Label {
         text: "Impose Potential"
@@ -116,7 +116,7 @@ ColumnLayout {
 
                             Label {
                                 Layout.preferredWidth: lblWidthSize
-                                text: model.text
+                                text: model.text + (model.id === 'selected_vertex_proportion' ? "\nwith Imposed Potential" : "")
                                 font.pixelSize: 9
                                 color: Theme.blue
                             }
@@ -170,7 +170,7 @@ ColumnLayout {
 
                     Label {
                         Layout.preferredWidth: lblWidthSize
-                        text: "Direction:"
+                        text: "Potential Direction"
                         font.pixelSize: 9
                         color: Theme.blue
                     }
@@ -307,7 +307,7 @@ ColumnLayout {
 
             Basic.RadioButton {
                 id: rdoFile
-                text: "File: "
+                text: "File "
                 Layout.preferredWidth: rdoWidthSize
                 ButtonGroup.group: btnGrpType
                 onClicked: btnGrpType.checkedButton = this

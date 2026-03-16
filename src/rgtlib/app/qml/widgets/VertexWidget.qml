@@ -36,7 +36,7 @@ ColumnLayout {
 
                 Label {
                     Layout.preferredWidth: lblWidthSize
-                    text: model.text
+                    text: model.text + '\nPinned/Displaced'
                     font.pixelSize: 11
                     color: Theme.blue
                 }
