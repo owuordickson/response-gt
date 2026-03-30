@@ -33,3 +33,14 @@ To run the GUI application, please follow these steps:
 ```bash
 ResponseGT
 ```
+
+
+## Contributors ✨
+
+Thanks go to these incredible people:
+
+<a href="https://github.com/owuordickson/response-gt/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=owuordickson/response-gt" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
