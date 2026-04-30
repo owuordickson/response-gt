@@ -1,4 +1,4 @@
-[![Downloads](https://pepy.tech/badge/sgtlib)](https://pepy.tech/project/rgtlib) [![Downloads](https://pepy.tech/badge/rgtlib/week)](https://pepy.tech/project/rgtlib)
+[![Downloads](https://pepy.tech/badge/rgtlib)](https://pepy.tech/project/rgtlib) [![Downloads](https://pepy.tech/badge/rgtlib/week)](https://pepy.tech/project/rgtlib)
 ![Dependents](https://badgen.net/github/dependents-repo/owuordickson/response-gt/?icon=github)
 ![Dependents](https://badgen.net/github/license/owuordickson/response-gt/?icon=github)
 
