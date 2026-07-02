@@ -7,7 +7,7 @@ A software package for computing electrical response properties of graph network
 
 
 # Project Details
-__version__ = "1.1.7"
+__version__ = "1.1.8"
 __install_version__ = "1.1.7"
 __title__ = "ResponseGT"
 __author__ = "William Stephenson and Dickson Owuor"

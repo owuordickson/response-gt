@@ -25,7 +25,7 @@ authors = [
 maintainers = [
   {name = "Dickson Owuor", email = "owuordickson@gmail.com"}
 ]
-description = "A software tool for response analysis of graph networks."
+description = "A Python library for response analysis of graph networks."
 readme =  "README.md"
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE*"]
