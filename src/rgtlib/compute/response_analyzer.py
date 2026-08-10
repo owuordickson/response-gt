@@ -5,6 +5,7 @@ Compute AC response metrics
 
 import re
 import os
+import pyamg
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -164,17 +165,20 @@ class ResponseAnalyzer(ProgressUpdate):
         Returns:
             True if the list parameters are successfully initialized, False otherwise.
         """
-        self.update_status(ProgressData(percent=10, sender="RGT",
-                                        message=f"Initializing response parameters...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=10, sender="RGT",
+                                        message=f"Initializing response parameters..."))
 
         # Check if data is read from CSV
         if self.list_data["vertex_positions"]["data"] is None:
-            self.update_status(ProgressData(type="error", sender="RGT",
-                                            message=f"Vertex positions are missing! Please upload them via a CSV file.")) if not silent else None
+            if not silent:
+                self.update_status(ProgressData(type="error", sender="RGT",
+                                            message=f"Vertex positions are missing! Please upload them via a CSV file."))
             return False
         if self.list_data["edge_list"]["data"] is None:
-            self.update_status(ProgressData(type="error", sender="RGT",
-                                            message=f"Edge list is missing! Please upload them via a CSV file.")) if not silent else None
+            if not silent:
+                self.update_status(ProgressData(type="error", sender="RGT",
+                                            message=f"Edge list is missing! Please upload them via a CSV file."))
             return False
 
         # Retrieve configs and all data
@@ -257,11 +261,15 @@ class ResponseAnalyzer(ProgressUpdate):
         self.update_status(ProgressData(percent=80, sender="RGT", message=f"Saving graph plot..."))
         self._network_img = plot_to_opencv(plt_fig) if plt_fig is not None else None
 
-    def compute_ac_response(self, silent: bool = False) -> tuple[None, None] | tuple[np.ndarray, np.ndarray]:
+    def compute_ac_response(self, use_amg: bool=False, silent: bool = False) -> tuple[None, None] | tuple[np.ndarray, np.ndarray]:
         """
         From my testing on square-lattice networks, this method has the time complexity of O(n^~1.4)
 
         Time complexity might increase significantly in networks with higher average node degree
+
+        :param use_amg: Whether to use Algebraic Multigrid Solvers (AMG) to compute ub_list. The default splsolve.
+
+        :param silent: Whether to hide progress bar and other messages. Default is False.
 
         :return: potential_response (as a numpy array), current_response (as a numpy array)
         """
@@ -360,7 +368,8 @@ class ResponseAnalyzer(ProgressUpdate):
             # vertex_list = np.array(vertex_list, dtype=int) # numpy array of vertices that have a forced potential casting to int in case given as float
             return given_potential_list, vertex_list
 
-        self.update_status(ProgressData(percent=1, sender="RGT", message=f"Computing AC response...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=1, sender="RGT", message=f"Computing AC response..."))
 
         # Initialize response parameters and parameter lists
         data_ok = self.init_list_data(silent=silent)
@@ -376,7 +385,8 @@ class ResponseAnalyzer(ProgressUpdate):
         ind_list = list_data["inductance_list"]["data"]
 
         # Apply imposing potentials by direction
-        self.update_status(ProgressData(percent=5, sender="RGT", message=f"Imposing response potential...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=5, sender="RGT", message=f"Imposing response potential..."))
         c_mat = incidence_matrix()                          # The incidence matrix of the network, where rows are directed edges and columns are vertices
         if list_data["given_potential_list"]["value"] == 1 and list_data["vertex_list"]["data"] is not None:
             ua_list = list_data["given_potential_list"]["data"]
@@ -391,7 +401,8 @@ class ResponseAnalyzer(ProgressUpdate):
         vb_vertices_count = int(vertices_count - va_vertices_count)  # number of vertices in vb_list
 
         # Compute admittance, dynamical and auxiliary matrices
-        self.update_status(ProgressData(percent=15, sender="RGT", message=f"Computing admittance, dynamical and auxiliary matrices...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=15, sender="RGT", message=f"Computing admittance, dynamical and auxiliary matrices..."))
         admittance_mat = diags(1 / (res_list + 1j * omega * ind_list))  # diags(1/(rho+1j*omega*inductance)*np.ones(len(edges))) #Y=(R+iwL)^-1, admittance matrix
         c_mat_transposed = c_mat.T                          # transpose of incidence matrix
         dynamical_mat = c_mat_transposed @ admittance_mat @ c_mat  # sparse version of the dynamical matrix
@@ -458,7 +469,8 @@ class ResponseAnalyzer(ProgressUpdate):
         dynamical_ba = csc_array((ba_vals, (ba_rows, ba_cols)), shape=(vb_vertices_count, va_vertices_count), dtype="complex")
         dynamical_bb = csc_array((bb_vals, (bb_rows, bb_cols)), shape=(vb_vertices_count, vb_vertices_count), dtype="complex")
 
-        self.update_status(ProgressData(percent=50, sender="RGT", message=f"Solving response equation...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=50, sender="RGT", message=f"Solving response equation..."))
         # Need to solve the equation -Dba ua = (Dbb - alpha I) ub
         # LHS = p_mat, RHS = q_mat.ub
         # calculating p_mat and q_mat:
@@ -466,11 +478,16 @@ class ResponseAnalyzer(ProgressUpdate):
         q_mat = dynamical_bb - diags(1j * omega * cap_list) - diags(1 / leak_res_list)
 
         # solving for u_b
-        ub_list = spsolve(q_mat, p_mat)
+        if use_amg:
+            ml = pyamg.smoothed_aggregation_solver(q_mat)
+            ub_list = ml.solve(p_mat, tol=1e-10)
+        else:
+            ub_list = spsolve(q_mat, p_mat)
 
-        self.update_status(ProgressData(percent=75, sender="RGT", message=f"Computing potential response...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=75, sender="RGT", message=f"Computing potential response..."))
         # calculating potential response
-        potential_response = np.zeros(vertices_count, dtype="complex")
+        potential_response: np.ndarray = np.zeros(vertices_count, dtype="complex")
 
         # splicing the 'a' and 'b' components of the response back into a single list
         for i in range(len(va_list)):
@@ -479,9 +496,10 @@ class ResponseAnalyzer(ProgressUpdate):
         for i in range(len(vb_list)):
             potential_response[vb_list[i]] = ub_list[i]
 
-        self.update_status(ProgressData(percent=85, sender="RGT", message=f"Computing current response...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=85, sender="RGT", message=f"Computing current response..."))
         # calculating current response
-        current_response = admittance_mat @ c_mat @ potential_response
+        current_response: np.ndarray = admittance_mat @ c_mat @ potential_response
 
         # Save computations
         self.list_data["calculated_vertex_potentials"]["data"] = potential_response
@@ -643,7 +661,8 @@ class ResponseAnalyzer(ProgressUpdate):
             num_edges = len(edge_list)
             return np.full(num_edges, k)
 
-        self.update_status(ProgressData(percent=1, sender="RGT", message=f"Computing Mechanical response...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=1, sender="RGT", message=f"Computing Mechanical response..."))
 
         # Initialize response parameters and parameter lists
         data_ok = self.init_list_data(silent=silent)
@@ -658,15 +677,18 @@ class ResponseAnalyzer(ProgressUpdate):
         vertex_positions = list_data["vertex_positions"]["data"]
 
         # 1. Constructing the compatibility matrix
-        self.update_status(ProgressData(percent=15, sender="RGT", message=f"Constructing compatibility matrix...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=15, sender="RGT", message=f"Constructing compatibility matrix..."))
         pinned_compat_mat, unpinned_vert_pos, unpinned_edge_lst, edge_lst_mask = pinned_compatibility_matrix()
 
         # 2. Applying the load to network
-        self.update_status(ProgressData(percent=30, sender="RGT", message=f"Applying load to network...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=30, sender="RGT", message=f"Applying load to network..."))
         v_dof_arr, u_disp_vec, displaced_vert_pos = get_imposed_displacements(unpinned_vert_pos)
 
         # 3. Computing mechanical response
-        self.update_status(ProgressData(percent=50, sender="RGT", message=f"Computing mechanical response...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=50, sender="RGT", message=f"Computing mechanical response..."))
         c_mat = (csr_matrix(pinned_compat_mat)).T
         n_total = c_mat.shape[0]
 
@@ -690,7 +712,8 @@ class ResponseAnalyzer(ProgressUpdate):
         f_a = (daa @ u_disp_vec) + (dab @ u_b)
 
         # Reshape forces to 2D
-        self.update_status(ProgressData(percent=75, sender="RGT", message=f"Computing tension and displacements...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=75, sender="RGT", message=f"Computing tension and displacements..."))
         f_a_2d = f_a.reshape(-1, 2)
         total_applied_force = np.sum(f_a_2d, axis=0)
 
@@ -709,7 +732,8 @@ class ResponseAnalyzer(ProgressUpdate):
                 pinned_vert_list.append(v)
         pinned_vert_pos = np.array(pinned_vert_list)
 
-        self.update_status(ProgressData(percent=85, sender="RGT", message=f"Saving results...")) if not silent else None
+        if not silent:
+            self.update_status(ProgressData(percent=85, sender="RGT", message=f"Saving results..."))
         print("Total applied force:", total_applied_force)
         # Save results
         self.list_data["pinned_vertex_positions"]["data"] = pinned_vert_pos
@@ -735,7 +759,7 @@ class ResponseAnalyzer(ProgressUpdate):
         self.list_data["calculated_active_tensions"]["value"] = 1
         return all_displacements, all_tensions
 
-    def plot_electrical_response(self, graph_type: str = "all", show_current_phase: bool = None, vertex_marker_size: float = None, edge_line_width: float = None, show_color_wheel: bool = None, phase_labels: dict = None) -> None | plt.Figure:
+    def plot_electrical_response(self, graph_type: str = "all", show_current_phase: bool|None = None, vertex_marker_size: float|None = None, edge_line_width: float|None = None, show_color_wheel: bool|None = None, phase_labels: dict|None = None) -> None | plt.Figure:
         """
         Draws the graph of an electrical response network.
         """
@@ -786,7 +810,7 @@ class ResponseAnalyzer(ProgressUpdate):
                 edge_collection = LineCollection(edge_segments, colors="0", linewidths=edge_lw * cur_mags_normalized)
             ax.add_collection(edge_collection)
 
-        def plot_color_wheel(phase_angle_labels: dict = None):
+        def plot_color_wheel(phase_angle_labels: dict|None = None):
             """Plot color wheel."""
             # Create the color-wheel legend
             ax_color = fig.add_axes((0.75, 0.15, 0.15, 0.15), projection='polar')  # this vector is x-position, y-position, width, height of color-wheel
