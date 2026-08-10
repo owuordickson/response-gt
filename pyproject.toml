@@ -6,13 +6,13 @@ build-backend = "setuptools.build_meta"
 name = "rgtlib"
 dynamic = ["version"]
 dependencies = [
-  "numpy==2.2.6",
-  "pandas==2.3.2",
-  "scipy==1.16.2",
-  "pillow~=11.3.0",
-  "PySide6==6.9.2",
-  "matplotlib~=3.10.6",
-  "opencv-python>=4.12.0",
+  "numpy==2.4.6",
+  "pandas==3.0.3",
+  "scipy==1.17.1",
+  "pillow~=12.2.0",
+  "PySide6==6.11.1",
+  "matplotlib~=3.10.9",
+  "opencv-python>=4.13.0",
   "sgtlib==3.8.5",
   "pyamg==5.3.0",
 ]
@@ -33,8 +33,7 @@ license-files = ["LICENSE*"]
 keywords = ["nano-particles", "nano-structures", "graph-theory"]
 classifiers = [
   "Development Status :: 4 - Beta",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Operating System :: OS Independent",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering :: Artificial Intelligence"
